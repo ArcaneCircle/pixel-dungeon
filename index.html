@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <script src="webxdc.js"></script>
+
+    <link href="./styles.css" rel="stylesheet" />
+    <script src="soundmanager2-setup.js"></script>
+    <script src="soundmanager2-jsmin.js"></script>
+  </head>
+
+  <body>
+    <div align="center" id="embed-html"></div>
+    <script type="module" src="./main.js"></script>
+  </body>
+
+  <script>
+    function handleMouseDown(evt) {
+      evt.preventDefault();
+      evt.stopPropagation();
+      evt.target.style.cursor = "default";
+    }
+
+    function handleMouseUp(evt) {
+      evt.preventDefault();
+      evt.stopPropagation();
+      evt.target.style.cursor = "";
+    }
+    document
+      .getElementById("embed-html")
+      .addEventListener("mousedown", handleMouseDown, false);
+    document
+      .getElementById("embed-html")
+      .addEventListener("mouseup", handleMouseUp, false);
+  </script>
+</html>
