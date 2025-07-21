@@ -3,6 +3,6 @@ import { defineConfig } from "vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-    plugins: [buildXDC(), eruda(), mockWebxdc()],
-    appType: 'mpa', // return 404 on invalid URLs
+  plugins: [buildXDC(), eruda(), mockWebxdc()],
+  appType: "mpa", // return 404 on invalid URLs
 });
