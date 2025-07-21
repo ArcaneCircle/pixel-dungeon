@@ -1,0 +1,26 @@
+canvas {
+  cursor: default;
+  outline: none;
+  display: block;
+}
+
+body {
+  background-color: #000000;
+  margin: 0px;
+  padding: 0px;
+}
+
+table {
+  border-collapse: collapse;
+  margin: 0px;
+  padding: 0px;
+  border-spacing: 0px;
+  /* width: 0px; */
+  /* height: 0px; */
+}
+
+td {
+  padding: 0;
+  margin: 0;
+  border-collapse: collapse;
+}

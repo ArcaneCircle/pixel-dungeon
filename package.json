@@ -4,12 +4,13 @@
   "scripts": {
     "start": "vite --port 3000",
     "fix": "prettier --write .",
-    "check": "prettier --check .",
-    "build": "vite build"
+    "check": "tsc && prettier --check .",
+    "build": "tsc && vite build"
   },
   "devDependencies": {
     "@webxdc/vite-plugins": "latest",
     "prettier": "latest",
+    "typescript": "latest",
     "vite": "latest"
   }
 }
