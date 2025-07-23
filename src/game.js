@@ -35115,7 +35115,11 @@ function dpf(a, b) {
 function Xac(a) {
   var b, c, d;
   for (
-    b = (a.j == null && (a.j = StackTraceCreator_constructJavaStackTrace(a)), a.j), c = 0, d = b.length;
+    b =
+      (a.j == null && (a.j = StackTraceCreator_constructJavaStackTrace(a)),
+      a.j),
+      c = 0,
+      d = b.length;
     c < d;
     ++c
   );
@@ -52786,7 +52790,11 @@ function Md(a) {
   var b, c, d, e, f;
   b = new cZh();
   for (
-    d = (a.j == null && (a.j = StackTraceCreator_constructJavaStackTrace(a)), a.j), e = 0, f = d.length;
+    d =
+      (a.j == null && (a.j = StackTraceCreator_constructJavaStackTrace(a)),
+      a.j),
+      e = 0,
+      f = d.length;
     e < f;
     ++e
   ) {
@@ -58006,7 +58014,10 @@ function Runtime_defineClass(a, b, c) {
   if (e && !f) {
     _ = e;
   } else {
-    _ = ((h = b && b.prototype), !h && (h = Runtime_prototypesByTypeId[b]), f_f(h));
+    _ =
+      ((h = b && b.prototype),
+      !h && (h = Runtime_prototypesByTypeId[b]),
+      f_f(h));
     _.Qeb = c;
     !b && (_.Reb = h_f);
     d[a] = _;
@@ -370199,7 +370210,21 @@ var Ksf = Class_createForClass(
 Runtime_defineClass(Jci, 1, { 1069: 1 }, sn);
 var Lsf = Class_createForClass(Nbi, "VertexAttributes/Usage", Jci, WXf);
 var Nsf = xWh(Kci, "Batch");
-Runtime_defineClass(148, 1, { 148: 1, 76: 1 }, yn, zn, An, Bn, Cn, Dn, En, Fn, Gn, Hn);
+Runtime_defineClass(
+  148,
+  1,
+  { 148: 1, 76: 1 },
+  yn,
+  zn,
+  An,
+  Bn,
+  Cn,
+  Dn,
+  En,
+  Fn,
+  Gn,
+  Hn,
+);
 _.qc = function In() {
   var a;
   if (this.e) {
@@ -373651,7 +373676,13 @@ _.w = 4;
 _.A = 0;
 _.B = 0;
 var zuf = Class_createForClass(Jfi, Kfi, 776, kuf);
-Runtime_defineClass(407, 776, { 108: 1, 93: 1, 776: 1, 407: 1, 76: 1, 84: 1 }, ZE, $E);
+Runtime_defineClass(
+  407,
+  776,
+  { 108: 1, 93: 1, 776: 1, 407: 1, 76: 1, 84: 1 },
+  ZE,
+  $E,
+);
 _.ej = function _E(a, b) {
   RE(this, a, b);
 };
@@ -373763,7 +373794,12 @@ _.Jj = function DF() {
   this.e = MA(this.C.i, (DB(), qB), null);
 };
 var Euf = Class_createForClass(Tfi, "ColorInfluencer", 777, Quf);
-Runtime_defineClass(606, 777, { 108: 1, 93: 1, 777: 1, 606: 1, 123: 1, 76: 1, 84: 1 }, EF);
+Runtime_defineClass(
+  606,
+  777,
+  { 108: 1, 93: 1, 777: 1, 606: 1, 123: 1, 76: 1, 84: 1 },
+  EF,
+);
 _.Kj = function HF() {
   return new EF();
 };
@@ -373783,7 +373819,13 @@ _.wk = function IF() {
   return new EF();
 };
 var Cuf = Class_createForClass(Tfi, "ColorInfluencer/Random", 606, Euf);
-Runtime_defineClass(409, 777, { 108: 1, 93: 1, 777: 1, 409: 1, 123: 1, 76: 1, 84: 1 }, JF, KF);
+Runtime_defineClass(
+  409,
+  777,
+  { 108: 1, 93: 1, 777: 1, 409: 1, 123: 1, 76: 1, 84: 1 },
+  JF,
+  KF,
+);
 _.Kj = function NF() {
   return new KF(this);
 };
@@ -373839,7 +373881,14 @@ _.Ij = function SF(a) {
   sSb(a, Vfi, this.c);
 };
 var Duf = Class_createForClass(Tfi, "ColorInfluencer/Single", 409, Euf);
-Runtime_defineClass(367, 123, { 108: 1, 93: 1, 367: 1, 123: 1, 76: 1, 84: 1 }, TF, UF, VF);
+Runtime_defineClass(
+  367,
+  123,
+  { 108: 1, 93: 1, 367: 1, 123: 1, 76: 1, 84: 1 },
+  TF,
+  UF,
+  VF,
+);
 _.Kj = function YF() {
   return new UF(this);
 };
@@ -373985,7 +374034,15 @@ _.Ij = function nG(a) {
 _.i = false;
 var dG, eG, fG, gG;
 var Puf = Class_createForClass(Tfi, "DynamicsModifier", 218, Quf);
-Runtime_defineClass(200, 218, { 108: 1, 93: 1, 218: 1, 200: 1, 123: 1, 76: 1, 84: 1 });
+Runtime_defineClass(200, 218, {
+  108: 1,
+  93: 1,
+  218: 1,
+  200: 1,
+  123: 1,
+  76: 1,
+  84: 1,
+});
 _.ej = function sG(a, b) {
   oG(this, a, b);
 };
@@ -374001,7 +374058,16 @@ _.Ij = function vG(a) {
   sSb(a, Zfi, this.g);
 };
 var Nuf = Class_createForClass(Tfi, "DynamicsModifier/Strength", 200, Puf);
-Runtime_defineClass(273, 200, { 108: 1, 93: 1, 218: 1, 273: 1, 200: 1, 123: 1, 76: 1, 84: 1 });
+Runtime_defineClass(273, 200, {
+  108: 1,
+  93: 1,
+  218: 1,
+  273: 1,
+  200: 1,
+  123: 1,
+  76: 1,
+  84: 1,
+});
 _.ej = function zG(a, b) {
   var c, d, e, f;
   oG(this, a, b);
@@ -374133,7 +374199,13 @@ var Iuf = Class_createForClass(
   483,
   Nuf,
 );
-Runtime_defineClass(607, 218, { 108: 1, 93: 1, 218: 1, 607: 1, 123: 1, 76: 1, 84: 1 }, PG, QG);
+Runtime_defineClass(
+  607,
+  218,
+  { 108: 1, 93: 1, 218: 1, 607: 1, 123: 1, 76: 1, 84: 1 },
+  PG,
+  QG,
+);
 _.Jj = function RG() {
   this.b = MA(this.C.i, (DB(), zB), null);
   this.a = MA(this.C.i, nB, null);
@@ -374413,7 +374485,12 @@ _.oj = function LH() {
   }
 };
 var Tuf = Class_createForClass(Tfi, "ModelInfluencer/Single", 411, Uuf);
-Runtime_defineClass(609, 123, { 108: 1, 93: 1, 123: 1, 609: 1, 76: 1, 84: 1 }, MH);
+Runtime_defineClass(
+  609,
+  123,
+  { 108: 1, 93: 1, 123: 1, 609: 1, 76: 1, 84: 1 },
+  MH,
+);
 _.Kj = function OH() {
   return new MH();
 };
@@ -374814,7 +374891,13 @@ _.Ij = function tJ(a) {
   sSb(a, hgi, this.c);
 };
 var evf = Class_createForClass(Tfi, "SimpleInfluencer", 488, Quf);
-Runtime_defineClass(610, 488, { 108: 1, 93: 1, 123: 1, 610: 1, 488: 1, 76: 1, 84: 1 }, uJ, vJ);
+Runtime_defineClass(
+  610,
+  488,
+  { 108: 1, 93: 1, 123: 1, 610: 1, 488: 1, 76: 1, 84: 1 },
+  uJ,
+  vJ,
+);
 _.ej = function wJ(a, b) {
   var c, d, e, f, g;
   if (this.c.c) {
@@ -374847,7 +374930,14 @@ _.Kj = function xJ() {
   return new vJ(this);
 };
 var dvf = Class_createForClass(Tfi, igi, 610, evf);
-Runtime_defineClass(414, 123, { 108: 1, 93: 1, 123: 1, 414: 1, 76: 1, 84: 1 }, yJ, zJ, AJ);
+Runtime_defineClass(
+  414,
+  123,
+  { 108: 1, 93: 1, 123: 1, 414: 1, 76: 1, 84: 1 },
+  yJ,
+  zJ,
+  AJ,
+);
 _.Kj = function DJ() {
   return new zJ(this);
 };
@@ -374909,7 +374999,13 @@ _.ri = function RJ() {
   null.Seb();
 };
 var mvf = Class_createForClass(lgi, "ParticleControllerRenderer", 331, kuf);
-Runtime_defineClass(489, 331, { 108: 1, 93: 1, 489: 1, 331: 1, 76: 1, 84: 1 }, SJ, TJ);
+Runtime_defineClass(
+  489,
+  331,
+  { 108: 1, 93: 1, 489: 1, 331: 1, 76: 1, 84: 1 },
+  SJ,
+  TJ,
+);
 _.Jj = function UJ() {
   this.e.f = MA(this.C.i, (DB(), wB), null);
   this.e.b = MA(this.C.i, BB, (!PB && (PB = new RB()), PB));
@@ -374926,7 +375022,13 @@ _.Vk = function WJ(a) {
 var hvf = Class_createForClass(lgi, ngi, 489, mvf);
 Runtime_defineClass(780, 611, { 780: 1, 611: 1 }, XJ);
 var ivf = Class_createForClass(lgi, ogi, 780, lvf);
-Runtime_defineClass(490, 331, { 108: 1, 93: 1, 490: 1, 331: 1, 76: 1, 84: 1 }, YJ, ZJ);
+Runtime_defineClass(
+  490,
+  331,
+  { 108: 1, 93: 1, 490: 1, 331: 1, 76: 1, 84: 1 },
+  YJ,
+  ZJ,
+);
 _.Jj = function $J() {
   this.e.f = MA(this.C.i, (DB(), wB), null);
 };
@@ -374986,7 +375088,12 @@ _.a = false;
 _.b = false;
 _.c = false;
 var jvf = Class_createForClass(lgi, pgi, 490, mvf);
-Runtime_defineClass(781, 331, { 108: 1, 93: 1, 781: 1, 331: 1, 76: 1, 84: 1 }, dK);
+Runtime_defineClass(
+  781,
+  331,
+  { 108: 1, 93: 1, 781: 1, 331: 1, 76: 1, 84: 1 },
+  dK,
+);
 _.Kj = function eK() {
   return new dK();
 };
@@ -375006,7 +375113,13 @@ _.ri = function hK() {
 var kvf = Class_createForClass(lgi, qgi, 781, mvf);
 Runtime_defineClass(782, 611, { 611: 1, 782: 1 }, iK);
 var nvf = Class_createForClass(lgi, rgi, 782, lvf);
-Runtime_defineClass(491, 331, { 108: 1, 93: 1, 331: 1, 491: 1, 76: 1, 84: 1 }, jK, kK);
+Runtime_defineClass(
+  491,
+  331,
+  { 108: 1, 93: 1, 331: 1, 491: 1, 76: 1, 84: 1 },
+  jK,
+  kK,
+);
 _.Jj = function lK() {
   this.e.f = MA(this.C.i, (DB(), wB), null);
   this.e.b = MA(this.C.i, BB, (!PB && (PB = new RB()), PB));
@@ -375113,7 +375226,13 @@ _.j = 0;
 _.k = 0;
 var KK;
 var zvf = Class_createForClass(tgi, "PrimitiveSpawnShapeValue", 201, Dvf);
-Runtime_defineClass(612, 201, { 93: 1, 612: 1, 188: 1, 201: 1, 211: 1, 84: 1 }, bL, cL);
+Runtime_defineClass(
+  612,
+  201,
+  { 93: 1, 612: 1, 188: 1, 201: 1, 211: 1, 84: 1 },
+  bL,
+  cL,
+);
 _.$k = function dL() {
   return new cL(this);
 };
@@ -375147,7 +375266,13 @@ _.al = function eL(a, b) {
   );
 };
 var pvf = Class_createForClass(tgi, Bgi, 612, zvf);
-Runtime_defineClass(613, 201, { 93: 1, 613: 1, 188: 1, 201: 1, 211: 1, 84: 1 }, hL, iL);
+Runtime_defineClass(
+  613,
+  201,
+  { 93: 1, 613: 1, 188: 1, 201: 1, 211: 1, 84: 1 },
+  hL,
+  iL,
+);
 _.$k = function jL() {
   return new iL(this);
 };
@@ -375257,7 +375382,13 @@ _.Ij = function DL(a) {
 };
 var qL;
 var rvf = Class_createForClass(tgi, Hgi, 778, wvf);
-Runtime_defineClass(614, 201, { 93: 1, 614: 1, 188: 1, 201: 1, 211: 1, 84: 1 }, EL, FL);
+Runtime_defineClass(
+  614,
+  201,
+  { 93: 1, 614: 1, 188: 1, 201: 1, 211: 1, 84: 1 },
+  EL,
+  FL,
+);
 _.$k = function GL() {
   return new FL(this);
 };
@@ -375336,7 +375467,13 @@ _.Ij = function ZL(a) {
 };
 _.a = 0;
 var vvf = Class_createForClass(tgi, Kgi, Jgi, wvf);
-Runtime_defineClass(492, 201, { 93: 1, 188: 1, 492: 1, 201: 1, 211: 1, 84: 1 }, $L, _L);
+Runtime_defineClass(
+  492,
+  201,
+  { 93: 1, 188: 1, 492: 1, 201: 1, 211: 1, 84: 1 },
+  $L,
+  _L,
+);
 _.$k = function aM() {
   return new _L(this);
 };
@@ -375393,7 +375530,13 @@ _.Ij = function AM(a) {
 _.f = 0;
 _.g = 0;
 var Avf = Class_createForClass(tgi, Ngi, 332, wvf);
-Runtime_defineClass(616, 201, { 93: 1, 188: 1, 201: 1, 616: 1, 211: 1, 84: 1 }, BM, CM);
+Runtime_defineClass(
+  616,
+  201,
+  { 93: 1, 188: 1, 201: 1, 616: 1, 211: 1, 84: 1 },
+  BM,
+  CM,
+);
 _.$k = function DM() {
   return new CM(this);
 };
@@ -375509,7 +375652,13 @@ _.a = 0;
 _.b = 0;
 _.c = false;
 var Cvf = Class_createForClass(tgi, Pgi, 175, Avf);
-Runtime_defineClass(617, 372, { 93: 1, 372: 1, 188: 1, 211: 1, 617: 1, 84: 1 }, _M, aN);
+Runtime_defineClass(
+  617,
+  372,
+  { 93: 1, 372: 1, 188: 1, 211: 1, 617: 1, 84: 1 },
+  _M,
+  aN,
+);
 _.$k = function bN() {
   return new aN(this);
 };
@@ -375567,7 +375716,13 @@ _.c = 0;
 _.d = 0;
 _.e = 0;
 var Evf = Class_createForClass(tgi, Qgi, 617, uvf);
-Runtime_defineClass(618, 372, { 93: 1, 372: 1, 188: 1, 211: 1, 618: 1, 84: 1 }, fN, gN);
+Runtime_defineClass(
+  618,
+  372,
+  { 93: 1, 372: 1, 188: 1, 211: 1, 618: 1, 84: 1 },
+  fN,
+  gN,
+);
 _.Rl = function hN() {
   eN(this);
 };
@@ -381645,7 +381800,14 @@ _.UA = function Plb(a, b, c, d) {};
 _.VA = function Qlb(a, b, c, d, e) {};
 var Dlb;
 var Pxf = Class_createForClass(Jji, _ji, 139, WXf);
-Runtime_defineClass(421, J9h, { 1101: 1, 966: 1, 421: 1, 76: 1 }, mmb, nmb, omb);
+Runtime_defineClass(
+  421,
+  J9h,
+  { 1101: 1, 966: 1, 421: 1, 76: 1 },
+  mmb,
+  nmb,
+  omb,
+);
 _.WA = function pmb() {
   Slb(this, $wnd.Math.min(fc.d, 0.03333333333333333));
 };
@@ -382312,7 +382474,15 @@ _.Kz = function vpb(a) {
   return this.a.f;
 };
 var ayf = Class_createForClass(iki, "EventAction/1", vki, WXf);
-Runtime_defineClass(501, 187, { 114: 1, 501: 1, 187: 1, 96: 1 }, wpb, xpb, ypb, zpb);
+Runtime_defineClass(
+  501,
+  187,
+  { 114: 1, 501: 1, 187: 1, 96: 1 },
+  wpb,
+  xpb,
+  ypb,
+  zpb,
+);
 _.kh = function Apb() {
   this.c = this.b;
 };
@@ -382345,7 +382515,15 @@ _.a = 0;
 _.b = 0;
 _.c = 0;
 var cyf = Class_createForClass(iki, wki, 501, vyf);
-Runtime_defineClass(502, 187, { 114: 1, 502: 1, 187: 1, 96: 1 }, Ipb, Jpb, Kpb, Lpb);
+Runtime_defineClass(
+  502,
+  187,
+  { 114: 1, 502: 1, 187: 1, 96: 1 },
+  Ipb,
+  Jpb,
+  Kpb,
+  Lpb,
+);
 _.kh = function Mpb() {
   this.c = this.b;
 };
@@ -382493,7 +382671,17 @@ _.c = 0;
 _.d = 0;
 _.e = 0;
 var gyf = Class_createForClass(iki, Dki, Cki, vyf);
-Runtime_defineClass(219, 114, { 114: 1, 219: 1, 96: 1 }, zqb, Aqb, Bqb, Cqb, Dqb, Eqb);
+Runtime_defineClass(
+  219,
+  114,
+  { 114: 1, 219: 1, 96: 1 },
+  zqb,
+  Aqb,
+  Bqb,
+  Cqb,
+  Dqb,
+  Eqb,
+);
 _.Xx = function Fqb(a) {
   var b, c, d, e, f;
   if (this.c) return true;
@@ -382767,7 +382955,17 @@ _.b = 0;
 _.c = 0;
 _.d = 0;
 var ryf = Class_createForClass(iki, Vki, Uki, vyf);
-Runtime_defineClass(375, 219, { 114: 1, 219: 1, 375: 1, 96: 1 }, Rrb, Srb, Trb, Urb, Vrb, Wrb);
+Runtime_defineClass(
+  375,
+  219,
+  { 114: 1, 219: 1, 375: 1, 96: 1 },
+  Rrb,
+  Srb,
+  Trb,
+  Urb,
+  Vrb,
+  Wrb,
+);
 _.Xx = function Xrb(a) {
   var b;
   if (this.a >= this.b.i) return true;
@@ -382892,7 +383090,13 @@ _.im = function xsb(a) {
 _.a = false;
 var yyf = Class_createForClass(iki, eli, dli, Ixf);
 var aBf = xWh(Mji, "Layout");
-Runtime_defineClass(125, 115, { 104: 1, 115: 1, 125: 1, 161: 1, 69: 1 }, Dsb, Esb);
+Runtime_defineClass(
+  125,
+  115,
+  { 104: 1, 115: 1, 125: 1, 161: 1, 69: 1 },
+  Dsb,
+  Esb,
+);
 _.Rz = function Fsb() {
   zsb(this);
 };
@@ -385359,7 +385563,12 @@ _.bm = function nFb() {
   this.a.a.b = false;
 };
 var Kyf = Class_createForClass(fli, "Dialog/4/1", $li, WXf);
-Runtime_defineClass(ami, 125, { 104: 1, 115: 1, 1129: 1, 125: 1, 161: 1, 69: 1 }, qFb);
+Runtime_defineClass(
+  ami,
+  125,
+  { 104: 1, 115: 1, 1129: 1, 125: 1, 161: 1, 69: 1 },
+  qFb,
+);
 _.GJ = function rFb(a) {
   this.a = a;
   return this;
@@ -385969,7 +386178,16 @@ var Qyf = Class_createForClass(
   426,
   Mzf,
 );
-Runtime_defineClass(171, 177, { 104: 1, 171: 1, 177: 1, 69: 1 }, rIb, sIb, tIb, uIb, vIb);
+Runtime_defineClass(
+  171,
+  177,
+  { 104: 1, 171: 1, 177: 1, 69: 1 },
+  rIb,
+  sIb,
+  tIb,
+  uIb,
+  vIb,
+);
 _.GK = function wIb(a) {
   gIb(this, a);
 };
@@ -386474,7 +386692,14 @@ _.c = 0;
 _.d = false;
 _.f = false;
 var Zyf = Class_createForClass(fli, mmi, 632, Jxf);
-Runtime_defineClass(339, 177, { 104: 1, 339: 1, 177: 1, 257: 1, 69: 1 }, wKb, xKb, yKb);
+Runtime_defineClass(
+  339,
+  177,
+  { 104: 1, 339: 1, 177: 1, 257: 1, 69: 1 },
+  wKb,
+  xKb,
+  yKb,
+);
 _.dy = function zKb(a) {
   hgb(this, a);
   this.k > 0 && (this.k -= a);
@@ -387300,7 +387525,14 @@ _.SA = function eOb(a, b, c, d, e) {
 var czf = Class_createForClass(fli, "ScrollPane/3", Ami, Pxf);
 Runtime_defineClass(427, 1, { 427: 1 }, fOb, gOb, hOb);
 var dzf = Class_createForClass(fli, "ScrollPane/ScrollPaneStyle", 427, WXf);
-Runtime_defineClass(429, 177, { 104: 1, 429: 1, 177: 1, 257: 1, 69: 1 }, sOb, tOb, uOb);
+Runtime_defineClass(
+  429,
+  177,
+  { 104: 1, 429: 1, 177: 1, 257: 1, 69: 1 },
+  sOb,
+  tOb,
+  uOb,
+);
 _._K = function vOb() {
   if (this.d.i == 0) return;
   n6b(this.d);
@@ -387722,7 +387954,12 @@ _.TA = function iQb(a, b, c, d, e) {
   return true;
 };
 var gzf = Class_createForClass(fli, "SelectBox/2", Hmi, MAf);
-Runtime_defineClass(634, 281, { 104: 1, 115: 1, 281: 1, 634: 1, 125: 1, 161: 1, 69: 1 }, lQb);
+Runtime_defineClass(
+  634,
+  281,
+  { 104: 1, 115: 1, 281: 1, 634: 1, 125: 1, 161: 1, 69: 1 },
+  lQb,
+);
 _.dy = function mQb(a) {
   jLb(this, a);
   Zgb(this, v9h);
@@ -388343,7 +388580,14 @@ _.FQ = function sUb(a, b, c) {
 var szf = Class_createForClass(fli, "Skin/5", oni, IBf);
 Runtime_defineClass(pni, 1, { 1132: 1 }, tUb);
 var tzf = Class_createForClass(fli, "Skin/TintedDrawable", pni, WXf);
-Runtime_defineClass(430, 339, { 104: 1, 339: 1, 430: 1, 177: 1, 257: 1, 69: 1 }, xUb, yUb, zUb);
+Runtime_defineClass(
+  430,
+  339,
+  { 104: 1, 339: 1, 430: 1, 177: 1, 257: 1, 69: 1 },
+  xUb,
+  yUb,
+  zUb,
+);
 _.ML = function FUb() {
   return this.u;
 };
@@ -388438,7 +388682,14 @@ _.VA = function TUb(a, b, c, d, e) {
 var vzf = Class_createForClass(fli, "Slider/1", rni, Pxf);
 Runtime_defineClass(636, 377, { 377: 1, 636: 1 }, UUb, VUb, WUb);
 var wzf = Class_createForClass(fli, "Slider/SliderStyle", 636, $yf);
-Runtime_defineClass(431, 125, { 104: 1, 115: 1, 431: 1, 125: 1, 161: 1, 69: 1 }, dVb, eVb, fVb);
+Runtime_defineClass(
+  431,
+  125,
+  { 104: 1, 115: 1, 431: 1, 125: 1, 161: 1, 69: 1 },
+  dVb,
+  eVb,
+  fVb,
+);
 _.Lz = function gVb(a) {
   throw w$f(new mZh(sni));
 };
@@ -388658,7 +388909,13 @@ _.a = -1;
 var yzf = Class_createForClass(fli, "SplitPane/1", uni, Pxf);
 Runtime_defineClass(637, 1, { 637: 1 }, OVb, PVb, QVb);
 var zzf = Class_createForClass(fli, "SplitPane/SplitPaneStyle", 637, WXf);
-Runtime_defineClass(507, 125, { 104: 1, 115: 1, 507: 1, 125: 1, 161: 1, 69: 1 }, SVb, TVb);
+Runtime_defineClass(
+  507,
+  125,
+  { 104: 1, 115: 1, 507: 1, 125: 1, 161: 1, 69: 1 },
+  SVb,
+  TVb,
+);
 _.bR = function UVb(a) {
   Cjb(this, a);
 };
@@ -388760,7 +389017,14 @@ var GWb;
 Runtime_defineClass(Gni, 166, { 166: 1, 719: 1, 1133: 1, 3: 1 }, KWb);
 var IWb;
 var Hzf = Class_createForClass(fli, "Table/DebugRect", Gni, txf);
-Runtime_defineClass(262, 177, { 104: 1, 262: 1, 177: 1, 257: 1, 69: 1 }, jXb, kXb, lXb);
+Runtime_defineClass(
+  262,
+  177,
+  { 104: 1, 262: 1, 177: 1, 257: 1, 69: 1 },
+  jXb,
+  kXb,
+  lXb,
+);
 _.fR = function mXb(a) {
   a == null && (a = "");
   this.w = false;
@@ -389085,7 +389349,14 @@ var LWb = xii,
   OWb,
   PWb;
 var Xzf = Class_createForClass(fli, Jni, 262, AAf);
-Runtime_defineClass(638, 262, { 104: 1, 638: 1, 262: 1, 177: 1, 257: 1, 69: 1 }, DYb, EYb, FYb);
+Runtime_defineClass(
+  638,
+  262,
+  { 104: 1, 638: 1, 262: 1, 177: 1, 257: 1, 69: 1 },
+  DYb,
+  EYb,
+  FYb,
+);
 _.fS = function GYb(a) {
   QWb();
   return wYb(this, a);
@@ -389578,7 +389849,17 @@ _.a = false;
 _.c = false;
 var PZb;
 var dAf = Class_createForClass(fli, Oni, 432, Pxf);
-Runtime_defineClass(246, 432, { 121: 1, 139: 1, 246: 1, 432: 1 }, g$b, h$b, i$b, j$b, k$b, l$b);
+Runtime_defineClass(
+  246,
+  432,
+  { 121: 1, 139: 1, 246: 1, 432: 1 },
+  g$b,
+  h$b,
+  i$b,
+  j$b,
+  k$b,
+  l$b,
+);
 _.JH = function m$b(a, b) {
   return e$b(a, b);
 };
@@ -389756,7 +390037,14 @@ _.VA = function m_b(a, b, c, d, e) {
 var eAf = Class_createForClass(fli, "Touchpad/1", Yni, Pxf);
 Runtime_defineClass(642, 1, { 642: 1 }, n_b, o_b, p_b);
 var fAf = Class_createForClass(fli, "Touchpad/TouchpadStyle", 642, WXf);
-Runtime_defineClass(434, 125, { 104: 1, 115: 1, 434: 1, 125: 1, 161: 1, 69: 1 }, G_b, H_b, I_b);
+Runtime_defineClass(
+  434,
+  125,
+  { 104: 1, 115: 1, 434: 1, 125: 1, 161: 1, 69: 1 },
+  G_b,
+  H_b,
+  I_b,
+);
 _.XS = function J_b(a) {
   B_b(this, this.o.i, a);
 };
@@ -390051,7 +390339,12 @@ _.Nb = function n1b() {
 _.a = 0;
 var j1b;
 var wAf = Class_createForClass(fli, "Value/Fixed", 435, xAf);
-Runtime_defineClass(loi, 125, { 104: 1, 115: 1, 1135: 1, 125: 1, 161: 1, 69: 1 }, r1b);
+Runtime_defineClass(
+  loi,
+  125,
+  { 104: 1, 115: 1, 1135: 1, 125: 1, 161: 1, 69: 1 },
+  r1b,
+);
 _.JT = function s1b(a) {
   this.a = a;
   return this;
@@ -390923,7 +391216,14 @@ var ZAf = Class_createForEnum(
 );
 var _4b;
 var hBf = xWh(Mji, "TransformDrawable");
-Runtime_defineClass(263, 234, { 234: 1, 969: 1, 263: 1, 970: 1 }, d5b, e5b, f5b);
+Runtime_defineClass(
+  263,
+  234,
+  { 234: 1, 969: 1, 263: 1, 970: 1 },
+  d5b,
+  e5b,
+  f5b,
+);
 _.Jf = function g5b(a, b, c, d, e) {
   Uq(this.a, a, b, c, d, e);
 };
@@ -390943,7 +391243,14 @@ var bBf = Class_createForClass(Mji, Goi, 263, JAf);
 Runtime_defineClass(Hoi, 1, { 1140: 1 }, p5b);
 var l5b, m5b, n5b;
 var cBf = Class_createForClass(Mji, Ioi, Hoi, WXf);
-Runtime_defineClass(264, 234, { 234: 1, 969: 1, 264: 1, 970: 1 }, y5b, z5b, A5b);
+Runtime_defineClass(
+  264,
+  234,
+  { 234: 1, 969: 1, 264: 1, 970: 1 },
+  y5b,
+  z5b,
+  A5b,
+);
 _.Jf = function B5b(a, b, c, d, e) {
   var f, g, h;
   h = Kt(this.a);
@@ -390995,7 +391302,15 @@ _.jV = function F5b(a) {
   return x5b(this, a);
 };
 var eBf = Class_createForClass(Mji, Joi, 264, JAf);
-Runtime_defineClass(221, 234, { 234: 1, 969: 1, 221: 1, 970: 1 }, H5b, I5b, J5b, K5b);
+Runtime_defineClass(
+  221,
+  234,
+  { 234: 1, 969: 1, 221: 1, 970: 1 },
+  H5b,
+  I5b,
+  J5b,
+  K5b,
+);
 _.Jf = function L5b(a, b, c, d, e) {
   Nv(a, this.c, b, c, d, e);
 };
@@ -391021,7 +391336,14 @@ _.kV = function P5b(a) {
   return b;
 };
 var fBf = Class_createForClass(Mji, Koi, 221, JAf);
-Runtime_defineClass(340, 221, { 234: 1, 969: 1, 221: 1, 340: 1, 970: 1 }, T5b, U5b, V5b);
+Runtime_defineClass(
+  340,
+  221,
+  { 234: 1, 969: 1, 221: 1, 340: 1, 970: 1 },
+  T5b,
+  U5b,
+  V5b,
+);
 _.kV = function _5b(a) {
   return S5b(this, a);
 };
@@ -392782,7 +393104,12 @@ var rXf = xWh(z9h, "Appendable");
 var fXf = xWh(D9h, "Flushable");
 Runtime_defineClass(Spi, 1, Tpi);
 var pXf = Class_createForClass(D9h, "Writer", Spi, WXf);
-Runtime_defineClass(645, Spi, { 645: 1, 315: 1, 965: 1, 1144: 1, 714: 1, 314: 1 }, Cgc);
+Runtime_defineClass(
+  645,
+  Spi,
+  { 645: 1, 315: 1, 965: 1, 1144: 1, 714: 1, 314: 1 },
+  Cgc,
+);
 _.sY = function Dgc() {
   return sgc(this);
 };
@@ -393885,7 +394212,14 @@ var wCf = Class_createForClass(L9h, "Scaling/9", xqi, xCf);
 Runtime_defineClass(yqi, 1, {}, ymc);
 var tmc;
 var yCf = Class_createForClass(L9h, "Select", yqi, WXf);
-Runtime_defineClass(68, 59, { 68: 1, 3: 1, 43: 1, 59: 1, 77: 1 }, Amc, Bmc, Cmc);
+Runtime_defineClass(
+  68,
+  59,
+  { 68: 1, 3: 1, 43: 1, 59: 1, 77: 1 },
+  Amc,
+  Bmc,
+  Cmc,
+);
 _.DW = function Dmc() {
   var a;
   if (!this.a) return this.g;
@@ -422953,7 +423287,12 @@ _.b = 0;
 _.c = 0;
 _.d = 0;
 var AGf = Class_createForClass(MKj, dCj, 81, jGf);
-Runtime_defineClass(134, 81, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1 }, Teg);
+Runtime_defineClass(
+  134,
+  81,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1 },
+  Teg,
+);
 _.ri = function Ueg() {
   N7f(this);
   (this.b -= oag) <= 0 && ((this.jb = false), (this.lb = false));
@@ -424667,7 +425006,12 @@ _.Nb = function Mrg() {
   return "Rooted";
 };
 var ZHf = Class_createForClass(WKj, "Roots", 594, LHf);
-Runtime_defineClass(734, 356, { 40: 1, 65: 1, 89: 1, 356: 1, 734: 1, 22: 1 }, Nrg);
+Runtime_defineClass(
+  734,
+  356,
+  { 40: 1, 65: 1, 89: 1, 356: 1, 734: 1, 22: 1 },
+  Nrg,
+);
 _.GZ = function Org() {
   if (this.c.A > 0) {
     this.P += 2;
@@ -425721,7 +426065,12 @@ _.S2 = function Pyg() {
 };
 var Eyg;
 var _If = Class_createForClass(hLj, "Scorpio", 667, XIf);
-Runtime_defineClass(819, 667, { 40: 1, 73: 1, 819: 1, 50: 1, 667: 1, 22: 1 }, Qyg);
+Runtime_defineClass(
+  819,
+  667,
+  { 40: 1, 73: 1, 819: 1, 50: 1, 667: 1, 22: 1 },
+  Qyg,
+);
 _.D2 = function Ryg(a, b) {
   var c;
   c = $qf($wnd.Math.random() * (b + 1));
@@ -425751,7 +426100,12 @@ _.I2 = function Yyg() {
   return 1;
 };
 var $If = Class_createForClass(hLj, "Rat", 668, XIf);
-Runtime_defineClass(820, 668, { 40: 1, 73: 1, 820: 1, 50: 1, 668: 1, 22: 1 }, Zyg);
+Runtime_defineClass(
+  820,
+  668,
+  { 40: 1, 73: 1, 820: 1, 50: 1, 668: 1, 22: 1 },
+  Zyg,
+);
 _.w2 = function $yg(a, b) {
   $qf($wnd.Math.random() * 2) == 0 && Cpg(hog(a, DHf), b);
   return b;
@@ -425807,7 +426161,12 @@ _.QZ = function mzg(a) {
   QQh(a, x2i, this.b);
 };
 var lJf = Class_createForClass(hLj, "Thief", 522, XIf);
-Runtime_defineClass(821, 522, { 40: 1, 73: 1, 821: 1, 50: 1, 522: 1, 22: 1 }, nzg);
+Runtime_defineClass(
+  821,
+  522,
+  { 40: 1, 73: 1, 821: 1, 50: 1, 522: 1, 22: 1 },
+  nzg,
+);
 _.G2 = function ozg(a) {
   Rxg(this);
   !!this.b && (Fjg(), Dungeon.level).V8(this.b, this.K).c.q6();
@@ -426706,7 +427065,12 @@ _.p5 = function ADg() {
 };
 var nDg;
 var ZIf = Class_createForClass(hLj, "Piranha", 827, XIf);
-Runtime_defineClass(828, 526, { 40: 1, 73: 1, 50: 1, 526: 1, 828: 1, 22: 1 }, BDg);
+Runtime_defineClass(
+  828,
+  526,
+  { 40: 1, 73: 1, 50: 1, 526: 1, 828: 1, 22: 1 },
+  BDg,
+);
 _.w2 = function CDg(a, b) {
   $qf($wnd.Math.random() * 10) == 0 && qog(a, VHf, wmi);
   return cDg(this, a, b);
@@ -426724,7 +427088,12 @@ _.G2 = function EDg(a) {
   Tgg(this);
 };
 var aJf = Class_createForClass(hLj, "Senior", 828, YIf);
-Runtime_defineClass(SCi, 50, { 40: 1, 73: 1, 50: 1, 1174: 1, 22: 1, 238: 1 }, HDg);
+Runtime_defineClass(
+  SCi,
+  50,
+  { 40: 1, 73: 1, 50: 1, 1174: 1, 22: 1, 238: 1 },
+  HDg,
+);
 _.x2 = function IDg(a) {
   return 11;
 };
@@ -426784,7 +427153,12 @@ _.S2 = function PDg() {
 };
 var FDg;
 var bJf = Class_createForClass(hLj, "Shaman", SCi, XIf);
-Runtime_defineClass(829, 669, { 40: 1, 73: 1, 669: 1, 50: 1, 829: 1, 22: 1 }, QDg);
+Runtime_defineClass(
+  829,
+  669,
+  { 40: 1, 73: 1, 669: 1, 50: 1, 829: 1, 22: 1 },
+  QDg,
+);
 _.F2 = function RDg() {
   return oLj;
 };
@@ -427175,7 +427549,12 @@ _.z5 = function zFg() {
   }
 };
 var kJf = Class_createForClass(hLj, "Thief/Fleeing", TCi, SIf);
-Runtime_defineClass(BDi, 50, { 40: 1, 73: 1, 50: 1, 1042: 1, 22: 1, 238: 1 }, EFg);
+Runtime_defineClass(
+  BDi,
+  50,
+  { 40: 1, 73: 1, 50: 1, 1042: 1, 22: 1, 238: 1 },
+  EFg,
+);
 _.x2 = function FFg(a) {
   return 25;
 };
@@ -427448,7 +427827,12 @@ _.H5 = function YGg() {
   VGg(this);
 };
 var KJf = Class_createForClass(sLj, "NPC", 162, XIf);
-Runtime_defineClass(834, 162, { 40: 1, 73: 1, 50: 1, 834: 1, 162: 1, 22: 1 }, aHg);
+Runtime_defineClass(
+  834,
+  162,
+  { 40: 1, 73: 1, 50: 1, 834: 1, 162: 1, 22: 1 },
+  aHg,
+);
 _.GZ = function bHg() {
   --this.A;
   if (this.A <= 0) {
@@ -427546,7 +427930,12 @@ _.l4 = function oHg() {
   return yJh(qLj, aqf(Vpf(WXf, 1), E9h, 1, 5, [this.a.I]));
 };
 var sJf = Class_createForClass(sLj, "Bee/Wandering", LFi, WXf);
-Runtime_defineClass(835, 162, { 40: 1, 73: 1, 50: 1, 835: 1, 162: 1, 22: 1 }, pHg);
+Runtime_defineClass(
+  835,
+  162,
+  { 40: 1, 73: 1, 50: 1, 835: 1, 162: 1, 22: 1 },
+  pHg,
+);
 _.GZ = function qHg() {
   VGg(this);
   return Lxg(this);
@@ -427660,7 +428049,12 @@ var UHg = false,
   XHg = false,
   YHg = false;
 var vJf = Class_createForClass(sLj, "Blacksmith/Quest", UCi, WXf);
-Runtime_defineClass(670, 162, { 40: 1, 73: 1, 50: 1, 670: 1, 162: 1, 22: 1 }, hIg);
+Runtime_defineClass(
+  670,
+  162,
+  { 40: 1, 73: 1, 50: 1, 670: 1, 162: 1, 22: 1 },
+  hIg,
+);
 _.u2 = function iIg(a) {};
 _.g5 = function jIg() {
   return null;
@@ -427832,7 +428226,12 @@ Runtime_defineClass(456, 38, { 456: 1, 3: 1, 49: 1, 38: 1 }, ZIg);
 var UIg, VIg, WIg, XIg;
 var CJf = Class_createForEnum(sLj, "Ghost/Quest/Type", 456, GXf, _Ig, $Ig);
 var aJg;
-Runtime_defineClass(672, 162, { 40: 1, 73: 1, 50: 1, 672: 1, 162: 1, 22: 1 }, dJg);
+Runtime_defineClass(
+  672,
+  162,
+  { 40: 1, 73: 1, 50: 1, 672: 1, 162: 1, 22: 1 },
+  dJg,
+);
 _.GZ = function eJg() {
   if (!qJg && (Fjg(), Dungeon.visible)[this.K]) {
     this.a ||
@@ -427910,7 +428309,12 @@ var oJg = false,
   rJg,
   sJg = false;
 var GJf = Class_createForClass(sLj, "Imp/Quest", NFi, WXf);
-Runtime_defineClass(469, 162, { 40: 1, 73: 1, 50: 1, 162: 1, 469: 1, 22: 1 }, BJg);
+Runtime_defineClass(
+  469,
+  162,
+  { 40: 1, 73: 1, 50: 1, 162: 1, 469: 1, 22: 1 },
+  BJg,
+);
 _.GZ = function CJg() {
   return Shopkeeper_$act(this);
 };
@@ -427944,7 +428348,12 @@ _.p5 = function IJg() {
 };
 var yJg;
 var NJf = Class_createForClass(sLj, kVi, 469, KJf);
-Runtime_defineClass(836, 469, { 40: 1, 73: 1, 50: 1, 836: 1, 162: 1, 469: 1, 22: 1 }, JJg);
+Runtime_defineClass(
+  836,
+  469,
+  { 40: 1, 73: 1, 50: 1, 836: 1, 162: 1, 469: 1, 22: 1 },
+  JJg,
+);
 _.GZ = function KJg() {
   if (!this.a && (Fjg(), Dungeon.visible)[this.K]) {
     ayg(this, yJh(S7i, aqf(Vpf(WXf, 1), E9h, 1, 5, [])));
@@ -427970,7 +428379,12 @@ _.Q5 = function MJg() {
 };
 _.a = false;
 var HJf = Class_createForClass(sLj, mUi, 836, NJf);
-Runtime_defineClass(579, 162, { 40: 1, 73: 1, 50: 1, 579: 1, 162: 1, 22: 1 }, QJg);
+Runtime_defineClass(
+  579,
+  162,
+  { 40: 1, 73: 1, 50: 1, 579: 1, 162: 1, 22: 1 },
+  QJg,
+);
 _.w2 = function RJg(a, b) {
   Qxg(this);
   this.M.Yab();
@@ -428047,7 +428461,12 @@ _.b = 0;
 _.c = 0;
 var NJg;
 var JJf = Class_createForClass(sLj, xUi, 579, KJf);
-Runtime_defineClass(837, 162, { 40: 1, 73: 1, 50: 1, 162: 1, 837: 1, 22: 1 }, aKg);
+Runtime_defineClass(
+  837,
+  162,
+  { 40: 1, 73: 1, 50: 1, 162: 1, 837: 1, 22: 1 },
+  aKg,
+);
 _.u2 = function bKg(a) {};
 _.g5 = function cKg() {
   return null;
@@ -428094,7 +428513,12 @@ _.T5 = function kKg(a) {
   }
 };
 var MJf = Class_createForClass(sLj, "Shopkeeper/1", FKi, WXf);
-Runtime_defineClass(838, 162, { 40: 1, 73: 1, 50: 1, 162: 1, 838: 1, 22: 1 }, pKg);
+Runtime_defineClass(
+  838,
+  162,
+  { 40: 1, 73: 1, 50: 1, 162: 1, 838: 1, 22: 1 },
+  pKg,
+);
 _.GZ = function qKg() {
   VGg(this);
   return Lxg(this);
@@ -428269,7 +428693,12 @@ Runtime_defineClass(142, 1, { 142: 1 }, KLg, LLg, MLg);
 _.a = 0;
 _.b = 0;
 var VJf = Class_createForClass(CLj, "HtmlInputProcessor/KeyPair", 142, WXf);
-Runtime_defineClass(721, 973, { 1913: 1, 973: 1, 1912: 1, 721: 1 }, HtmlLauncher);
+Runtime_defineClass(
+  721,
+  973,
+  { 1913: 1, 973: 1, 1912: 1, 721: 1 },
+  HtmlLauncher,
+);
 _.e6 = function HtmlLauncher_createApplicationListener() {
   return new PixelDungeon(new gMg(new wLg()));
 };
@@ -428496,7 +428925,12 @@ _.ri = function sNg() {
 };
 var lNg, mNg, nNg, oNg;
 var iKf = Class_createForClass(ELj, "Degradation", 305, cGf);
-Runtime_defineClass(675, 81, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 675: 1 }, tNg);
+Runtime_defineClass(
+  675,
+  81,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 675: 1 },
+  tNg,
+);
 _.ri = function uNg() {
   N7f(this);
   (this.b -= oag) <= 0 && ((this.jb = false), (this.lb = false));
@@ -428534,7 +428968,14 @@ Runtime_defineClass(528, 443, { 20: 1, 33: 1, 34: 1, 443: 1, 528: 1 }, JNg);
 var lKf = Class_createForClass(ELj, "EmoIcon/Alert", 528, nKf);
 Runtime_defineClass(529, 443, { 20: 1, 33: 1, 34: 1, 443: 1, 529: 1 }, KNg);
 var mKf = Class_createForClass(ELj, "EmoIcon/Sleep", 529, nKf);
-Runtime_defineClass(150, 79, { 20: 1, 33: 1, 79: 1, 34: 1, 150: 1 }, TNg, UNg, VNg);
+Runtime_defineClass(
+  150,
+  79,
+  { 20: 1, 33: 1, 79: 1, 34: 1, 150: 1 },
+  TNg,
+  UNg,
+  VNg,
+);
 _.q6 = function WNg() {
   if (tYg(this.j)) {
     return;
@@ -428579,7 +429020,12 @@ _.g = false;
 _.k = 0;
 var LNg;
 var XSf = Class_createForClass(MLj, e1i, 150, gGf);
-Runtime_defineClass(840, 150, { 20: 1, 33: 1, 79: 1, 34: 1, 840: 1, 150: 1 }, fOg);
+Runtime_defineClass(
+  840,
+  150,
+  { 20: 1, 33: 1, 79: 1, 34: 1, 840: 1, 150: 1 },
+  fOg,
+);
 _.ri = function hOg() {
   RNg(this);
   this.gb = z7f(this.e.M).a - 8;
@@ -428821,7 +429267,12 @@ _.ri = function wPg() {
 };
 var sPg;
 var yKf = Class_createForClass(ELj, J1i, 530, cGf);
-Runtime_defineClass(676, 81, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 676: 1 }, xPg);
+Runtime_defineClass(
+  676,
+  81,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 676: 1 },
+  xPg,
+);
 _.ri = function yPg() {
   N7f(this);
   (this.b -= oag) <= 0 && ((this.jb = false), (this.lb = false));
@@ -428899,7 +429350,12 @@ _.b = 0;
 _.c = 0;
 _.d = 0;
 var MKf = Class_createForClass(ELj, E2i, YFi, yGf);
-Runtime_defineClass(ZFi, 134, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1194: 1 }, YPg);
+Runtime_defineClass(
+  ZFi,
+  134,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1194: 1 },
+  YPg,
+);
 _.H6 = function ZPg(a, b) {
   XPg(this, a, b);
 };
@@ -428919,7 +429375,12 @@ _.L1 = function bQg() {
   return true;
 };
 var AKf = Class_createForClass(ELj, "MagicMissile/ColdParticle/1", SLi, xGf);
-Runtime_defineClass($Fi, 134, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1195: 1 }, fQg);
+Runtime_defineClass(
+  $Fi,
+  134,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1195: 1 },
+  fQg,
+);
 _.H6 = function gQg(a, b) {
   eQg(this, a, b);
 };
@@ -428930,7 +429391,12 @@ _.K1 = function iQg(a, b, c, d) {
   eQg(jbg(a, DKf), c, d);
 };
 var CKf = Class_createForClass(ELj, "MagicMissile/EarthParticle/1", MLi, xGf);
-Runtime_defineClass(_Fi, 134, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1196: 1 }, mQg);
+Runtime_defineClass(
+  _Fi,
+  134,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1196: 1 },
+  mQg,
+);
 _.I6 = function nQg(a, b, c) {
   lQg(this, a, b, c);
 };
@@ -428947,7 +429413,12 @@ _.K1 = function qQg(a, b, c, d) {
   lQg(jbg(a, FKf), b, c, d);
 };
 var EKf = Class_createForClass(ELj, "MagicMissile/ForceParticle/1", RLi, xGf);
-Runtime_defineClass(aGi, 81, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1197: 1 }, uQg);
+Runtime_defineClass(
+  aGi,
+  81,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1197: 1 },
+  uQg,
+);
 _.H6 = function vQg(a, b) {
   tQg(this, a, b);
 };
@@ -428966,7 +429437,12 @@ _.L1 = function zQg() {
   return true;
 };
 var GKf = Class_createForClass(ELj, "MagicMissile/MagicParticle/1", LLi, xGf);
-Runtime_defineClass(WCi, 81, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1198: 1 }, DQg);
+Runtime_defineClass(
+  WCi,
+  81,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1198: 1 },
+  DQg,
+);
 _.J6 = function EQg(a, b, c) {
   CQg(this, a, b, c);
 };
@@ -428986,7 +429462,12 @@ _.L1 = function IQg() {
   return true;
 };
 var IKf = Class_createForClass(ELj, "MagicMissile/SlowParticle/1", QLi, xGf);
-Runtime_defineClass(bGi, 81, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1199: 1 }, MQg);
+Runtime_defineClass(
+  bGi,
+  81,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1199: 1 },
+  MQg,
+);
 _.H6 = function NQg(a, b) {
   LQg(this, a, b);
 };
@@ -429293,7 +429774,12 @@ _.ri = function cSg() {
 };
 _.a = 0;
 var $Kf = Class_createForClass(ELj, "Wound", VDi, dGf);
-Runtime_defineClass(XDi, 134, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1204: 1 }, gSg);
+Runtime_defineClass(
+  XDi,
+  134,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1204: 1 },
+  gSg,
+);
 _.H6 = function hSg(a, b) {
   fSg(this, a, b);
 };
@@ -429313,7 +429799,12 @@ _.L1 = function lSg() {
   return true;
 };
 var _Kf = Class_createForClass(ULj, "BlastParticle/1", ULi, xGf);
-Runtime_defineClass(MEi, 134, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1205: 1 }, pSg);
+Runtime_defineClass(
+  MEi,
+  134,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1205: 1 },
+  pSg,
+);
 _.H6 = function qSg(a, b) {
   oSg(this, a, b);
 };
@@ -429332,7 +429823,12 @@ _.K1 = function tSg(a, b, c, d) {
   oSg(jbg(a, cLf), c, d);
 };
 var bLf = Class_createForClass(ULj, "BloodParticle/1", VLi, xGf);
-Runtime_defineClass(XCi, 81, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1206: 1 }, xSg);
+Runtime_defineClass(
+  XCi,
+  81,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1206: 1 },
+  xSg,
+);
 _.H6 = function ySg(a, b) {
   wSg(this, a, b);
 };
@@ -429350,7 +429846,12 @@ _.K1 = function BSg(a, b, c, d) {
   wSg(jbg(a, eLf), c, d);
 };
 var dLf = Class_createForClass(ULj, "EarthParticle/1", WLi, xGf);
-Runtime_defineClass(dGi, 134, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1207: 1 }, FSg);
+Runtime_defineClass(
+  dGi,
+  134,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1207: 1 },
+  FSg,
+);
 _.H6 = function GSg(a, b) {
   ESg(this, a, b);
 };
@@ -429372,7 +429873,12 @@ _.L1 = function KSg() {
   return true;
 };
 var fLf = Class_createForClass(ULj, "ElmoParticle/1", XLi, xGf);
-Runtime_defineClass(eGi, 81, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1208: 1 }, OSg);
+Runtime_defineClass(
+  eGi,
+  81,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1208: 1 },
+  OSg,
+);
 _.H6 = function PSg(a, b) {
   NSg(this, a, b);
 };
@@ -429394,7 +429900,12 @@ _.L1 = function TSg() {
   return true;
 };
 var hLf = Class_createForClass(ULj, "EnergyParticle/1", YLi, xGf);
-Runtime_defineClass(fGi, 134, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1209: 1 }, XSg);
+Runtime_defineClass(
+  fGi,
+  134,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1209: 1 },
+  XSg,
+);
 _.H6 = function YSg(a, b) {
   WSg(this, a, b);
 };
@@ -429417,7 +429928,12 @@ _.L1 = function aTg() {
   return true;
 };
 var jLf = Class_createForClass(ULj, "FlameParticle/1", ZLi, xGf);
-Runtime_defineClass(YCi, 81, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1210: 1 }, eTg);
+Runtime_defineClass(
+  YCi,
+  81,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1210: 1 },
+  eTg,
+);
 _.H6 = function fTg(a, b) {
   dTg(this, a, b);
 };
@@ -429451,7 +429967,12 @@ _.b = 0;
 _.c = 0;
 _.d = 0;
 var mLf = Class_createForClass(ULj, "FlowParticle/Flow", 849, cGf);
-Runtime_defineClass(gGi, 134, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1211: 1 }, rTg);
+Runtime_defineClass(
+  gGi,
+  134,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1211: 1 },
+  rTg,
+);
 _.H6 = function sTg(a, b) {
   qTg(this, a, b);
 };
@@ -429476,7 +429997,12 @@ _.K1 = function wTg(a, b, c, d) {
   qTg(e, c, d);
 };
 var pLf = Class_createForClass(ULj, "LeafParticle/2", dLi, xGf);
-Runtime_defineClass(hGi, 81, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1212: 1 }, CTg);
+Runtime_defineClass(
+  hGi,
+  81,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1212: 1 },
+  CTg,
+);
 _.Q6 = function DTg(a, b) {
   ATg(this, a, b);
 };
@@ -429507,7 +430033,12 @@ _.L1 = function LTg() {
   return true;
 };
 var sLf = Class_createForClass(ULj, "PoisonParticle/2", bMi, xGf);
-Runtime_defineClass(iGi, 81, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1213: 1 }, RTg);
+Runtime_defineClass(
+  iGi,
+  81,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1213: 1 },
+  RTg,
+);
 _.H6 = function STg(a, b) {
   PTg(this, a, b);
 };
@@ -429535,7 +430066,12 @@ _.L1 = function ZTg() {
   return true;
 };
 var vLf = Class_createForClass(ULj, "PurpleParticle/2", cMi, xGf);
-Runtime_defineClass(jGi, 134, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1214: 1 }, bUg);
+Runtime_defineClass(
+  jGi,
+  134,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1214: 1 },
+  bUg,
+);
 _.H6 = function cUg(a, b) {
   aUg(this, a, b);
 };
@@ -429557,7 +430093,12 @@ _.L1 = function gUg() {
   return true;
 };
 var xLf = Class_createForClass(ULj, "SacrificialParticle/1", fLi, xGf);
-Runtime_defineClass(ZCi, 134, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1215: 1 }, oUg);
+Runtime_defineClass(
+  ZCi,
+  134,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1215: 1 },
+  oUg,
+);
 _.H6 = function pUg(a, b) {
   lUg(this, a, b);
 };
@@ -429593,7 +430134,12 @@ _.K1 = function yUg(a, b, c, d) {
   nUg(jbg(a, CLf), c, d);
 };
 var BLf = Class_createForClass(ULj, "ShadowParticle/3", eMi, xGf);
-Runtime_defineClass(kGi, 81, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1216: 1 }, CUg);
+Runtime_defineClass(
+  kGi,
+  81,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1216: 1 },
+  CUg,
+);
 _.H6 = function DUg(a, b) {
   BUg(this, a, b);
 };
@@ -429617,7 +430163,12 @@ _.L1 = function HUg() {
   return true;
 };
 var DLf = Class_createForClass(ULj, "ShaftParticle/1", zoi, xGf);
-Runtime_defineClass(lGi, 81, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1217: 1 }, LUg);
+Runtime_defineClass(
+  lGi,
+  81,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1217: 1 },
+  LUg,
+);
 _.H6 = function MUg(a, b) {
   KUg(this, a, b);
 };
@@ -429636,7 +430187,12 @@ _.K1 = function PUg(a, b, c, d) {
   KUg(jbg(a, GLf), c, d);
 };
 var FLf = Class_createForClass(ULj, "SmokeParticle/1", hLi, xGf);
-Runtime_defineClass(mGi, 81, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1218: 1 }, TUg);
+Runtime_defineClass(
+  mGi,
+  81,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1218: 1 },
+  TUg,
+);
 _.H6 = function UUg(a, b) {
   SUg(this, a, b);
 };
@@ -429654,7 +430210,12 @@ _.K1 = function XUg(a, b, c, d) {
   SUg(jbg(a, ILf), c, d);
 };
 var HLf = Class_createForClass(ULj, "SnowParticle/1", fMi, xGf);
-Runtime_defineClass($Ci, 81, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1219: 1 }, _Ug);
+Runtime_defineClass(
+  $Ci,
+  81,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1219: 1 },
+  _Ug,
+);
 _.H6 = function aVg(a, b) {
   $Ug(this, a, b);
 };
@@ -429673,7 +430234,12 @@ _.L1 = function eVg() {
   return true;
 };
 var JLf = Class_createForClass(ULj, "SparkParticle/1", iLi, xGf);
-Runtime_defineClass(nGi, 81, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1220: 1 }, iVg);
+Runtime_defineClass(
+  nGi,
+  81,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1220: 1 },
+  iVg,
+);
 _.H6 = function jVg(a, b) {
   hVg(this, a, b);
 };
@@ -429695,7 +430261,12 @@ _.K1 = function mVg(a, b, c, d) {
   }
 };
 var LLf = Class_createForClass(ULj, "WebParticle/1", gMi, xGf);
-Runtime_defineClass(oGi, 81, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1221: 1 }, sVg);
+Runtime_defineClass(
+  oGi,
+  81,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1221: 1 },
+  sVg,
+);
 _.H6 = function tVg(a, b) {
   rVg(this, a, b);
 };
@@ -429735,7 +430306,12 @@ _.b = 0;
 _.c = 0;
 _.d = 0;
 var OLf = Class_createForClass(ULj, "WindParticle/Wind", 850, cGf);
-Runtime_defineClass(pGi, 134, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1222: 1 }, CVg);
+Runtime_defineClass(
+  pGi,
+  134,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1222: 1 },
+  CVg,
+);
 _.H6 = function DVg(a, b) {
   BVg(this, a, b);
 };
@@ -429746,7 +430322,12 @@ _.K1 = function FVg(a, b, c, d) {
   BVg(jbg(a, RLf), c, d);
 };
 var QLf = Class_createForClass(ULj, "WoolParticle/1", hMi, xGf);
-Runtime_defineClass(_Ci, 81, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1223: 1 }, JVg);
+Runtime_defineClass(
+  _Ci,
+  81,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1223: 1 },
+  JVg,
+);
 _.H6 = function KVg(a, b) {
   IVg(this, a, b);
 };
@@ -430818,7 +431399,12 @@ _.K3 = function n0g() {
   return "This lightweight armor offers basic protection.";
 };
 var BMf = Class_createForClass(dMj, nUi, 681, zMf);
-Runtime_defineClass(855, 308, { 72: 1, 31: 1, 153: 1, 308: 1, 855: 1, 22: 1 }, o0g);
+Runtime_defineClass(
+  855,
+  308,
+  { 72: 1, 31: 1, 153: 1, 308: 1, 855: 1, 22: 1 },
+  o0g,
+);
 _.K3 = function p0g() {
   return "A huntress in such cloak can create a fan of spectral blades. Each of these blades will target a single enemy in the huntress's field of view, inflicting damage depending on her currently equipped melee weapon.";
 };
@@ -430874,7 +431460,12 @@ _.K3 = function w0g() {
   return "Armor made from tanned monster hide. Not as light as cloth armor but provides better protection.";
 };
 var EMf = Class_createForClass(dMj, qUi, 856, zMf);
-Runtime_defineClass(857, 308, { 72: 1, 31: 1, 153: 1, 308: 1, 857: 1, 22: 1 }, x0g);
+Runtime_defineClass(
+  857,
+  308,
+  { 72: 1, 31: 1, 153: 1, 308: 1, 857: 1, 22: 1 },
+  x0g,
+);
 _.K3 = function y0g() {
   return "Wearing this gorgeous robe, a mage can cast a spell of molten earth: all the enemies in his field of view will be set on fire and unable to move at the same time.";
 };
@@ -430923,7 +431514,12 @@ _.K3 = function F0g() {
   return "Enormous plates of metal are joined together into a suit that provides unmatched protection to any adventurer strong enough to bear its staggering weight.";
 };
 var HMf = Class_createForClass(dMj, rUi, 859, zMf);
-Runtime_defineClass(860, 308, { 72: 1, 31: 1, 153: 1, 308: 1, 860: 1, 22: 1 }, I0g);
+Runtime_defineClass(
+  860,
+  308,
+  { 72: 1, 31: 1, 153: 1, 308: 1, 860: 1, 22: 1 },
+  I0g,
+);
 _.K3 = function J0g() {
   return 'Wearing this dark garb, a rogue can perform a trick, that is called "smoke bomb" (though no real explosives are used): he blinds enemies who could see him and jumps aside.';
 };
@@ -430988,7 +431584,12 @@ _.K3 = function R0g() {
   return "The metal scales sewn onto a leather vest create a flexible, yet protective armor.";
 };
 var KMf = Class_createForClass(dMj, tUi, 861, zMf);
-Runtime_defineClass(862, 308, { 72: 1, 31: 1, 153: 1, 308: 1, 862: 1, 22: 1 }, W0g);
+Runtime_defineClass(
+  862,
+  308,
+  { 72: 1, 31: 1, 153: 1, 308: 1, 862: 1, 22: 1 },
+  W0g,
+);
 _.K3 = function X0g() {
   return "While this armor looks heavy, it allows a warrior to perform heroic leap towards a targeted location, slamming down to stun all neighbouring enemies.";
 };
@@ -432285,7 +432886,12 @@ _.e = 1;
 _.f = 10;
 _.i = 20;
 var ZOf = Class_createForClass(mMj, "Weapon", 132, oMf);
-Runtime_defineClass(869, 132, { 72: 1, 31: 1, 106: 1, 869: 1, 132: 1, 22: 1 }, h6g);
+Runtime_defineClass(
+  869,
+  132,
+  { 72: 1, 31: 1, 106: 1, 869: 1, 132: 1, 22: 1 },
+  h6g,
+);
 _.D3 = function i6g(a) {
   var b;
   b = LZg(this, a);
@@ -433483,7 +434089,12 @@ _.A8 = function ubh() {
   this.P += a;
 };
 var GOf = Class_createForClass(AMj, "Wand/Charger", 758, FHf);
-Runtime_defineClass(755, 112, { 72: 1, 31: 1, 106: 1, 112: 1, 755: 1, 22: 1 }, vbh);
+Runtime_defineClass(
+  755,
+  112,
+  { 72: 1, 31: 1, 106: 1, 112: 1, 755: 1, 22: 1 },
+  vbh,
+);
 _.K3 = function wbh() {
   return "The purple light from this wand will make the target run amok attacking random creatures in its vicinity.";
 };
@@ -433506,7 +434117,12 @@ _.v8 = function ybh(a) {
     : uJh(BMj, aqf(Vpf(WXf, 1), E9h, 1, 5, []));
 };
 var HOf = Class_createForClass(AMj, tXi, 755, WOf);
-Runtime_defineClass(757, 112, { 72: 1, 31: 1, 106: 1, 112: 1, 757: 1, 22: 1 }, zbh);
+Runtime_defineClass(
+  757,
+  112,
+  { 72: 1, 31: 1, 106: 1, 112: 1, 757: 1, 22: 1 },
+  zbh,
+);
 _.K3 = function Abh() {
   return "When a discharge of this wand hits a wall (or any other solid obstacle) it causes an avalanche of stones, damaging and stunning all creatures in the affected area.";
 };
@@ -433562,7 +434178,12 @@ _.v8 = function Cbh(a) {
   }
 };
 var IOf = Class_createForClass(AMj, uXi, 757, WOf);
-Runtime_defineClass(753, 112, { 72: 1, 31: 1, 106: 1, 112: 1, 753: 1, 22: 1 }, Dbh);
+Runtime_defineClass(
+  753,
+  112,
+  { 72: 1, 31: 1, 106: 1, 112: 1, 753: 1, 22: 1 },
+  Dbh,
+);
 _.K3 = function Fbh() {
   return "This wand will allow you to teleport in the chosen direction. Creatures and inanimate obstructions will block the teleportation.";
 };
@@ -433582,7 +434203,12 @@ _.v8 = function Hbh(a) {
   Vjg();
 };
 var JOf = Class_createForClass(AMj, vXi, 753, WOf);
-Runtime_defineClass(756, 112, { 72: 1, 31: 1, 106: 1, 112: 1, 756: 1, 22: 1 }, Ibh);
+Runtime_defineClass(
+  756,
+  112,
+  { 72: 1, 31: 1, 106: 1, 112: 1, 756: 1, 22: 1 },
+  Ibh,
+);
 _.K3 = function Jbh() {
   return "This wand emits a beam of destructive energy, which pierces all creatures in its way. The more targets it hits, the more damage it inflicts to each of them.";
 };
@@ -433640,7 +434266,12 @@ _.v8 = function Mbh(a) {
   }
 };
 var KOf = Class_createForClass(AMj, xXi, 756, WOf);
-Runtime_defineClass(750, 112, { 72: 1, 31: 1, 106: 1, 112: 1, 750: 1, 22: 1 }, Nbh);
+Runtime_defineClass(
+  750,
+  112,
+  { 72: 1, 31: 1, 106: 1, 112: 1, 750: 1, 22: 1 },
+  Nbh,
+);
 _.K3 = function Obh() {
   return "This wand unleashes bursts of magical fire. It will ignite flammable terrain, and will damage and burn a creature it hits.";
 };
@@ -433677,7 +434308,12 @@ _.v8 = function Qbh(a) {
   }
 };
 var LOf = Class_createForClass(AMj, yXi, 750, WOf);
-Runtime_defineClass($Vi, 112, { 72: 1, 31: 1, 106: 1, 112: 1, 1019: 1, 22: 1 }, Rbh);
+Runtime_defineClass(
+  $Vi,
+  112,
+  { 72: 1, 31: 1, 106: 1, 112: 1, 1019: 1, 22: 1 },
+  Rbh,
+);
 _.K3 = function Sbh() {
   return "A flick of this wand summons a flock of magic sheep, creating temporary impenetrable obstacle.";
 };
@@ -433723,7 +434359,12 @@ _.v8 = function Ubh(a) {
   Vjg();
 };
 var NOf = Class_createForClass(AMj, zXi, $Vi, WOf);
-Runtime_defineClass(872, 162, { 40: 1, 73: 1, 50: 1, 162: 1, 872: 1, 22: 1 }, Xbh);
+Runtime_defineClass(
+  872,
+  162,
+  { 40: 1, 73: 1, 50: 1, 162: 1, 872: 1, 22: 1 },
+  Xbh,
+);
 _.GZ = function Ybh() {
   if (this.a) {
     this.A = 0;
@@ -433751,7 +434392,12 @@ _.a = false;
 _.b = 0;
 var Vbh;
 var MOf = Class_createForClass(AMj, "WandOfFlock/Sheep", 872, KJf);
-Runtime_defineClass(754, 112, { 72: 1, 31: 1, 106: 1, 112: 1, 754: 1, 22: 1 }, cch);
+Runtime_defineClass(
+  754,
+  112,
+  { 72: 1, 31: 1, 106: 1, 112: 1, 754: 1, 22: 1 },
+  cch,
+);
 _.K3 = function dch() {
   return "This wand conjures forth deadly arcs of electricity, which deal damage to several creatures standing close to each other.";
 };
@@ -433797,7 +434443,12 @@ _.v8 = function gch(a) {
 };
 _.b = 0;
 var OOf = Class_createForClass(AMj, DXi, 754, WOf);
-Runtime_defineClass(873, 112, { 72: 1, 31: 1, 106: 1, 112: 1, 873: 1, 22: 1 }, hch);
+Runtime_defineClass(
+  873,
+  112,
+  { 72: 1, 31: 1, 106: 1, 112: 1, 873: 1, 22: 1 },
+  hch,
+);
 _.D3 = function ich(a) {
   var b;
   b = rah(this, a);
@@ -433880,7 +434531,12 @@ _.T5 = function qch(a) {
   }
 };
 var POf = Class_createForClass(AMj, "WandOfMagicMissile/1", sMi, WXf);
-Runtime_defineClass(751, 112, { 72: 1, 31: 1, 106: 1, 112: 1, 751: 1, 22: 1 }, rch);
+Runtime_defineClass(
+  751,
+  112,
+  { 72: 1, 31: 1, 106: 1, 112: 1, 751: 1, 22: 1 },
+  rch,
+);
 _.K3 = function sch() {
   return "The vile blast of this twisted bit of wood will imbue its target with a deadly venom. A creature that is poisoned will suffer periodic damage until the effect ends. The duration of the effect increases with the level of the staff.";
 };
@@ -433901,7 +434557,12 @@ _.v8 = function uch(a) {
     : uJh(BMj, aqf(Vpf(WXf, 1), E9h, 1, 5, []));
 };
 var ROf = Class_createForClass(AMj, HXi, 751, WOf);
-Runtime_defineClass(732, 112, { 72: 1, 31: 1, 106: 1, 112: 1, 732: 1, 22: 1 }, wch);
+Runtime_defineClass(
+  732,
+  112,
+  { 72: 1, 31: 1, 106: 1, 112: 1, 732: 1, 22: 1 },
+  wch,
+);
 _.K3 = function xch() {
   return "This utility wand can be used to grab objects from a distance and to switch places with enemies. Waves of magic force radiated from it will affect all cells on their way triggering traps, trampling high vegetation, opening closed doors and closing open ones.";
 };
@@ -433950,7 +434611,12 @@ _.D8 = function Ach(a) {
   vch(a);
 };
 var SOf = Class_createForClass(AMj, JXi, 732, WOf);
-Runtime_defineClass(752, 112, { 72: 1, 31: 1, 106: 1, 112: 1, 752: 1, 22: 1 }, Bch);
+Runtime_defineClass(
+  752,
+  112,
+  { 72: 1, 31: 1, 106: 1, 112: 1, 752: 1, 22: 1 },
+  Bch,
+);
 _.K3 = function Cch() {
   return '"When life ceases new life always begins to grow... The eternal cycle always remains!"';
 };
@@ -433976,7 +434642,12 @@ _.v8 = function Ech(a) {
     : uJh(BMj, aqf(Vpf(WXf, 1), E9h, 1, 5, []));
 };
 var TOf = Class_createForClass(AMj, KXi, 752, WOf);
-Runtime_defineClass(749, 112, { 72: 1, 31: 1, 106: 1, 112: 1, 749: 1, 22: 1 }, Fch);
+Runtime_defineClass(
+  749,
+  112,
+  { 72: 1, 31: 1, 106: 1, 112: 1, 749: 1, 22: 1 },
+  Fch,
+);
 _.K3 = function Gch() {
   return "This wand will cause a creature to move and attack at half its ordinary speed until the effect ends";
 };
@@ -433992,7 +434663,12 @@ _.v8 = function Ich(a) {
     : uJh(BMj, aqf(Vpf(WXf, 1), E9h, 1, 5, []));
 };
 var UOf = Class_createForClass(AMj, LXi, 749, WOf);
-Runtime_defineClass(ZVi, 112, { 72: 1, 31: 1, 106: 1, 112: 1, 1018: 1, 22: 1 }, Jch);
+Runtime_defineClass(
+  ZVi,
+  112,
+  { 72: 1, 31: 1, 106: 1, 112: 1, 1018: 1, 22: 1 },
+  Jch,
+);
 _.K3 = function Kch() {
   return "A blast from this wand will teleport a creature against its will to a random place on the current level.";
 };
@@ -434289,7 +434965,12 @@ _.E8 = function peh(a, b, c, d) {
 };
 var keh;
 var jPf = Class_createForClass(CMj, "Tempering", UDi, XOf);
-Runtime_defineClass(126, 132, { 72: 1, 31: 1, 106: 1, 132: 1, 126: 1, 22: 1 }, seh);
+Runtime_defineClass(
+  126,
+  132,
+  { 72: 1, 31: 1, 106: 1, 132: 1, 126: 1, 22: 1 },
+  seh,
+);
 _.I3 = function teh() {
   ++this.f;
   return atg(this);
@@ -434425,42 +435106,82 @@ _.S7 = function Eeh(a) {
 };
 _.c = 0;
 var qPf = Class_createForClass(KMj, gYi, 126, ZOf);
-Runtime_defineClass(535, 126, { 72: 1, 31: 1, 106: 1, 132: 1, 535: 1, 126: 1, 22: 1 }, Feh);
+Runtime_defineClass(
+  535,
+  126,
+  { 72: 1, 31: 1, 106: 1, 132: 1, 535: 1, 126: 1, 22: 1 },
+  Feh,
+);
 _.K3 = function Geh() {
   return "The enormous steel head of this battle axe puts considerable heft behind each stroke.";
 };
 var kPf = Class_createForClass(KMj, "BattleAxe", 535, qPf);
-Runtime_defineClass(445, 126, { 72: 1, 31: 1, 106: 1, 132: 1, 445: 1, 126: 1, 22: 1 }, Heh);
+Runtime_defineClass(
+  445,
+  126,
+  { 72: 1, 31: 1, 106: 1, 132: 1, 445: 1, 126: 1, 22: 1 },
+  Heh,
+);
 _.K3 = function Ieh() {
   return "A simple iron dagger with a well worn wooden handle.";
 };
 var lPf = Class_createForClass(KMj, "Dagger", 445, qPf);
-Runtime_defineClass(536, 126, { 72: 1, 31: 1, 106: 1, 132: 1, 536: 1, 126: 1, 22: 1 }, Jeh);
+Runtime_defineClass(
+  536,
+  126,
+  { 72: 1, 31: 1, 106: 1, 132: 1, 536: 1, 126: 1, 22: 1 },
+  Jeh,
+);
 _.K3 = function Keh() {
   return "A polearm consisting of a sword blade on the end of a pole.";
 };
 var mPf = Class_createForClass(KMj, "Glaive", 536, qPf);
-Runtime_defineClass(446, 126, { 72: 1, 31: 1, 106: 1, 132: 1, 446: 1, 126: 1, 22: 1 }, Leh);
+Runtime_defineClass(
+  446,
+  126,
+  { 72: 1, 31: 1, 106: 1, 132: 1, 446: 1, 126: 1, 22: 1 },
+  Leh,
+);
 _.K3 = function Meh() {
   return "A piece of iron shaped to fit around the knuckles.";
 };
 var nPf = Class_createForClass(KMj, "Knuckles", 446, qPf);
-Runtime_defineClass(537, 126, { 72: 1, 31: 1, 106: 1, 132: 1, 537: 1, 126: 1, 22: 1 }, Neh);
+Runtime_defineClass(
+  537,
+  126,
+  { 72: 1, 31: 1, 106: 1, 132: 1, 537: 1, 126: 1, 22: 1 },
+  Neh,
+);
 _.K3 = function Oeh() {
   return "This towering blade inflicts heavy damage by investing its heft into every cut.";
 };
 var oPf = Class_createForClass(KMj, "Longsword", 537, qPf);
-Runtime_defineClass(538, 126, { 72: 1, 31: 1, 106: 1, 132: 1, 538: 1, 126: 1, 22: 1 }, Peh);
+Runtime_defineClass(
+  538,
+  126,
+  { 72: 1, 31: 1, 106: 1, 132: 1, 538: 1, 126: 1, 22: 1 },
+  Peh,
+);
 _.K3 = function Qeh() {
   return "The iron head of this weapon inflicts substantial damage.";
 };
 var pPf = Class_createForClass(KMj, "Mace", 538, qPf);
-Runtime_defineClass(539, 126, { 72: 1, 31: 1, 106: 1, 132: 1, 126: 1, 539: 1, 22: 1 }, Reh);
+Runtime_defineClass(
+  539,
+  126,
+  { 72: 1, 31: 1, 106: 1, 132: 1, 126: 1, 539: 1, 22: 1 },
+  Reh,
+);
 _.K3 = function Seh() {
   return "A staff of hardwood, its ends are shod with iron.";
 };
 var rPf = Class_createForClass(KMj, hYi, 539, qPf);
-Runtime_defineClass(874, 126, { 72: 1, 31: 1, 106: 1, 132: 1, 126: 1, 874: 1, 22: 1 }, Teh);
+Runtime_defineClass(
+  874,
+  126,
+  { 72: 1, 31: 1, 106: 1, 132: 1, 126: 1, 874: 1, 22: 1 },
+  Teh,
+);
 _.D3 = function Ueh(a) {
   var b;
   b = LZg(this, a);
@@ -434520,17 +435241,32 @@ _.T5 = function Zeh(a) {
   }
 };
 var sPf = Class_createForClass(KMj, "ShortSword/1", tMi, WXf);
-Runtime_defineClass(540, 126, { 72: 1, 31: 1, 106: 1, 132: 1, 126: 1, 540: 1, 22: 1 }, $eh);
+Runtime_defineClass(
+  540,
+  126,
+  { 72: 1, 31: 1, 106: 1, 132: 1, 126: 1, 540: 1, 22: 1 },
+  $eh,
+);
 _.K3 = function _eh() {
   return "A slender wooden rod tipped with sharpened iron.";
 };
 var uPf = Class_createForClass(KMj, "Spear", 540, qPf);
-Runtime_defineClass(541, 126, { 72: 1, 31: 1, 106: 1, 132: 1, 126: 1, 541: 1, 22: 1 }, afh);
+Runtime_defineClass(
+  541,
+  126,
+  { 72: 1, 31: 1, 106: 1, 132: 1, 126: 1, 541: 1, 22: 1 },
+  afh,
+);
 _.K3 = function bfh() {
   return "The razor-sharp length of steel blade shines reassuringly.";
 };
 var vPf = Class_createForClass(KMj, "Sword", 541, qPf);
-Runtime_defineClass(542, 126, { 72: 1, 31: 1, 106: 1, 132: 1, 126: 1, 542: 1, 22: 1 }, cfh);
+Runtime_defineClass(
+  542,
+  126,
+  { 72: 1, 31: 1, 106: 1, 132: 1, 126: 1, 542: 1, 22: 1 },
+  cfh,
+);
 _.K3 = function dfh() {
   return "Few creatures can withstand the crushing blow of this towering mass of lead and steel, but only the strongest of adventurers can use it effectively.";
 };
@@ -434592,7 +435328,12 @@ _.k4 = function ofh() {
   return this;
 };
 var DPf = Class_createForClass(LMj, "MissileWeapon", 169, ZOf);
-Runtime_defineClass(357, 169, { 72: 1, 31: 1, 106: 1, 132: 1, 357: 1, 169: 1, 22: 1 }, rfh);
+Runtime_defineClass(
+  357,
+  169,
+  { 72: 1, 31: 1, 106: 1, 132: 1, 357: 1, 169: 1, 22: 1 },
+  rfh,
+);
 _.E3 = function sfh(a, b) {
   this.a = a.d.f == this;
   wXg(this, a, b);
@@ -435451,7 +436192,12 @@ _.k9 = function djh() {
   return IHj;
 };
 var JPf = Class_createForClass(MMj, TYi, 876, bQf);
-Runtime_defineClass(aHi, 81, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1245: 1 }, fjh);
+Runtime_defineClass(
+  aHi,
+  81,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1245: 1 },
+  fjh,
+);
 _.H6 = function gjh(a, b) {
   ejh(this, a, b);
 };
@@ -435720,7 +436466,12 @@ _.K1 = function Ujh(a, b, c, d) {
   Vjh(e, c, d);
 };
 var LPf = Class_createForClass(MMj, "CityLevel/Smoke/1", nLi, xGf);
-Runtime_defineClass(kFi, 81, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1246: 1 }, Wjh);
+Runtime_defineClass(
+  kFi,
+  81,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1246: 1 },
+  Wjh,
+);
 _.H6 = function Xjh(a, b) {
   Vjh(this, a, b);
 };
@@ -435991,7 +436742,12 @@ _.k9 = function Ikh() {
   return KHj;
 };
 var TPf = Class_createForClass(MMj, dZi, 882, bQf);
-Runtime_defineClass(fFi, 134, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1247: 1 }, Kkh);
+Runtime_defineClass(
+  fFi,
+  134,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1247: 1 },
+  Kkh,
+);
 _.H6 = function Lkh(a, b) {
   Jkh(this, a, b);
 };
@@ -437004,7 +437760,12 @@ _.K1 = function Yoh(a, b, c, d) {
   Zoh(e, c, d);
 };
 var hQf = Class_createForClass(MMj, "SewerLevel/Sink/1", oLi, xGf);
-Runtime_defineClass(bHi, 81, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1249: 1 }, $oh);
+Runtime_defineClass(
+  bHi,
+  81,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 1249: 1 },
+  $oh,
+);
 _.H6 = function _oh(a, b) {
   Zoh(this, a, b);
 };
@@ -439119,7 +439880,12 @@ _.sJ = function Awh() {
   qag.e = true;
 };
 var QRf = Class_createForClass(WLj, "IntroScene/1", EMi, rWf);
-Runtime_defineClass(197, 228, { 228: 1, 20: 1, 33: 1, 1896: 1, 34: 1, 197: 1 }, Cwh);
+Runtime_defineClass(
+  197,
+  228,
+  { 228: 1, 20: 1, 33: 1, 1896: 1, 34: 1, 197: 1 },
+  Cwh,
+);
 _.jj = function Dwh() {
   if (this.a) {
     Ie(dc, 1);
@@ -439154,7 +439920,12 @@ _.A_ = function PixelCamera_updateMatrix() {
   this.b[13] = 1 - this.r * d9f - b * this.b[5];
 };
 var TRf = Class_createForClass(WLj, "PixelScene/PixelCamera", 740, $Ff);
-Runtime_defineClass(999, 156, { 20: 1, 30: 1, 216: 1, 156: 1, 999: 1 }, RankingsScene);
+Runtime_defineClass(
+  999,
+  156,
+  { 20: 1, 30: 1, 216: 1, 156: 1, 999: 1 },
+  RankingsScene,
+);
 
 _.j0 = function RankingsScene_create() {
   var a, b, c, d, e, f, g, h, i, j, k, l, m, n, o;
@@ -439631,7 +440402,12 @@ _.c = false;
 _.d = 0;
 _.e = 0;
 var iSf = Class_createForClass(WLj, "SurfaceScene/GrassPatch", 696, dGf);
-Runtime_defineClass(927, 79, { 20: 1, 33: 1, 79: 1, 91: 1, 34: 1, 927: 1 }, Sxh);
+Runtime_defineClass(
+  927,
+  79,
+  { 20: 1, 33: 1, 79: 1, 91: 1, 34: 1, 927: 1 },
+  Sxh,
+);
 _.Oab = function Txh() {
   Rxh(this);
 };
@@ -439778,7 +440554,12 @@ _.a2 = function syh() {
   qag.e = true;
 };
 var qSf = Class_createForClass(WLj, "TitleScene/5", wKi, rSf);
-Runtime_defineClass(87, 79, { 20: 1, 33: 1, 79: 1, 91: 1, 34: 1, 92: 1, 87: 1 }, Uyh);
+Runtime_defineClass(
+  87,
+  79,
+  { 20: 1, 33: 1, 79: 1, 91: 1, 34: 1, 92: 1, 87: 1 },
+  Uyh,
+);
 _.Qab = function Vyh(a) {
   tyh(this, a);
 };
@@ -439881,7 +440662,12 @@ _.k = 0;
 _.q = false;
 _.A = false;
 var ESf = Class_createForClass(MLj, E0i, 87, gGf);
-Runtime_defineClass(52, 87, { 20: 1, 33: 1, 79: 1, 91: 1, 34: 1, 92: 1, 87: 1, 52: 1 }, Azh);
+Runtime_defineClass(
+  52,
+  87,
+  { 20: 1, 33: 1, 79: 1, 91: 1, 34: 1, 92: 1, 87: 1, 52: 1 },
+  Azh,
+);
 _.nbb = function Bzh() {
   yzh(this);
 };
@@ -440099,7 +440885,12 @@ _.N0 = function vAh(a) {
   a == this.i && zeg(zyh(this), (gRg(), jRg(7, false)), 0, 15);
 };
 var HSf = Class_createForClass(MLj, S0i, wHi, dTf);
-Runtime_defineClass(xHi, 150, { 20: 1, 33: 1, 79: 1, 34: 1, 1292: 1, 150: 1 }, wAh);
+Runtime_defineClass(
+  xHi,
+  150,
+  { 20: 1, 33: 1, 79: 1, 34: 1, 1292: 1, 150: 1 },
+  wAh,
+);
 _.q6 = function xAh() {
   uTh(this.db, 1);
   this.T = 1;
@@ -440242,7 +441033,12 @@ _.obb = function YAh() {
   UAh(this);
 };
 var RSf = Class_createForClass(MLj, "GooSprite", MGi, dTf);
-Runtime_defineClass($Gi, 134, { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1299: 1 }, aBh);
+Runtime_defineClass(
+  $Gi,
+  134,
+  { 20: 1, 33: 1, 105: 1, 34: 1, 81: 1, 134: 1, 1299: 1 },
+  aBh,
+);
 _.H6 = function bBh(a, b) {
   _Ah(this, a, b);
 };
@@ -440261,7 +441057,12 @@ _.K1 = function eBh(a, b, c, d) {
   _Ah(jbg(a, QSf), c, d);
 };
 var PSf = Class_createForClass(MLj, "GooSprite/GooParticle/1", PMi, xGf);
-Runtime_defineClass(919, 87, { 20: 1, 33: 1, 79: 1, 91: 1, 34: 1, 92: 1, 87: 1, 919: 1 }, lBh);
+Runtime_defineClass(
+  919,
+  87,
+  { 20: 1, 33: 1, 79: 1, 91: 1, 34: 1, 92: 1, 87: 1, 919: 1 },
+  lBh,
+);
 _.dbb = function nBh(a, b, c) {
   Fyh(this, a, b, c);
   Hbg(this, this.a, false);
@@ -440374,7 +441175,12 @@ _.tbb = function PBh(a) {
   MBh(this, a);
 };
 var _Sf = Class_createForClass(MLj, m1i, ADi, dTf);
-Runtime_defineClass(KVi, 150, { 20: 1, 33: 1, 79: 1, 34: 1, 92: 1, 150: 1, 1006: 1 }, SBh);
+Runtime_defineClass(
+  KVi,
+  150,
+  { 20: 1, 33: 1, 79: 1, 34: 1, 92: 1, 150: 1, 1006: 1 },
+  SBh,
+);
 _.P1 = function TBh(a) {
   this.jb = false;
   this.lb = false;
@@ -440820,7 +441626,12 @@ _.g = 0;
 _.i = 0;
 _.j = 0;
 var rUf = Class_createForClass(uLj, "Tag", 290, JGf);
-Runtime_defineClass(930, 290, { 20: 1, 30: 1, 46: 1, 36: 1, 930: 1, 290: 1 }, IDh);
+Runtime_defineClass(
+  930,
+  290,
+  { 20: 1, 30: 1, 46: 1, 36: 1, 930: 1, 290: 1 },
+  IDh,
+);
 _.xbb = function JDh() {
   EDh(this);
 };
@@ -441042,7 +441853,12 @@ _.ri = function NEh() {
 };
 _.a = 0;
 var QTf = Class_createForClass(uLj, "Compass", 932, dGf);
-Runtime_defineClass(933, 290, { 20: 1, 30: 1, 46: 1, 36: 1, 933: 1, 290: 1 }, OEh);
+Runtime_defineClass(
+  933,
+  290,
+  { 20: 1, 30: 1, 46: 1, 36: 1, 933: 1, 290: 1 },
+  OEh,
+);
 _.T1 = function PEh() {
   uDh(this);
   this.d = new t8f(qth);
@@ -441308,7 +442124,12 @@ _.Y3 = function OGh() {
   return 0;
 };
 var bUf = Class_createForClass(uLj, "ItemSlot/4", zKi, nMf);
-Runtime_defineClass(937, 290, { 20: 1, 30: 1, 46: 1, 36: 1, 937: 1, 290: 1 }, PGh);
+Runtime_defineClass(
+  937,
+  290,
+  { 20: 1, 30: 1, 46: 1, 36: 1, 937: 1, 290: 1 },
+  PGh,
+);
 _.T1 = function QGh() {
   uDh(this);
   this.c = new TGh();
@@ -441380,7 +442201,12 @@ _.d2 = function $Gh() {
 };
 var fUf = Class_createForClass(uLj, B2i, 938, JGf);
 
-Runtime_defineClass(939, 46, { 20: 1, 30: 1, 46: 1, 36: 1, 939: 1, 350: 1 }, kHh);
+Runtime_defineClass(
+  939,
+  46,
+  { 20: 1, 30: 1, 46: 1, 36: 1, 939: 1, 350: 1 },
+  kHh,
+);
 _.T1 = function nHh() {
   this.k = new Tfg(this);
   _ag(this, this.k);
@@ -441473,7 +442299,12 @@ _.d2 = function HHh() {
   J7f(this.f);
 };
 var gUf = Class_createForClass(uLj, "QuickSlot/1", wLi, cUf);
-Runtime_defineClass(940, 290, { 20: 1, 30: 1, 46: 1, 36: 1, 940: 1, 290: 1 }, IHh);
+Runtime_defineClass(
+  940,
+  290,
+  { 20: 1, 30: 1, 46: 1, 36: 1, 940: 1, 290: 1 },
+  IHh,
+);
 _.T1 = function JHh() {
   uDh(this);
   this.a = lGh((hGh(), VFh));
@@ -441822,7 +442653,12 @@ _.b2 = function $Ih() {
   return true;
 };
 var yUf = Class_createForClass(uLj, "Toolbar/5", WMi, BUf);
-Runtime_defineClass(943, 150, { 20: 1, 33: 1, 79: 1, 34: 1, 150: 1, 943: 1 }, aJh);
+Runtime_defineClass(
+  943,
+  150,
+  { 20: 1, 33: 1, 79: 1, 34: 1, 150: 1, 943: 1 },
+  aJh,
+);
 _._bb = function bJh(a, b, c) {
   _Ih(this, a, b, c);
 };
@@ -441843,7 +442679,12 @@ _.a = 0;
 _.b = 0;
 _.c = 0;
 var zUf = Class_createForClass(uLj, "Toolbar/PickedUpItem", 943, XSf);
-Runtime_defineClass(702, 236, { 20: 1, 30: 1, 46: 1, 36: 1, 702: 1, 236: 1 }, dJh);
+Runtime_defineClass(
+  702,
+  236,
+  { 20: 1, 30: 1, 46: 1, 36: 1, 702: 1, 236: 1 },
+  dJh,
+);
 _.T1 = function eJh() {
   GIh(this);
   this.a = new kHh();
@@ -441937,7 +442778,12 @@ _.gcb = function aKh() {
   return 25;
 };
 var uWf = Class_createForClass(wLj, "WndTabbed", 240, EUf);
-Runtime_defineClass(208, 240, { 20: 1, 30: 1, 63: 1, 208: 1, 240: 1, 82: 1 }, gKh);
+Runtime_defineClass(
+  208,
+  240,
+  { 20: 1, 30: 1, 63: 1, 208: 1, 240: 1, 82: 1 },
+  gKh,
+);
 _.e1 = function hKh() {
   !!this.c && this.c.T5(null);
   gbg(this.mb, this);
@@ -441984,7 +442830,12 @@ _.jcb = function uKh(a) {
 _.c = 5;
 _.e = false;
 var tWf = Class_createForClass(wLj, "WndTabbed/Tab", 241, JGf);
-Runtime_defineClass(MVi, 241, { 20: 1, 30: 1, 46: 1, 36: 1, 1007: 1, 241: 1 }, vKh);
+Runtime_defineClass(
+  MVi,
+  241,
+  { 20: 1, 30: 1, 46: 1, 36: 1, 1007: 1, 241: 1 },
+  vKh,
+);
 _.kcb = function wKh() {
   return Rqf(this.a, 324)
     ? lGh((hGh(), YFh))
@@ -442026,7 +442877,12 @@ _.jcb = function yKh(a) {
   this.b.T = this.e ? 1 : wii;
 };
 var KUf = Class_createForClass(wLj, "WndBag/BagTab", MVi, tWf);
-Runtime_defineClass(NVi, 230, { 20: 1, 30: 1, 46: 1, 36: 1, 230: 1, 1008: 1 }, AKh);
+Runtime_defineClass(
+  NVi,
+  230,
+  { 20: 1, 30: 1, 46: 1, 36: 1, 230: 1, 1008: 1 },
+  AKh,
+);
 _.T1 = function BKh() {
   this.a = new jag(28, 28, Aaj);
   _ag(this, this.a);
@@ -442185,7 +443041,12 @@ _.d2 = function rLh() {
   J7f(this.a.b);
 };
 var UUf = Class_createForClass(wLj, "WndBlacksmith/ItemButton/1", zLi, cUf);
-Runtime_defineClass(546, 240, { 20: 1, 30: 1, 63: 1, 546: 1, 240: 1, 82: 1 }, uLh);
+Runtime_defineClass(
+  546,
+  240,
+  { 20: 1, 30: 1, 63: 1, 546: 1, 240: 1, 82: 1 },
+  uLh,
+);
 _.L5 = function vLh(a) {
   Xqf(a.a) === Xqf((mWg(), RVg)) ? (gbg(this.mb, this), AHg(this)) : undefined;
 };
@@ -442294,7 +443155,12 @@ _.a2 = function ZLh() {
   BHg(this.a);
 };
 var fVf = Class_createForClass(wLj, "WndChooseWay/5", fNi, iUf);
-Runtime_defineClass(946, 240, { 20: 1, 30: 1, 63: 1, 946: 1, 240: 1, 82: 1 }, $Lh);
+Runtime_defineClass(
+  946,
+  240,
+  { 20: 1, 30: 1, 63: 1, 946: 1, 240: 1, 82: 1 },
+  $Lh,
+);
 var kVf = Class_createForClass(wLj, "WndClass", 946, uWf);
 Runtime_defineClass(RHi, 30, { 20: 1, 30: 1, 1331: 1 }, _Lh);
 _.a = 0;
@@ -442304,7 +443170,12 @@ Runtime_defineClass(hDi, 30, { 20: 1, 30: 1, 1330: 1 }, aMh);
 _.a = 0;
 _.b = 0;
 var iVf = Class_createForClass(wLj, "WndClass/PerksTab", hDi, cGf);
-Runtime_defineClass(947, 231, { 20: 1, 30: 1, 46: 1, 36: 1, 947: 1, 231: 1, 241: 1 }, bMh);
+Runtime_defineClass(
+  947,
+  231,
+  { 20: 1, 30: 1, 46: 1, 36: 1, 947: 1, 231: 1, 241: 1 },
+  bMh,
+);
 _.jcb = function cMh(a) {
   qKh(this, a);
   this.b.T = this.e ? 1 : wii;
@@ -442369,7 +443240,12 @@ _.a2 = function vMh() {
   BHg(this.a);
 };
 var sVf = Class_createForClass(wLj, "WndGame/7", mNi, iUf);
-Runtime_defineClass(705, 240, { 20: 1, 30: 1, 63: 1, 705: 1, 240: 1, 82: 1 }, wMh);
+Runtime_defineClass(
+  705,
+  240,
+  { 20: 1, 30: 1, 63: 1, 705: 1, 240: 1, 82: 1 },
+  wMh,
+);
 _.L5 = function xMh(a) {
   Xqf(a.a) === Xqf((mWg(), TVg)) ? (gbg(this.mb, this), AHg(this)) : undefined;
 };
@@ -442421,7 +443297,12 @@ _.a2 = function OMh() {
   ivh(new cNh());
 };
 var yVf = Class_createForClass(wLj, "WndHero/StatsTab/2", oNi, iUf);
-Runtime_defineClass(948, 128, { 20: 1, 30: 1, 63: 1, 948: 1, 128: 1, 82: 1 }, PMh);
+Runtime_defineClass(
+  948,
+  128,
+  { 20: 1, 30: 1, 63: 1, 948: 1, 128: 1, 82: 1 },
+  PMh,
+);
 _.N5 = function QMh(a) {
   var b;
   dtg(this.b, (Fjg(), Dungeon.hero).d.b);
@@ -442444,7 +443325,12 @@ _.scb = function VMh(a, b, c, d, e) {
   SMh(this, a, b, c, d, e);
 };
 var DVf = Class_createForClass(wLj, q3i, 547, EUf);
-Runtime_defineClass(949, 312, { 20: 1, 30: 1, 63: 1, 949: 1, 312: 1, 82: 1 }, WMh);
+Runtime_defineClass(
+  949,
+  312,
+  { 20: 1, 30: 1, 63: 1, 949: 1, 312: 1, 82: 1 },
+  WMh,
+);
 var FVf = Class_createForClass(wLj, r3i, 949, vWf);
 Runtime_defineClass(950, 36, { 20: 1, 30: 1, 36: 1, 950: 1 }, YMh);
 _.UC = function ZMh() {
@@ -442587,7 +443473,12 @@ _.a2 = function KNh() {
 };
 _.b = 0;
 var UVf = Class_createForClass(wLj, "WndQuest/1", CLi, iUf);
-Runtime_defineClass(955, 240, { 20: 1, 30: 1, 63: 1, 955: 1, 240: 1, 82: 1 }, MNh);
+Runtime_defineClass(
+  955,
+  240,
+  { 20: 1, 30: 1, 63: 1, 955: 1, 240: 1, 82: 1 },
+  MNh,
+);
 _.zcb = function NNh() {
   LNh(this);
 };
@@ -442650,7 +443541,12 @@ _.Bcb = function cOh(a) {
 _.a = 0;
 _.b = 0;
 var ZVf = Class_createForClass(wLj, "WndRanking/ItemsTab", SHi, cGf);
-Runtime_defineClass(jDi, 549, { 20: 1, 30: 1, 46: 1, 36: 1, 549: 1, 1337: 1 }, dOh);
+Runtime_defineClass(
+  jDi,
+  549,
+  { 20: 1, 30: 1, 46: 1, 36: 1, 549: 1, 1337: 1 },
+  dOh,
+);
 _.T1 = function eOh() {
   SNh(this);
   this.a = Gth("?", 7);
@@ -442673,7 +443569,12 @@ _.UC = function fOh() {
   }
 };
 var $Vf = Class_createForClass(wLj, "WndRanking/LabelledItemButton", jDi, YVf);
-Runtime_defineClass(THi, 231, { 20: 1, 30: 1, 46: 1, 36: 1, 1338: 1, 231: 1, 241: 1 }, gOh);
+Runtime_defineClass(
+  THi,
+  231,
+  { 20: 1, 30: 1, 46: 1, 36: 1, 1338: 1, 231: 1, 241: 1 },
+  gOh,
+);
 _.jcb = function hOh(a) {
   qKh(this, a);
   this.b.T = this.e ? 1 : wii;
@@ -442716,7 +443617,12 @@ _.a2 = function WndResurrect$2_onClick() {
 };
 
 var eWf = Class_createForClass(wLj, "WndResurrect/2", xNi, iUf);
-Runtime_defineClass(550, 128, { 20: 1, 30: 1, 63: 1, 128: 1, 550: 1, 82: 1 }, wOh);
+Runtime_defineClass(
+  550,
+  128,
+  { 20: 1, 30: 1, 63: 1, 128: 1, 550: 1, 82: 1 },
+  wOh,
+);
 _.N5 = function xOh(a) {
   var b;
   !!this.b && ctg(this.b, (Fjg(), Dungeon.hero).d.b);
@@ -442847,7 +443753,12 @@ _.a2 = function uPh() {
   ZOh(this.a);
 };
 var BWf = Class_createForClass(wLj, "WndTradeItem/6", CEi, iUf);
-Runtime_defineClass(957, 128, { 20: 1, 30: 1, 63: 1, 128: 1, 957: 1, 82: 1 }, vPh);
+Runtime_defineClass(
+  957,
+  128,
+  { 20: 1, 30: 1, 63: 1, 128: 1, 957: 1, 82: 1 },
+  vPh,
+);
 _.N5 = function wPh(a) {
   var b;
   ctg(this.a, (Fjg(), Dungeon.hero).d.b);
@@ -442971,7 +443882,15 @@ _.Qd = function oQh() {
 };
 var DYf = Class_createForClass(Eci, "AbstractHashMap", 359, PYf);
 var CXf = xWh(z9h, "Cloneable");
-Runtime_defineClass(94, 359, { 3: 1, 4: 1, 359: 1, 393: 1, 94: 1, 293: 1 }, pQh, qQh, rQh, sQh);
+Runtime_defineClass(
+  94,
+  359,
+  { 3: 1, 4: 1, 359: 1, 393: 1, 94: 1, 293: 1 },
+  pQh,
+  qQh,
+  rQh,
+  sQh,
+);
 _.Ucb = function tQh() {
   return new sQh(this);
 };
@@ -442984,7 +443903,12 @@ _.Tcb = function vQh(a) {
   return b | 0;
 };
 var CZf = Class_createForClass(Eci, y5i, 94, DYf);
-Runtime_defineClass(958, 94, { 958: 1, 3: 1, 4: 1, 359: 1, 393: 1, 94: 1, 293: 1 }, xQh);
+Runtime_defineClass(
+  958,
+  94,
+  { 958: 1, 3: 1, 4: 1, 359: 1, 393: 1, 94: 1, 293: 1 },
+  xQh,
+);
 _.Ve = function yQh() {
   wQh(this);
 };
@@ -443254,7 +444178,14 @@ _.Cdb = function LSh(a, b) {
   return new K_h(this, a, b);
 };
 var HYf = Class_createForClass(Eci, "AbstractList", 327, AYf);
-Runtime_defineClass(DDi, 327, { 55: 1, 163: 1, 327: 1, 1064: 1, 140: 1, 294: 1 });
+Runtime_defineClass(DDi, 327, {
+  55: 1,
+  163: 1,
+  327: 1,
+  1064: 1,
+  140: 1,
+  294: 1,
+});
 _.udb = function PSh(a, b) {
   MSh(this, a, b);
 };
@@ -443857,7 +444788,14 @@ Runtime_defineClass(978, 391, { 391: 1, 714: 1, 723: 1, 978: 1 }, WYh);
 var _Xf = Class_createForClass(z9h, k5i, 978, qXf);
 Runtime_defineClass(99, 391, { 391: 1, 714: 1, 723: 1, 99: 1 }, cZh, dZh, eZh);
 var aYf = Class_createForClass(z9h, Oqi, 99, qXf);
-Runtime_defineClass(296, 78, { 3: 1, 43: 1, 78: 1, 59: 1, 296: 1, 77: 1 }, fZh, gZh, hZh);
+Runtime_defineClass(
+  296,
+  78,
+  { 3: 1, 43: 1, 78: 1, 59: 1, 296: 1, 77: 1 },
+  fZh,
+  gZh,
+  hZh,
+);
 var bYf = Class_createForClass(z9h, l5i, 296, MXf);
 Runtime_defineClass(HPi, 1, {});
 var iZh;
@@ -443936,7 +444874,13 @@ _.meb = function QZh() {
   return this.a;
 };
 var mYf = Class_createForClass(UNj, "DirectByteBuffer", XHi, gYf);
-Runtime_defineClass(458, XHi, { 49: 1, 192: 1, 709: 1, 458: 1, 1380: 1 }, ZZh, $Zh);
+Runtime_defineClass(
+  458,
+  XHi,
+  { 49: 1, 192: 1, 709: 1, 458: 1, 1380: 1 },
+  ZZh,
+  $Zh,
+);
 _.keb = function _Zh() {
   return new j$h(YZh(this));
 };
@@ -444870,7 +445814,12 @@ _.Nb = function J3h() {
   return (!this.b && (this.b = this.a.Pcb()), g_f(this.b));
 };
 var fZf = Class_createForClass(Eci, "Collections/SetFromMap", OKi, WYf);
-Runtime_defineClass(PKi, 327, { 3: 1, 55: 1, 163: 1, 327: 1, 140: 1, 294: 1 }, K3h);
+Runtime_defineClass(
+  PKi,
+  327,
+  { 3: 1, 55: 1, 163: 1, 327: 1, 140: 1, 294: 1 },
+  K3h,
+);
 _.ZN = function L3h(a) {
   return o7h(this.a, a);
 };
