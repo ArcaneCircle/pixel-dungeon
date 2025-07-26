@@ -16,12 +16,14 @@ export class Dungeon {
   // Reason of death
   public static resultDescription: String;
 
-  //public static HashSet<Integer> chapters;
+  public static chapters: any; // TODO: HashSet<Integer>
 
   // Hero's field of view
   public static visible = new Array<boolean>(Level.LENGTH); // TODO: not fully ported, initial value not used
 
   public static nightMode = false;
 
-  //public static SparseArray<ArrayList<Item>> droppedItems;
+  public static droppedItems: any; // TODO: SparseArray<ArrayList<Item>>
+
+  private static passable = new Array<boolean>(Level.LENGTH); // TODO: not fully ported, initial value not used
 }

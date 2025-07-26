@@ -1,11 +1,196 @@
 import { Dungeon } from "./dungeon.ts";
 
+const PixelDungeon = {
+    landscape: () => Game_width > Game_height,
+    fullscreen: function (a) {
+        var b, c, d, e;
+        c = (olg(), nlg);
+        d = qag.d;
+        if (a) {
+            !c.a && (c.a = td(ac, ZIj));
+            qg(c.a, WIj, true);
+            !c.a && (c.a = td(ac, ZIj));
+            lg(c.a);
+            eMg(d, Knf($doc), Jnf($doc));
+            d.a = true;
+        } else {
+            e = (!c.a && (c.a = td(ac, ZIj)), ng(c.a, XIj, 480));
+            b = (!c.a && (c.a = td(ac, ZIj)), ng(c.a, YIj, 800));
+            !c.a && (c.a = td(ac, ZIj));
+            qg(c.a, WIj, false);
+            !c.a && (c.a = td(ac, ZIj));
+            lg(c.a);
+            Of(fc, e, b);
+            d.a = false;
+        }
+    }
+}
+
+function RankingsScene() {
+	this.DEFAULT_COLOR	= 0xCCCCCC;
+	
+	this.TXT_TITLE		= "Top Rankings";
+	this.TXT_TOTAL		= "Games played: ";
+	this.TXT_NO_GAMES	= "No games have been played yet.";
+
+	this.TXT_NO_INFO	= "No additional information";
+	
+	this.ROW_HEIGHT_L	= 22;
+	this.ROW_HEIGHT_P	= 28;
+	
+	this.MAX_ROW_WIDTH = 180;
+	
+	this.GAP	= 4;
+	
+	this.archs = null;
+
+    PixelScene.call(this); // super()
+
+    this.add = function(gizmo) {
+        Group_$add(this, gizmo);
+    }
+
+    this.fadeIn = function() {
+        PixelScene_noFade ? (PixelScene_noFade = false) : this.add(new Cwh(Pbi, false));
+    }
+
+    this.align = function(pos) {
+        return Math.floor(pos * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+    }
+
+    this.create = function() {
+        PixelScene_$create(this);
+
+        Music_$play((Jdg(), Idg), SHj, true);
+        Music_$volume(Idg, 1);
+
+        PixelScene_uiCamera.nb = false;
+
+        const w = (g9f(), Camera_main).p;
+        const h = Camera_main.a;
+
+        this.archs = new Archs();
+        Component_$setSize(this.archs, w, h);
+        this.add(this.archs);
+
+        if (Rankings.records.length > 0) {
+            const rowHeight = PixelDungeon.landscape() ? this.ROW_HEIGHT_L : this.ROW_HEIGHT_P;
+            const left = (w - Math.min(this.MAX_ROW_WIDTH, w)) / 2 + this.GAP;
+            const top = this.align((h - rowHeight * Rankings.records.length) / 2)
+            const title = PixelScene_createText(this.TXT_TITLE, 9);
+            Visual_$hardlight(title, 1, 1, ILj);
+            BitmapText_$measure(title);
+            title.gb = this.align((w - title.fb * title.db.a) / 2);
+            title.hb = this.align(top - title.$ * title.db.b - this.GAP);
+            this.add(title);
+            let pos = 0;
+            const selfId = window.webxdc.selfAddr;
+            for (const rec of Rankings.records) {
+                const row = new RankingsScene$Record(pos, rec.playerId === selfId, rec);
+                Component_$setRect(row, left, top + pos * rowHeight, w - left * 2, rowHeight);
+                this.add(row);
+                ++pos;
+            }
+            if (Rankings.totalNumber >= Rankings.TABLE_SIZE) {
+                const label = PixelScene_createText(this.TXT_TOTAL, 8);
+                Visual_$hardlight(label, this.DEFAULT_COLOR, this.DEFAULT_COLOR, this.DEFAULT_COLOR);
+                BitmapText_$measure(label);
+                this.add(label);
+
+                const won = PixelScene_createText("" + Rankings.wonNumber, 8);
+                Visual_$hardlight(won, 1, 1, ILj);
+                BitmapText_$measure(won);
+                this.add(won);
+
+                const total = PixelScene_createText("/" + Rankings.totalNumber, 8);
+                Visual_$hardlight(total, this.DEFAULT_COLOR, this.DEFAULT_COLOR, this.DEFAULT_COLOR);
+                BitmapText_$measure(total);
+                total.gb = this.align((w - total.fb * total.db.a) / 2);
+                total.hb = this.align(top + pos * rowHeight + this.GAP);
+                this.add(total);
+
+                const tw = label.fb * label.db.a + won.fb * won.db.a + total.fb * total.db.a;
+                label.gb = this.align((w - tw) / 2);
+                won.gb = label.gb + label.fb * label.db.a;
+                total.gb = won.gb + won.fb * won.db.a;
+                label.hb = won.hb = total.hb = this.align(top + pos * rowHeight + this.GAP);
+            }
+        } else {
+            const title = PixelScene_createText(this.TXT_NO_GAMES, 8);
+            Visual_$hardlight(title, this.DEFAULT_COLOR, this.DEFAULT_COLOR, this.DEFAULT_COLOR);
+            BitmapText_$measure(title);
+            title.gb = this.align((w - title.fb * title.db.a) / 2);
+            title.hb = this.align((h - title.$ * title.db.b) / 2);
+            this.add(title);
+        }
+
+        const btnExit = new UEh();
+        Component_$setPos(btnExit, Camera_main.p - btnExit.B, 0);
+        this.add(btnExit);
+
+        this.fadeIn();
+    }
+}
+
+const Rankings = {
+    TABLE_SIZE: 6,
+    Record: function () {
+		this.info = "";
+		this.win = false;
+		
+		this.heroClass = null;
+		this.armorTier = 0;
+		
+		this.score = 0;
+    },
+    score: function (win) {
+        return (Statistics_goldCollected + Dungeon.hero.o * Statistics_deepestFloor * 100) * (win ? 2 : 1);
+    },
+    save: function() {
+        this.records.sort((a, b) => a.score - b.score);
+        this.records.splice(this.TABLE_SIZE);
+        localStorage.records = JSON.stringify(this.records);
+        localStorage.totalNumber =this.totalNumber;
+        localStorage.wonNumber = this.wonNumber;
+    },
+    load: function() {
+        this.records = JSON.parse(localStorage.records || "[]");
+        this.totalNumber = parseInt(localStorage.totalNumber|| "0");
+        this.wonNumber = parseInt(localStorage.wonNumber|| "0");
+    },
+    submit: function(win) {
+        const gameFile = yJh(_Ij, aqf(Vpf(WXf, 1), E9h, 1, 5, [HXh(AUh)]));
+        try {Dungeon_saveGame(gameFile);} catch (a) {console.error(a)}
+        Badges_validateGamesPlayed();
+
+        // TODO: set other game data that is saved via gameFile
+        const rec = {
+            info: (Fjg(), Dungeon.resultDescription),
+            win,
+            heroClass: Dungeon.hero.j,
+            armorTier:xvg(Dungeon.hero),
+            score: this.score(win),
+            playerId: window.webxdc.selfAddr,
+            playerName:window.webxdc.selfName,
+        };
+        const info = `${rec.playerName}: ${rec.info}`;
+        window.webxdc.sendUpdate({ payload: rec, info });
+    },
+    onRecord: function(record) {
+        this.records.push(record);
+        const selfId = window.webxdc.selfAddr;
+        if (record.playerId === selfId) {
+            ++this.totalNumber;
+            if (record.win) ++this.wonNumber;
+        }
+    }
+}
+
 var $wnd = window;
 var $sendStats = console.log;
 $sendStats("moduleStartup", "moduleEvalStart");
 var $gwt = {};
 var $doc = $wnd.document;
-var $moduleName, $moduleBase;
 
 function yb() {}
 function vm() {}
@@ -156,8 +341,6 @@ function _ig() {}
 function Akg() {}
 function Ckg() {}
 function Xkg() {}
-function Ulg() {}
-function $lg() {}
 function bmg() {}
 function omg() {}
 function Ong() {}
@@ -347,7 +530,7 @@ function DZc() {
 function pIe() {
   pVd();
 }
-function kgg() {
+function Badges() {
   jgg();
 }
 function $ig() {
@@ -480,10 +663,10 @@ function eUc(a) {
   wvh = a;
 }
 function kUc(a) {
-  wth = a;
+  PixelScene_noFade = a;
 }
 function gUc(a) {
-  nth = a;
+  PixelScene_defaultZoom = a;
 }
 function hUc(a) {
   vth = a;
@@ -492,7 +675,7 @@ function iUc(a) {
   uth = a;
 }
 function jUc(a) {
-  xth = a;
+  PixelScene_scale = a;
 }
 function STc(a) {
   Qth = a;
@@ -591,10 +774,10 @@ function rAe(a) {
   nag = a;
 }
 function pAe(a) {
-  tag = a;
+  Game_width = a;
 }
 function qAe(a) {
-  pag = a;
+  Game_height = a;
 }
 function uAe(a) {
   rag = a;
@@ -606,43 +789,43 @@ function WBe(a) {
   Ffg = a;
 }
 function WCe(a) {
-  jmg = a;
+  Statistics_goldCollected = a;
 }
 function XCe(a) {
-  fmg = a;
+  Statistics_deepestFloor = a;
 }
 function YCe(a) {
-  hmg = a;
+  Statistics_enemiesSlain = a;
 }
 function ZCe(a) {
-  img = a;
+  Statistics_foodEaten = a;
 }
 function $Ce(a) {
-  mmg = a;
+  Statistics_potionsCooked = a;
 }
 function uCe(a) {
   Sig = a;
 }
 function aDe(a) {
-  lmg = a;
+  Statistics_piranhasKilled = a;
 }
 function bDe(a) {
-  kmg = a;
+  Statistics_nightHunt = a;
 }
 function cDe(a) {
-  dmg = a;
+  Statistics_ankhsUsed = a;
 }
 function dDe(a) {
-  gmg = a;
+  Statistics_duration = a;
 }
 function eDe(a) {
-  nmg = a;
+  Statistics_qualifiedForNoKilling = a;
 }
 function fDe(a) {
-  emg = a;
+  Statistics_completedWithNoKilling = a;
 }
 function gDe(a) {
-  cmg = a;
+  Statistics_amuletObtained = a;
 }
 function pqe(a) {
   Rlb = a;
@@ -5018,7 +5201,7 @@ function Aze(a) {
 }
 function lCe(a) {
   jgg();
-  igg = a;
+  Badges_saveNeeded = a;
 }
 function vCe(a) {
   Fjg();
@@ -5224,7 +5407,7 @@ function BJh(a, b) {
   D7f(a.d, b);
 }
 function EJh(a, b) {
-  q8f(a.d, b);
+  BitmapText_$text(a.d, b);
 }
 function Game_$writeFile(a, b, c) {
   fMg(b, c);
@@ -5298,7 +5481,7 @@ function $je(a) {
   return l5f(a);
 }
 function lme(a) {
-  return mgg(a);
+  return Badges_filtered(a);
 }
 function xme(a) {
   return mkg(a);
@@ -5366,7 +5549,7 @@ function EPg() {
 function $fg() {
   Jfg.call(this);
 }
-function Ath() {
+function PixelScene() {
   Jcg.call(this);
 }
 function fjh() {
@@ -5376,28 +5559,25 @@ function wih() {
   jhh.call(this);
 }
 function Lth() {
-  Ath.call(this);
+  PixelScene.call(this);
 }
 function Rth() {
-  Ath.call(this);
+  PixelScene.call(this);
 }
 function Zth() {
-  Ath.call(this);
+  PixelScene.call(this);
 }
 function Hvh() {
-  Ath.call(this);
-}
-function RankingsScene() {
-  Ath.call(this);
+  PixelScene.call(this);
 }
 function swh() {
-  Ath.call(this);
+  PixelScene.call(this);
 }
 function Cxh() {
-  Ath.call(this);
+  PixelScene.call(this);
 }
 function ayh() {
-  Ath.call(this);
+  PixelScene.call(this);
 }
 function Azh() {
   Uyh.call(this);
@@ -5739,7 +5919,7 @@ function Yif(a, b, c) {
 function vag(a, b) {
   return bMg(b);
 }
-function zag(a, b) {
+function Game_$readFile(a, b) {
   return dMg(b);
 }
 function xVh(a) {
@@ -7040,7 +7220,7 @@ function j4f(a, b) {
 function y7f(a, b) {
   a.cb = a.Z = a.X = b;
 }
-function q8f(a, b) {
+function BitmapText_$text(a, b) {
   a.k = b;
   a.f = true;
 }
@@ -7152,7 +7332,7 @@ function jfg(a) {
   return a.D + a.A / 2;
 }
 function Zqf(a) {
-  return $qf(a) & u9h;
+  return Cast_round_int(a) & u9h;
 }
 function Rxh(a) {
   Hbg(a, a.b, false);
@@ -7258,13 +7438,13 @@ function UMc(a, b) {
   return yLg(a, b);
 }
 function hOc(a, b) {
-  return Gth(a, b);
+  return PixelScene_createText(a, b);
 }
 function jOc(a, b) {
   return Fth(a, b);
 }
 function kOc(a, b) {
-  return Bth(a, b);
+  return PixelScene_align(a, b);
 }
 function LOc(a, b) {
   return mBh(a, b);
@@ -7540,7 +7720,7 @@ function Kc(a, b) {
   this.a = a;
   this.b = b;
 }
-function Bd(a, b) {
+function GwtApplication(a, b) {
   this.a = a;
   this.b = b;
 }
@@ -7713,7 +7893,7 @@ function kme(a) {
   return null;
 }
 function Fme(a) {
-  PixelDungeon_fullscreen(a);
+  PixelDungeon.fullscreen(a);
   return null;
 }
 function Gme(a) {
@@ -7757,13 +7937,13 @@ function Zoe(a) {
   return null;
 }
 function gOc(a) {
-  return Gth(null, a);
+  return PixelScene_createText(null, a);
 }
 function iOc(a) {
   return Fth(null, a);
 }
 function m$d(a) {
-  return (p_(), $qf(a));
+  return (p_(), Cast_round_int(a));
 }
 function q_f(b, a) {
   return b.exec(a);
@@ -7817,7 +7997,7 @@ function Jdg() {
   Jdg = emptyMethod;
   Idg = new Rdg();
 }
-function Yag(a) {
+function Game_switchScene(a) {
   qag.i = a;
   qag.e = true;
 }
@@ -7837,16 +8017,13 @@ function __f(a) {
 function k1f(a, b) {
   l1f((X_f(), a), b);
 }
-function Qdg(a, b) {
+function Music_$volume(a, b) {
   !!a.d && ji(a.d, b);
 }
 function Rdg() {
   Jb.call(this, ZBj, 0);
 }
 function vlg() {
-  Jb.call(this, ZBj, 0);
-}
-function Nlg() {
   Jb.call(this, ZBj, 0);
 }
 function KLg() {
@@ -7871,7 +8048,7 @@ function BHg(a) {
 }
 function jgg() {
   jgg = emptyMethod;
-  hgg = new $5h();
+  Badges_local = new $5h();
 }
 function vkg() {
   vkg = emptyMethod;
@@ -8145,7 +8322,7 @@ function zJ(a) {
 }
 function Yuh(a) {
   zuh();
-  _ag(yuh.b, a);
+  Group_$add(yuh.b, a);
 }
 function fQh(a) {
   return a.a.c + a.b.c;
@@ -8339,7 +8516,7 @@ function $me(a) {
 function Fmf(a) {
   return !!a.a || !!a.f;
 }
-function ljf(a, b) {
+function TextureFilm_$get(a, b) {
   return ZPh(a.f, b);
 }
 function Vnf(a, b) {
@@ -8391,7 +8568,7 @@ function I5b(a) {
   G5b(this, new _s(a));
 }
 function W0f() {
-  this.e = new t2f(this);
+  this.e = new WidgetCollection(this);
 }
 function z4f() {
   x4f();
@@ -8727,11 +8904,11 @@ function eth() {
 }
 function Iuh() {
   zuh();
-  Ath.call(this);
+  PixelScene.call(this);
 }
 function Twh() {
   Qwh();
-  Ath.call(this);
+  PixelScene.call(this);
 }
 function ewh(a, b) {
   Jb.call(this, a, b);
@@ -9909,10 +10086,10 @@ function Xqf(a) {
   return a == null ? null : a;
 }
 function Yqf(a) {
-  return ($qf(a) << 24) >> 24;
+  return (Cast_round_int(a) << 24) >> 24;
 }
 function _qf(a) {
-  return ($qf(a) << 16) >> 16;
+  return (Cast_round_int(a) << 16) >> 16;
 }
 function x8h(a) {
   this.a = new RegExp(a);
@@ -10387,7 +10564,7 @@ function qSc(a, b, c) {
   return a.Cdb(b, c);
 }
 function lOc(a) {
-  return $qf(a * nth) / nth;
+  return Cast_round_int(a * PixelScene_defaultZoom) / PixelScene_defaultZoom;
 }
 function IQc(a, b) {
   a.V9(b);
@@ -12492,7 +12669,7 @@ function fOc(a, b) {
   return null;
 }
 function eOc(a) {
-  Dth(a, nth);
+  Dth(a, PixelScene_defaultZoom);
   return null;
 }
 function nOc(a, b) {
@@ -12710,7 +12887,7 @@ function f5d(a, b) {
 function mjf(a, b) {
   return (b.a - b.d) * a.g;
 }
-function njf(a, b) {
+function TextureFilm_$width(a, b) {
   return (b.c - b.b) * a.i;
 }
 function nkf(a, b) {
@@ -12742,10 +12919,10 @@ function oRc(a) {
   return bUh(a, a.length);
 }
 function q$d(a) {
-  return (p_(), $qf(a + 0.5));
+  return (p_(), Cast_round_int(a + 0.5));
 }
 function _pe(a) {
-  return (mj(), $qf(a * 255));
+  return (mj(), Cast_round_int(a * 255));
 }
 function n_g(a) {
   return 6 * (a < 16 ? 16 - a : 1);
@@ -12867,7 +13044,7 @@ function aUh(a) {
 function ivh(a) {
   zuh();
   Vuh();
-  _ag(yuh, a);
+  Group_$add(yuh, a);
 }
 function sp(a) {
   _o();
@@ -13118,7 +13295,7 @@ function pfg() {
   nbg.call(this);
   this.T1();
 }
-function ngg(a) {
+function Badges_isUnlocked(a) {
   jgg();
   return Y5h(fgg, a);
 }
@@ -13128,8 +13305,8 @@ function vZg(a, b) {
 function xZg(a, b) {
   return ZPh(a.d, b.Peb);
 }
-function Bth(a, b) {
-  return $qf(b * a.s) / a.s;
+function PixelScene_align(a, b) {
+  return Cast_round_int(b * a.s) / a.s;
 }
 function xvg(a) {
   return !a.d.a ? 0 : a.d.a.f;
@@ -13675,10 +13852,10 @@ function eMg(a, b, c) {
   a.a = false;
 }
 function kfg(a, b) {
-  nfg(a, b.C, b.D, b.B, b.A);
+  Component_$setRect(a, b.C, b.D, b.B, b.A);
 }
 function gCh(a, b) {
-  U9f(a, ljf(eCh, rXh(b)));
+  U9f(a, TextureFilm_$get(eCh, rXh(b)));
 }
 function inh(a, b, c) {
   a.b = b;
@@ -15207,12 +15384,12 @@ function ODh(a) {
   wFh(vFh, a);
 }
 function FJh(a, b, c) {
-  q8f(a.d, b);
+  BitmapText_$text(a.d, b);
   D7f(a.d, c);
 }
 function DJh(a, b) {
   kbg(a, a.c);
-  _ag(a, (a.c = b));
+  Group_$add(a, (a.c = b));
 }
 function tug(a, b) {
   mtg(a, b);
@@ -15366,7 +15543,7 @@ function Ze(a, b, c, d) {
 function d9h(b, c, d) {
   try {
     b[c] = d;
-  } catch (a) {}
+  } catch (a) {console.error(a)}
 }
 function gL(a, b) {
   var c;
@@ -15643,10 +15820,10 @@ function Skf(a, b) {
   return (Hkf(), a.w.mZ(a, b));
 }
 function n$d(a) {
-  return (p_(), Vii - $qf(Vii - a));
+  return (p_(), Vii - Cast_round_int(Vii - a));
 }
 function l$d(a) {
-  return (p_(), $qf(a + Vii) - Vii);
+  return (p_(), Cast_round_int(a + Vii) - Vii);
 }
 function mke(a) {
   Ce(dc, 33984 + a);
@@ -16019,7 +16196,7 @@ function _Gg(a, b) {
   a.n = 9 + b;
 }
 function Auh(a, b) {
-  !b.c && _ag(a.f, new aNg(b));
+  !b.c && Group_$add(a.f, new aNg(b));
 }
 function XHh(a, b) {
   this.a = a;
@@ -16488,7 +16665,7 @@ function G4d(a, b, c) {
   return Mnb(a, b, c, 0, null);
 }
 function o$d(a) {
-  return (p_(), $qf(a + 0.9999999));
+  return (p_(), Cast_round_int(a + 0.9999999));
 }
 function b$d(a) {
   return (p_(), a != 0 && (a & (a - 1)) == 0);
@@ -16563,9 +16740,6 @@ function F4f(a, b, c) {
 }
 function ljh(a, b) {
   return ((b / 32) | 0) < ((a.a / 32) | 0);
-}
-function Lnf(b, a) {
-  return b.getElementById(a);
 }
 function hnh(a, b) {
   a.b += b.b;
@@ -16646,7 +16820,7 @@ function IIh(a) {
 }
 function Q3g(a) {
   vZg(K3g, a) || wZg(K3g, a);
-  vgg();
+  Badges_validateAllPotionsIdentified();
 }
 function P6g(a) {
   vZg(B6g, a) || wZg(B6g, a);
@@ -17442,7 +17616,7 @@ function Rpf(a) {
   return Pb((Upf(), Tpf), a);
 }
 function p$d(a) {
-  return (p_(), $qf(a + 16384.5) - Vii);
+  return (p_(), Cast_round_int(a + 16384.5) - Vii);
 }
 function Occ(a) {
   a.b = -1;
@@ -17513,17 +17687,6 @@ function Dlg(a) {
   olg();
   return Pb((Glg(), Flg), a);
 }
-function Rankings_valueOf(a) {
-  Jlg();
-  return Pb((Zlg(), Ylg), a);
-}
-
-function Jlg() {
-  Jlg = emptyMethod;
-  rankings = new Nlg();
-  scoreComparator = new Ulg();
-}
-
 function Xsg() {
   Xsg = emptyMethod;
   Vsg = new lZg();
@@ -17900,13 +18063,13 @@ function i9f(a) {
 function F8f(a) {
   return (a.$ - a.g.c + a.g.b) * a.db.b;
 }
-function mfg(a, b, c) {
+function Component_$setPos(a, b, c) {
   a.C = b;
   a.D = c;
   a.UC();
   return a;
 }
-function ofg(a, b, c) {
+function Component_$setSize(a, b, c) {
   a.B = b;
   a.A = c;
   a.UC();
@@ -18241,7 +18404,7 @@ function GVh(a) {
   return Uqf(a) ? (W8h(a), a) : a.beb();
 }
 function MYh(a, b) {
-  return Wqf(a) ? nYh(a, b) : a.gZ(b);
+  return Wqf(a) ? String_$charAt(a, b) : a.gZ(b);
 }
 function NUh(a) {
   return !a.b ? a.a : NUh(a.b) + "/" + a.a;
@@ -18270,7 +18433,7 @@ function Sof(a, b) {
   T0h(a.a, b);
 }
 function WMh(a) {
-  Uvh.call(this, new YMh(a), XMh(a));
+  WndTitledMessage.call(this, new YMh(a), XMh(a));
 }
 function BGh(a) {
   uGh();
@@ -18731,11 +18894,11 @@ function Qdh() {
   Pdh = new DBh(4456618);
 }
 function Tvh(a, b, c) {
-  Uvh.call(this, new IJh(a, b), c);
+  WndTitledMessage.call(this, new IJh(a, b), c);
 }
 function $wh(a) {
   S$g.call(this, a);
-  q8f(this.b, null);
+  BitmapText_$text(this.b, null);
 }
 function $Og() {
   XOg();
@@ -18768,7 +18931,7 @@ function CTh(a, b) {
   return new yTh(a.a - b.a, a.b - b.b);
 }
 function mTh(a) {
-  return new knh($qf(a.a), $qf(a.b));
+  return new knh(Cast_round_int(a.a), Cast_round_int(a.b));
 }
 function x5h(a, b) {
   return (W8h(a), zVh(a, (W8h(b), b)));
@@ -19323,11 +19486,11 @@ function kI(a) {
 }
 function H_(a) {
   p_();
-  return (K_(), J_)[$qf(a * Egi) & cdi];
+  return (K_(), J_)[Cast_round_int(a * Egi) & cdi];
 }
 function I_(a) {
   p_();
-  return (K_(), J_)[$qf(a * bdi) & cdi];
+  return (K_(), J_)[Cast_round_int(a * bdi) & cdi];
 }
 function A_(a, b, c) {
   p_();
@@ -19943,7 +20106,7 @@ function FVh(a) {
   return Uqf(a) ? Yqf((W8h(a), a)) : a.aeb();
 }
 function IVh(a) {
-  return Uqf(a) ? $qf((W8h(a), a)) : a.deb();
+  return Uqf(a) ? Cast_round_int((W8h(a), a)) : a.deb();
 }
 function LVh(a) {
   return Uqf(a) ? _qf((W8h(a), a)) : a.feb();
@@ -19958,7 +20121,7 @@ function OUh(a) {
   return a.b ? OUh(a.b) + l9h(a.a) : l9h(a.a);
 }
 function bUh(a, b) {
-  return a[$qf($wnd.Math.random() * b)];
+  return a[Cast_round_int($wnd.Math.random() * b)];
 }
 function wXh(a, b) {
   return z$f(a, b) < 0 ? -1 : z$f(a, b) > 0 ? 1 : 0;
@@ -20057,7 +20220,7 @@ function qge(a, b, c, d, e, f) {
 }
 function wYh(a, b, c, d, e) {
   while (b < c) {
-    d[e++] = nYh(a, b++);
+    d[e++] = String_$charAt(a, b++);
   }
 }
 function _W(a, b, c) {
@@ -20075,7 +20238,7 @@ function Mlf(e, a, b, c, d) {
 function s3f(e, a, b, c, d) {
   e.renderbufferStorage(a, b, c, d);
 }
-function t2f(a) {
+function WidgetCollection(a) {
   this.b = a;
   this.a = Zpf(pFf, E9h, 173, 4, 0, 1);
 }
@@ -20092,10 +20255,10 @@ function mhc(a) {
   return (knf(), (inf[0] = a), undefined, jnf[0]);
 }
 function bqe(a, b) {
-  return (mj(), ($qf(a * 255) << 8) | $qf(b * 255));
+  return (mj(), (Cast_round_int(a * 255) << 8) | Cast_round_int(b * 255));
 }
 function I6f(a, b) {
-  mUh(a.c, new a7f($qf(b)));
+  mUh(a.c, new a7f(Cast_round_int(b)));
   return true;
 }
 function vLg(a, b) {
@@ -20105,7 +20268,7 @@ function vLg(a, b) {
 function Pjg(a) {
   Fjg();
   var b;
-  b = yRh(zag(qag, a));
+  b = yRh(Game_$readFile(qag, a));
   return b;
 }
 function b3g(a) {
@@ -20405,7 +20568,7 @@ function i$d(a, b, c, d, e) {
   return (p_(), c + ((e - a) * (d - c)) / (b - a));
 }
 function UTh(a) {
-  return a > 0 ? $qf($wnd.Math.random() * a) : 0;
+  return a > 0 ? Cast_round_int($wnd.Math.random() * a) : 0;
 }
 function Rc(a) {
   return a.movementX || a.webkitMovementX || 0;
@@ -20441,7 +20604,7 @@ function P8f(a, b, c) {
   a.b += (a.b > 0 ? a.e.g.e : 0) + c;
   aZh(a.a, b);
 }
-function C7f(a, b, c, d) {
+function Visual_$hardlight(a, b, c, d) {
   a.bb = a.Y = a.W = 0;
   a.cb = b;
   a.Z = c;
@@ -20463,8 +20626,8 @@ function P2h(a, b, c) {
 function _xh(a, b, c) {
   var d;
   d = new wOg();
-  mfg(d, b, c);
-  _ag(a, d);
+  Component_$setPos(d, b, c);
+  Group_$add(a, d);
 }
 function G7h(a, b) {
   var c;
@@ -20475,7 +20638,7 @@ function G7h(a, b) {
 function pPg(a) {
   var b;
   b = new oPg(a);
-  _ag(a.mb, b);
+  Group_$add(a.mb, b);
   return b;
 }
 function yWh(a, b) {
@@ -20643,7 +20806,7 @@ function q1f(a) {
 }
 function S$g(a) {
   Jfg.call(this);
-  q8f(this.g, a);
+  BitmapText_$text(this.g, a);
   this.g.G_();
 }
 function r_g(a, b) {
@@ -20690,7 +20853,7 @@ function otg(a) {
   return a;
 }
 function SWg(a) {
-  a.A = 1 + $qf($wnd.Math.random() * 3);
+  a.A = 1 + Cast_round_int($wnd.Math.random() * 3);
   return a;
 }
 function pmh(a, b, c, d, e) {
@@ -20723,7 +20886,7 @@ function Juh(a) {
 }
 function jCh(a) {
   iCh.call(this);
-  U9f(this, ljf(eCh, rXh(a)));
+  U9f(this, TextureFilm_$get(eCh, rXh(a)));
 }
 function Bundle() {
   HQh();
@@ -20733,7 +20896,7 @@ function ZPh(a, b) {
   return Wqf(b) ? $Ph(a, b) : NPh(k6h(a.a, b));
 }
 function VTh(a, b) {
-  return a + $qf($wnd.Math.random() * (b - a));
+  return a + Cast_round_int($wnd.Math.random() * (b - a));
 }
 function _Sh(a) {
   return a.b == 0 ? null : (U8h(a.b != 0), a.a.a.c);
@@ -20744,7 +20907,7 @@ function huh(a) {
   gvh(xuh);
   lHh();
 }
-function nYh(a, b) {
+function String_$charAt(a, b) {
   b9h(b, a.length);
   return a.charCodeAt(b);
 }
@@ -20828,7 +20991,7 @@ function R_(a) {
 }
 function z_(a) {
   p_();
-  return (K_(), J_)[$qf((a + 90) * bdi) & cdi];
+  return (K_(), J_)[Cast_round_int((a + 90) * bdi) & cdi];
 }
 function tLb(a) {
   if (a.J == 0) return 0;
@@ -21019,7 +21182,7 @@ function yyh(a) {
 }
 function zzh(a, b) {
   Jyh(a, b);
-  b == a.i && _ag(a.mb, new WBh(a, a));
+  b == a.i && Group_$add(a.mb, new WBh(a, a));
 }
 function Hl(a, b) {
   wl();
@@ -21220,15 +21383,15 @@ function Agg() {
   jgg();
   var a;
   a = (Kig(), zhg);
-  X5h(hgg, a);
-  lgg(a);
+  X5h(Badges_local, a);
+  Badges_displayBadge(a);
 }
 function Dgg() {
   jgg();
   var a;
   a = (Kig(), Chg);
-  X5h(hgg, a);
-  lgg(a);
+  X5h(Badges_local, a);
+  Badges_displayBadge(a);
 }
 function iog(a, b, c) {
   Ojf();
@@ -21260,7 +21423,7 @@ function J_f(a, b) {
 }
 function y_(a) {
   p_();
-  return (K_(), J_)[$qf((a + Fgi) * Egi) & cdi];
+  return (K_(), J_)[Cast_round_int((a + Fgi) * Egi) & cdi];
 }
 function nhc(a) {
   return (knf(), (jnf[0] = a & Obi), undefined, inf[0]);
@@ -21340,7 +21503,7 @@ function w_h(a) {
   return a.d.xV((a.c = a.b++));
 }
 function Zwh(a, b, c) {
-  q8f(a.b, b);
+  BitmapText_$text(a.b, b);
   a.b.G_();
   D7f(a.b, c ? eaj : naj);
 }
@@ -21371,10 +21534,10 @@ function Kq(a, b) {
   Eac(a.d, b.d);
 }
 function WTh(a, b) {
-  return a + $qf($wnd.Math.random() * (b - a + 1));
+  return a + Cast_round_int($wnd.Math.random() * (b - a + 1));
 }
 function cUh(a) {
-  return a[$qf($wnd.Math.random() * a.length)];
+  return a[Cast_round_int($wnd.Math.random() * a.length)];
 }
 function o7h(a, b) {
   return Xqf(a) === Xqf(b) || (a != null && Ab(a, b));
@@ -21524,10 +21687,6 @@ function Elg() {
   olg();
   return aqf(Vpf(cHf, 1), Rnj, 599, 0, [nlg]);
 }
-function Rankings_values() {
-  Jlg();
-  return aqf(Vpf(fHf, 1), Snj, 655, 0, [rankings]);
-}
 function trg(a) {
   Ojf();
   !wmg(a, VHf) && !wmg(a, MHf) && (a.J = false);
@@ -21672,8 +21831,8 @@ function JLb(a, b) {
   zsb(a);
 }
 function zOh(a, b) {
-  t9f((g9f(), f9f), b);
-  PixelDungeon_zoom($qf(b - nth));
+  t9f((g9f(), Camera_main), b);
+  PixelDungeon_zoom(Cast_round_int(b - PixelScene_defaultZoom));
   yOh(a);
 }
 function e7(a, b) {
@@ -21795,7 +21954,7 @@ function iEh(a) {
 }
 function zLh(a, b) {
   rKh.call(this, a);
-  q8f(this.b, b);
+  BitmapText_$text(this.b, b);
   this.b.G_();
 }
 function s4g() {
@@ -22011,8 +22170,8 @@ function rlg(a, b, c) {
 function n9f(a, b, c) {
   a.p = b;
   a.a = c;
-  a.d = $qf(b * a.s);
-  a.c = $qf(c * a.s);
+  a.d = Cast_round_int(b * a.s);
+  a.c = Cast_round_int(c * a.s);
 }
 function tQg(a, b, c) {
   a.jb = true;
@@ -22152,7 +22311,7 @@ function pYh(a, b) {
 function k6h(a, b) {
   return i6h(a, b, j6h(a, b == null ? 0 : a.b.Tcb(b)));
 }
-function $qf(a) {
+function Cast_round_int(a) {
   return Math.max(Math.min(a, v9h), -2147483648) | 0;
 }
 function iv() {
@@ -22288,7 +22447,7 @@ function koc(a) {
 }
 function bOc(a) {
   zuh();
-  _ag(yuh, new Cwh(Pbi | a, true));
+  Group_$add(yuh, new Cwh(Pbi | a, true));
   return null;
 }
 function ENc(a, b) {
@@ -22625,7 +22784,7 @@ function Q4f(a, b, c, d, e) {
 function V4f(a, b, c, d, e) {
   return new gUh(b / a.g, c / a.d, d / a.g, e / a.d);
 }
-function nfg(a, b, c, d, e) {
+function Component_$setRect(a, b, c, d, e) {
   a.C = b;
   a.D = c;
   a.B = d;
@@ -22674,7 +22833,7 @@ function bbc(b) {
   if (!(kpi in b)) {
     try {
       throw b;
-    } catch (a) {}
+    } catch (a) {console.error(a)}
   }
   return b;
 }
@@ -22697,7 +22856,7 @@ function kkg(a) {
   return new yTh(((a % 32) + 0.5) * 16, (((a / 32) | 0) + 0.5) * 16);
 }
 function D7f(a, b) {
-  C7f(a, (b >> 16) / 255, ((b >> 8) & 255) / 255, (b & 255) / 255);
+  Visual_$hardlight(a, (b >> 16) / 255, ((b >> 8) & 255) / 255, (b & 255) / 255);
 }
 function Y8h(a, b) {
   if (a < 0 || a > b) {
@@ -26492,32 +26651,32 @@ function Bgg() {
   jgg();
   var a;
   a = (Kig(), Ahg);
-  X5h(hgg, a);
-  lgg(a);
+  X5h(Badges_local, a);
+  Badges_displayBadge(a);
   Ygg();
 }
 function Cgg() {
   jgg();
   var a;
   a = (Kig(), Bhg);
-  X5h(hgg, a);
-  lgg(a);
+  X5h(Badges_local, a);
+  Badges_displayBadge(a);
   Ygg();
 }
 function Egg() {
   jgg();
   var a;
   a = (Kig(), Dhg);
-  X5h(hgg, a);
-  lgg(a);
+  X5h(Badges_local, a);
+  Badges_displayBadge(a);
   Ygg();
 }
 function Fgg() {
   jgg();
   var a;
   a = (Kig(), Ehg);
-  X5h(hgg, a);
-  lgg(a);
+  X5h(Badges_local, a);
+  Badges_displayBadge(a);
   Ygg();
 }
 function g9g() {
@@ -26525,7 +26684,7 @@ function g9g() {
   K8g.call(this);
   this.w = "Scroll of Challenge";
 }
-function h5g() {
+function PotionOfToxicGas() {
   N3g();
   S3g.call(this);
   this.w = "Potion of Toxic Gas";
@@ -27338,7 +27497,7 @@ function G4g() {
   S3g.call(this);
   this.w = "Potion of Levitation";
 }
-function o4g() {
+function PotionOfExperience() {
   N3g();
   S3g.call(this);
   this.w = "Potion of Experience";
@@ -27372,7 +27531,7 @@ function Hoh() {
   this.p = 4748860;
   this.q = 5871946;
 }
-function VJh() {
+function WndTabbed() {
   GHg.call(this, 0, 0, ajg((kjg(), ejg)));
   this.k = new a1h();
 }
@@ -27738,8 +27897,8 @@ function jkf(a) {
   }
 }
 function ns(a) {
-  a.G = $qf(Ms(a.L));
-  a.H = $qf(Rs(a.L));
+  a.G = Cast_round_int(Ms(a.L));
+  a.H = Cast_round_int(Rs(a.L));
   a.L.d || (a.H -= a.G);
 }
 function ysg(a) {
@@ -28248,7 +28407,7 @@ function I2b(a, b) {
 function Dungeon_fail(a) {
   Fjg();
   Dungeon.resultDescription = a;
-  !vsg(Dungeon.hero.d, YLf) && submitRanking((Jlg(), rankings), false);
+  !vsg(Dungeon.hero.d, YLf) && Rankings.submit(false);
 }
 
 function Sqg(a, b) {
@@ -28366,7 +28525,7 @@ function Buh(a, b) {
   b.c = jbg(a.g, ISf);
   QNg(b.c);
   ONg(b.c, b);
-  _ag(a.g, b.c);
+  Group_$add(a.g, b.c);
 }
 function XPg(a, b, c) {
   a.jb = true;
@@ -28379,7 +28538,7 @@ function XPg(a, b, c) {
 function MOg(a, b, c, d) {
   a.gb = c.a;
   a.hb = c.b;
-  _ag(b, a);
+  Group_$add(b, a);
   a.e = a.b = d;
   return a;
 }
@@ -28388,19 +28547,19 @@ function AYd(a, b, c, d) {
   return ($W(), (e = 1 - a.a - a.b), e * b + a.a * c + a.b * d);
 }
 function dMh(a, b) {
-  _ag(a, b);
-  nfg(b, 0, a.a > 0 ? (a.a += 2) : 0, 120, 20);
+  Group_$add(a, b);
+  Component_$setRect(b, 0, a.a > 0 ? (a.a += 2) : 0, 120, 20);
   a.a += 20;
 }
 function TNh(a) {
   a.b.gb = a.C;
   a.b.hb = a.D;
-  nfg(a.d, a.C, a.D, 26, 26);
+  Component_$setRect(a.d, a.C, a.D, 26, 26);
   Gfg(a);
 }
 function yOh(a) {
   var b;
-  b = (g9f(), f9f).s;
+  b = (g9f(), Camera_main).s;
   P$g(a.a, b < uth);
   P$g(a.b, b > vth);
 }
@@ -28811,7 +28970,7 @@ function U0f(a, b, c) {
   ulf(b, a);
 }
 function eqe(a, b, c) {
-  return (mj(), ($qf(a * 31) << 11) | ($qf(b * 63) << 5) | $qf(c * 31));
+  return (mj(), (Cast_round_int(a * 31) << 11) | (Cast_round_int(b * 63) << 5) | Cast_round_int(c * 31));
 }
 function L$d(a, b, c, d, e, f, g, h, i, j, k) {
   return a._q(b, c, d, e, f, g, h, i, j, k);
@@ -28895,7 +29054,7 @@ function JVg() {
 }
 function IHh() {
   xDh.call(this, 13489600);
-  ofg(this, 24, 22);
+  Component_$setSize(this, 24, 22);
   this.nb = false;
 }
 function InterlevelScene_$ascend() {
@@ -28937,7 +29096,7 @@ function Q$g(a, b) {
   !!a.f && kbg(a, a.f);
   a.f = b;
   if (a.f) {
-    _ag(a, a.f);
+    Group_$add(a, a.f);
     a.UC();
   }
 }
@@ -29334,13 +29493,13 @@ function Cuh(a, b) {
   c = b.c = jbg(a.g, XSf);
   QNg(c);
   ONg(c, b);
-  _ag(a.g, c);
+  Group_$add(a.g, c);
 }
 function GIh(a) {
   a.k = new Tfg(a);
-  _ag(a, a.k);
+  Group_$add(a, a.k);
   a.b = new Z9f(WGj);
-  _ag(a, a.b);
+  Group_$add(a, a.b);
 }
 function pKh(a) {
   Gfg(a);
@@ -29350,9 +29509,9 @@ function pKh(a) {
     a.d.i0(a.B, a.A);
   }
 }
-function Fag(a) {
-  oag = rag * U$f(a.j) * 0.0010000000474974513;
-  a.g.ri();
+function Game_$update(game) {
+  oag = rag * U$f(game.j) * 0.0010000000474974513;
+  game.g.ri();
   N9f();
 }
 function Oyh(a) {
@@ -29830,10 +29989,6 @@ function ceg() {
 function weg() {
   weg = emptyMethod;
   veg = Lb((eeg(), aqf(Vpf(vGf, 1), Hnj, 601, 0, [deg])));
-}
-function Zlg() {
-  Zlg = emptyMethod;
-  Ylg = Lb((Jlg(), aqf(Vpf(fHf, 1), Snj, 655, 0, [rankings])));
 }
 function Glg() {
   Glg = emptyMethod;
@@ -30553,10 +30708,10 @@ function e4() {
   d4 = Lb((_3(), aqf(Vpf(nxf, 1), dji, 420, 0, [$3, Y3, Z3])));
 }
 function rZd(a, b, c, d, e, f) {
-  return (r$(), $qf(LXh((c - a) * (f - b) - (d - b) * (e - a))));
+  return (r$(), Cast_round_int(LXh((c - a) * (f - b) - (d - b) * (e - a))));
 }
 function kqe(a, b, c) {
-  return (mj(), ($qf(a * 255) << 16) | ($qf(b * 255) << 8) | $qf(c * 255));
+  return (mj(), (Cast_round_int(a * 255) << 16) | (Cast_round_int(b * 255) << 8) | Cast_round_int(c * 255));
 }
 function p9f(a, b, c) {
   return new yTh((b - a.q) / a.s + a.e.a, (c - a.r) / a.s + a.e.b);
@@ -30596,10 +30751,10 @@ function P5g(a, b) {
 function pDg(a, b) {
   (Fjg(), Dungeon.level).V8(new j3g(), a.K).c.q6();
   Rxg(a);
-  ++lmg;
+  ++Statistics_piranhasKilled;
   Rgg();
 }
-function yag(a) {
+function Game_$pause(a) {
   !!a.g && a.g.Pb();
   B4f();
   Mdg((Jdg(), Idg));
@@ -30622,7 +30777,7 @@ function ooh(a) {
 }
 function kuh(a, b) {
   b = FRh(vth, b, uth);
-  PixelDungeon_zoom($qf(b - nth));
+  PixelDungeon_zoom(Cast_round_int(b - PixelScene_defaultZoom));
   t9f(a.kb, b);
   return b;
 }
@@ -31113,7 +31268,7 @@ function s2f(a, b) {
 function jkg(a) {
   var b;
   b = new Z9f(bkg.j);
-  U9f(b, ljf(bkg.k, rXh(a)));
+  U9f(b, TextureFilm_$get(bkg.k, rXh(a)));
   return b;
 }
 function Zog(a) {
@@ -31221,7 +31376,7 @@ function rz(a, b) {
   );
 }
 function Pbg(a) {
-  return Rbg(new Sbg($qf($wnd.Math.round(1 / a.a)), a.c), a.b);
+  return Rbg(new Sbg(Cast_round_int($wnd.Math.round(1 / a.a)), a.c), a.b);
 }
 function xbb(a, b) {
   return (p_(), $wnd.Math.abs(a.a * b.a + a.b * b.b + a.c * b.c) <= Thi);
@@ -31663,14 +31818,14 @@ function sBh() {
 }
 function uDh(a) {
   a.k = new Tfg(a);
-  _ag(a, a.k);
+  Group_$add(a, a.k);
   a.f = ajg((kjg(), gjg));
-  _ag(a, a.f);
+  Group_$add(a, a.f);
 }
 function zGh(a, b) {
   if (b) {
-    _ag(a, a.i);
-    _ag(a, a.e);
+    Group_$add(a, a.i);
+    Group_$add(a, a.e);
   } else {
     kbg(a, a.i);
     kbg(a, a.e);
@@ -31685,8 +31840,8 @@ function QNg(a) {
   a.j = null;
 }
 function ms(a) {
-  a.I = a.K.j ? $qf(Ms(a.K)) : 0;
-  a.J = $qf(Rs(a.K));
+  a.I = a.K.j ? Cast_round_int(Ms(a.K)) : 0;
+  a.J = Cast_round_int(Rs(a.K));
   a.K.d || (a.J -= a.I);
 }
 function $B(a) {
@@ -32025,23 +32180,23 @@ function U5f(a, b) {
 }
 function Fth(a, b) {
   var c;
-  Dth(b, nth);
+  Dth(b, PixelScene_defaultZoom);
   c = new J8f(a, oth);
-  uTh(c.db, xth);
+  uTh(c.db, PixelScene_scale);
   return c;
 }
-function Gth(a, b) {
+function PixelScene_createText(a, b) {
   var c;
-  Dth(b, nth);
+  Dth(b, PixelScene_defaultZoom);
   c = new u8f(a, oth);
-  uTh(c.db, xth);
+  uTh(c.db, PixelScene_scale);
   return c;
 }
 function Duh(a, b) {
   var c;
   c = b.q5();
   c.nb = (Fjg(), Dungeon.visible)[b.K];
-  _ag(a.k, c);
+  Group_$add(a.k, c);
   c.ebb(b);
 }
 function oYh(a, b) {
@@ -32309,7 +32464,7 @@ function Ojf() {
 }
 function E4g(a) {
   N3g();
-  a.M.mb ? _ag(a.M.mb, new Yeg(a.M, xii, xii)) : x7f(a.M, xii);
+  a.M.mb ? Group_$add(a.M.mb, new Yeg(a.M, xii, xii)) : x7f(a.M, xii);
 }
 function gOg(a, b) {
   var c;
@@ -32318,7 +32473,7 @@ function gOg(a, b) {
   }
   c = new fOg(b);
   c.e = a;
-  _ag(a.M.mb, c);
+  Group_$add(a.M.mb, c);
 }
 function T5f(a) {
   var b, c;
@@ -32641,7 +32796,7 @@ function dEh(a) {
   pfg.call(this);
   this.a = a;
   R9f(this.b, CMg(a.b));
-  q8f(this.c, a.a);
+  BitmapText_$text(this.c, a.a);
 }
 function W0g() {
   V0g();
@@ -32673,7 +32828,7 @@ function rvg(a, b) {
 function StatusPane$1_$onClick() {
   var a;
   a = (Fjg(), Dungeon.hero).M;
-  F7f(a) || l9f((g9f(), f9f), a);
+  F7f(a) || l9f((g9f(), Camera_main), a);
   ivh(new wMh());
 }
 function Dbc(a) {
@@ -32996,10 +33151,10 @@ function pgc(a, b) {
 function Jgg() {
   jgg();
   var a;
-  if (!Y5h(hgg, (Kig(), Rhg))) {
+  if (!Y5h(Badges_local, (Kig(), Rhg))) {
     a = Rhg;
-    X5h(hgg, a);
-    lgg(a);
+    X5h(Badges_local, a);
+    Badges_displayBadge(a);
   }
 }
 function jhc() {
@@ -33165,7 +33320,8 @@ function Game_$switchScene(a) {
   G9f(z9f(1));
   !!a.g && a.g.C$();
   a.g = a.f;
-  a.g.j0();
+  a.g.j0 && a.g.j0();
+  a.g.create && a.g.create();
   oag = 0;
   rag = 1;
 }
@@ -33547,35 +33703,35 @@ function Xih(a, b) {
   Pgh();
   var c;
   for (c = 0; c < oei; c++) {
-    a.w[c] == 12 && _ag(b, new ijh(c));
+    a.w[c] == 12 && Group_$add(b, new ijh(c));
   }
 }
 function Fjh(a, b) {
   Pgh();
   var c;
   for (c = 0; c < oei; c++) {
-    a.w[c] == 12 && _ag(b, new Rjh(c));
+    a.w[c] == 12 && Group_$add(b, new Rjh(c));
   }
 }
 function amh(a, b) {
   Pgh();
   var c;
   for (c = 0; c < oei; c++) {
-    a.w[c] == 12 && _ag(b, new kmh(c));
+    a.w[c] == 12 && Group_$add(b, new kmh(c));
   }
 }
 function Joh(a, b) {
   Pgh();
   var c;
   for (c = 0; c < oei; c++) {
-    a.w[c] == 12 && _ag(b, new Voh(c));
+    a.w[c] == 12 && Group_$add(b, new Voh(c));
   }
 }
 function Akh(a, b) {
   Pgh();
   var c;
   for (c = 0; c < oei; c++) {
-    a.w[c] == 63 && _ag(b, new Nkh(c));
+    a.w[c] == 63 && Group_$add(b, new Nkh(c));
   }
 }
 function h2h(a, b, c, d) {
@@ -33793,7 +33949,7 @@ function HYd(a, b, c, d, e, f) {
 }
 function Zpf(a, b, c, d, e, f) {
   var g;
-  g = $pf(e, d);
+  g = Array_initializeArrayElementsWithDefaults(e, d);
   e != 10 && aqf(Vpf(a, f), b, c, e, g);
   return g;
 }
@@ -33813,7 +33969,7 @@ function Ejf(a, b, c) {
 }
 function KOg(a, b, c) {
   a.f = c;
-  C7f(a, (b >> 16) / 255, ((b >> 8) & 255) / 255, (b & 255) / 255);
+  Visual_$hardlight(a, (b >> 16) / 255, ((b >> 8) & 255) / 255, (b & 255) / 255);
   return a;
 }
 function zCg(a, b) {
@@ -33852,7 +34008,7 @@ function Ibh() {
 }
 function Kxh(a) {
   Z9f.call(this, _Gj);
-  U9f(this, ljf(new rjf(this.O, 24, 28), rXh(a.f)));
+  U9f(this, TextureFilm_$get(new rjf(this.O, 24, 28), rXh(a.f)));
 }
 function BQh(a) {
   zQh(this);
@@ -33912,7 +34068,7 @@ function YV(a, b, c, d, e, f) {
   g = a * (f - d);
   g += c * (b - f);
   g += e * (d - b);
-  return $qf(LXh(g));
+  return Cast_round_int(LXh(g));
 }
 function wU(a, b) {
   var c, d, e, f;
@@ -34080,7 +34236,7 @@ function pSg() {
 function Fjg() {
   Fjg = emptyMethod;
   Dungeon.visible = Zpf(t$f, Z9h, 23, oei, 16, 1);
-  zjg = Zpf(t$f, Z9h, 23, oei, 16, 1);
+  Dungeon.passable = Zpf(t$f, Z9h, 23, oei, 16, 1);
 }
 function Blh() {
   Blh = emptyMethod;
@@ -34122,10 +34278,10 @@ function vbb(a, b) {
   );
 }
 function h9f(a, b, c) {
-  return new knh($qf((b - a.e.a) * a.s + a.q), $qf((c - a.e.b) * a.s + a.r));
+  return new knh(Cast_round_int((b - a.e.a) * a.s + a.q), Cast_round_int((c - a.e.b) * a.s + a.r));
 }
 function XTh(a, b) {
-  return a + $qf((($wnd.Math.random() + $wnd.Math.random()) * (b - a + 1)) / 2);
+  return a + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * (b - a + 1)) / 2);
 }
 function G6b(a, b) {
   a.YV(b);
@@ -34254,7 +34410,7 @@ function Iug(a) {
 }
 function Kdg(a, b) {
   a.a = b;
-  !!a.d && a.d.d && !b ? Pdg(a) : !(!!a.d && a.d.d) && b && Ndg(a, a.c, a.b);
+  !!a.d && a.d.d && !b ? Pdg(a) : !(!!a.d && a.d.d) && b && Music_$play(a, a.c, a.b);
 }
 function FPg(a, b, c, d) {
   var e;
@@ -34386,7 +34542,7 @@ function C8(a, b) {
 function hqe(a, b, c, d) {
   return (
     mj(),
-    ($qf(a * 15) << 12) | ($qf(b * 15) << 8) | ($qf(c * 15) << 4) | $qf(d * 15)
+    (Cast_round_int(a * 15) << 12) | (Cast_round_int(b * 15) << 8) | (Cast_round_int(c * 15) << 4) | Cast_round_int(d * 15)
   );
 }
 function lgc() {
@@ -34396,10 +34552,10 @@ function lgc() {
 function Qgg() {
   jgg();
   var a;
-  if (!Y5h(hgg, (Kig(), kig)) && emg) {
+  if (!Y5h(Badges_local, (Kig(), kig)) && Statistics_completedWithNoKilling) {
     a = kig;
-    X5h(hgg, a);
-    lgg(a);
+    X5h(Badges_local, a);
+    Badges_displayBadge(a);
   }
 }
 function QJg() {
@@ -34712,10 +34868,10 @@ function Oqf(a) {
 function Ngg(a) {
   jgg();
   var b;
-  if (!Y5h(hgg, (Kig(), _hg)) && a == 7) {
+  if (!Y5h(Badges_local, (Kig(), _hg)) && a == 7) {
     b = _hg;
-    X5h(hgg, b);
-    lgg(b);
+    X5h(Badges_local, b);
+    Badges_displayBadge(b);
   }
 }
 function qVg() {
@@ -34794,8 +34950,8 @@ function wGh(a, b) {
 function $Nh(a, b) {
   var c;
   c = new dOh(b);
-  nfg(c, 0, a.b, a.c.r, 26);
-  _ag(a, c);
+  Component_$setRect(c, 0, a.b, a.c.r, 26);
+  Group_$add(a, c);
   a.b += c.A + 1;
   ++a.a;
 }
@@ -34989,7 +35145,7 @@ function Hyh(a, b) {
   a.g = b;
   b.M = a;
   a.u6(b.K);
-  Ryh(a, b.K, $qf($wnd.Math.random() * oei));
+  Ryh(a, b.K, Cast_round_int($wnd.Math.random() * oei));
   Jmg(b);
 }
 function Pb(a, b) {
@@ -35130,8 +35286,8 @@ function Jnf(a) {
 function Inf(a) {
   (sYh(a.compatMode, cKj) ? a.documentElement : a.body).style["overflow"] = pai;
 }
-function yjf(a, b) {
-  return ljf(a, lWh(a.a ? nYh(String.fromCharCode(b).toUpperCase(), 0) : b));
+function BitmapText$Font_$get(a, b) {
+  return TextureFilm_$get(a, Character_valueOf(a.a ? String_$charAt(String.fromCharCode(b).toUpperCase(), 0) : b));
 }
 function Luh(a, b) {
   zuh();
@@ -35154,20 +35310,20 @@ function jRg(a, b) {
 function Badges_saveGlobal() {
   jgg();
   var a;
-  if (igg) {
+  if (Badges_saveNeeded) {
     a = new Bundle();
-    sgg(a, fgg);
+    Badges_store(a, fgg);
     Game_$writeFile(qag, KIj, ARh(a));
-    igg = false;
+    Badges_saveNeeded = false;
   }
 }
 function Pgg() {
   jgg();
   var a;
-  if (!Y5h(hgg, (Kig(), jig)) && kmg >= 15) {
+  if (!Y5h(Badges_local, (Kig(), jig)) && Statistics_nightHunt >= 15) {
     a = jig;
-    X5h(hgg, a);
-    lgg(a);
+    X5h(Badges_local, a);
+    Badges_displayBadge(a);
   }
 }
 function FSg() {
@@ -35261,7 +35417,7 @@ function XWh(a) {
 function _Th(a) {
   var b;
   b = a.Qd();
-  return b > 0 ? a.VV()[b > 0 ? $qf($wnd.Math.random() * b) : 0] : null;
+  return b > 0 ? a.VV()[b > 0 ? Cast_round_int($wnd.Math.random() * b) : 0] : null;
 }
 function xl(a) {
   if (a.c == 0) return;
@@ -35298,7 +35454,7 @@ function Ydb(a, b) {
   a.c > a.e.length - 1 && (a.c = 0);
   a.b = true;
 }
-function nh(a, b) {
+function Preloader_$preload(a, b) {
   AssetDownloader_loadText(
     a.c + "assets.txt" + "?etag=" + W$f((jZh(), D$f(Date.now()))),
     new sh(a, b),
@@ -35420,8 +35576,8 @@ function YZh(a) {
 function Cth(a) {
   var b;
   b = a.kb ? a.kb : a.mb ? a.mb.c_() : null;
-  a.gb = Bth(b, a.gb);
-  a.hb = Bth(b, a.hb);
+  a.gb = PixelScene_align(b, a.gb);
+  a.hb = PixelScene_align(b, a.hb);
 }
 function juh(a, b) {
   if (a.d && !!a.f && b != -1) {
@@ -35575,24 +35731,24 @@ function rfh() {
   this.f = 10;
   this.B = false;
 }
-function pmg() {
-  jmg = 0;
-  fmg = 0;
-  hmg = 0;
-  img = 0;
-  mmg = 0;
-  lmg = 0;
-  kmg = 0;
-  dmg = 0;
-  gmg = 0;
-  nmg = false;
-  cmg = false;
+function Statistics_reset() {
+  Statistics_goldCollected = 0;
+  Statistics_deepestFloor = 0;
+  Statistics_enemiesSlain = 0;
+  Statistics_foodEaten = 0;
+  Statistics_potionsCooked = 0;
+  Statistics_piranhasKilled = 0;
+  Statistics_nightHunt = 0;
+  Statistics_ankhsUsed = 0;
+  Statistics_duration = 0;
+  Statistics_qualifiedForNoKilling = false;
+  Statistics_amuletObtained = false;
 }
 function PGh() {
   xDh.call(this, 2061772);
   this.a = null;
   this.b = 0;
-  ofg(this, 24, 22);
+  Component_$setSize(this, 24, 22);
   this.nb = false;
 }
 function OHh(a) {
@@ -35600,7 +35756,7 @@ function OHh(a) {
   qdg.call(this, 0, 0, 0, 0);
   this.b = false;
   this.c = new xTh();
-  this.a = nth * 8;
+  this.a = PixelScene_defaultZoom * 8;
 }
 function Csg(a, b) {
   tug(a.b, b);
@@ -35726,19 +35882,19 @@ function IT(a, b, c, d, e, f) {
 function zVd(a, b, c, d) {
   return (
     mj(),
-    ($qf(a * 255) << 24) |
-      ($qf(b * 255) << 16) |
-      ($qf(c * 255) << 8) |
-      $qf(d * 255)
+    (Cast_round_int(a * 255) << 24) |
+      (Cast_round_int(b * 255) << 16) |
+      (Cast_round_int(c * 255) << 8) |
+      Cast_round_int(d * 255)
   );
 }
 function mqe(a, b, c, d) {
   return (
     mj(),
-    ($qf(a * 255) << 24) |
-      ($qf(b * 255) << 16) |
-      ($qf(c * 255) << 8) |
-      $qf(d * 255)
+    (Cast_round_int(a * 255) << 24) |
+      (Cast_round_int(b * 255) << 16) |
+      (Cast_round_int(c * 255) << 8) |
+      Cast_round_int(d * 255)
   );
 }
 function Fac(a, b, c, d) {
@@ -36154,30 +36310,30 @@ function cJg(a) {
 function Ugg() {
   jgg();
   var a;
-  if (!Y5h(hgg, (Kig(), wig)) && L6g(new Q7g())) {
+  if (!Y5h(Badges_local, (Kig(), wig)) && L6g(new Q7g())) {
     a = wig;
-    X5h(hgg, a);
-    lgg(a);
+    X5h(Badges_local, a);
+    Badges_displayBadge(a);
   }
 }
 function Vgg() {
   jgg();
   var a;
-  if (!Y5h(hgg, (Kig(), xig)) && L6g(new v8g())) {
+  if (!Y5h(Badges_local, (Kig(), xig)) && L6g(new v8g())) {
     a = xig;
-    X5h(hgg, a);
-    lgg(a);
+    X5h(Badges_local, a);
+    Badges_displayBadge(a);
   }
 }
 function Rgg() {
   jgg();
   var a;
   a = null;
-  if (!Y5h(hgg, (Kig(), lig)) && lmg >= 6) {
+  if (!Y5h(Badges_local, (Kig(), lig)) && Statistics_piranhasKilled >= 6) {
     a = lig;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  lgg(a);
+  Badges_displayBadge(a);
 }
 function gAg() {
   gAg = emptyMethod;
@@ -36258,7 +36414,7 @@ function UPg(a, b, c, d) {
   DPg(e, 3);
   zeg(e, (AVg(), zVg), iLj, 0);
 }
-function Gvh() {
+function InterlevelScene_$returnTo() {
   var a;
   _jf();
   Dungeon_saveLevel();
@@ -36273,7 +36429,7 @@ function HNg(a) {
   this.a = true;
   this.c = a;
   zuh();
-  _ag(yuh.d, this);
+  Group_$add(yuh.d, this);
 }
 function y5g() {
   Xsg();
@@ -36557,14 +36713,14 @@ function IJh(a, b) {
   pfg.call(this);
   AJh(this);
   kbg(this, this.c);
-  _ag(this, (this.c = a));
-  q8f(this.d, b);
+  Group_$add(this, (this.c = a));
+  BitmapText_$text(this.d, b);
 }
 function Huh(a, b) {
-  b.kb = yth;
-  b.gb = Bth(yth, (yth.p - b.fb) / 2);
-  b.hb = Bth(yth, (yth.a - b.$) / 3);
-  _ag(a, b);
+  b.kb = PixelScene_uiCamera;
+  b.gb = PixelScene_align(PixelScene_uiCamera, (PixelScene_uiCamera.p - b.fb) / 2);
+  b.hb = PixelScene_align(PixelScene_uiCamera, (PixelScene_uiCamera.a - b.$) / 3);
+  Group_$add(a, b);
 }
 function AEb(a, b) {
   SDb();
@@ -36660,17 +36816,17 @@ function Ljg(a) {
   Fjg();
   var b, c;
   b = Dungeon.depth + 1;
-  c = Obc(ujg, b);
-  !c && Tbc(ujg, b, (c = new a1h()));
+  c = Obc(Dungeon.droppedItems, b);
+  !c && Tbc(Dungeon.droppedItems, b, (c = new a1h()));
   c.a[c.a.length] = a;
 }
 
 function Dungeon_win(a) {
   Fjg();
   ysg(Dungeon.hero.d);
-  Dungeon.challenges != 0 && (jgg(), lgg((Kig(), yhg)));
+  Dungeon.challenges != 0 && (jgg(), Badges_displayBadge((Kig(), yhg)));
   Dungeon.resultDescription = a;
-  submitRanking((Jlg(), rankings), true);
+  Rankings.submit(true);
 }
 
 function $Yg() {
@@ -36762,8 +36918,8 @@ function RNh(a) {
   nbg.call(this);
   this.kb = a.kb;
   b = new _Dh(false);
-  _ag(this, b);
-  ofg(b, 112, 134);
+  Group_$add(this, b);
+  Component_$setSize(b, 112, 134);
 }
 function NBh() {
   Azh.call(this);
@@ -36880,8 +37036,8 @@ function xE(a, b, c) {
 }
 function u9f(a, b, c, d) {
   a.s = b;
-  a.p = $qf(a.d / a.s);
-  a.a = $qf(a.c / a.s);
+  a.p = Cast_round_int(a.d / a.s);
+  a.a = Cast_round_int(a.c / a.s);
   vTh(a.e, c - ((a.p / 2) | 0), d - ((a.a / 2) | 0));
 }
 function y4f(a, b) {
@@ -36899,7 +37055,7 @@ function Yxg(a, b) {
   }
 }
 function sRg(a, b) {
-  U9f(a, ljf(qRg, rXh(b)));
+  U9f(a, TextureFilm_$get(qRg, rXh(b)));
   vTh(a.ab, a.fb / 2, a.$ / 2);
   a.c = (BRg(), yRg);
   a.a = zii;
@@ -36913,7 +37069,7 @@ function gBh(a, b) {
       (((b / 32) | 0) + 1) * 16 - a.$,
     ),
   );
-  (g9f(), f9f).o = a;
+  (g9f(), Camera_main).o = a;
 }
 function xng(a) {
   Ojf();
@@ -37202,25 +37358,25 @@ function reb(a, b) {
 function i6b(a, b) {
   var c;
   c = a.d;
-  a.i == c.length && (c = D6b(a, $wnd.Math.max(8, $qf(a.i * Noi))));
+  a.i == c.length && (c = D6b(a, $wnd.Math.max(8, Cast_round_int(a.i * Noi))));
   c[a.i++] = b;
 }
 function Dac(a, b) {
   var c;
   c = a.a;
-  a.c == c.length && (c = Mac(a, $wnd.Math.max(8, $qf(a.c * Noi))));
+  a.c == c.length && (c = Mac(a, $wnd.Math.max(8, Cast_round_int(a.c * Noi))));
   c[a.c++] = b;
 }
 function qbc(a, b) {
   var c;
   c = a.a;
-  a.c == c.length && (c = Bbc(a, $wnd.Math.max(8, $qf(a.c * Noi))));
+  a.c == c.length && (c = Bbc(a, $wnd.Math.max(8, Cast_round_int(a.c * Noi))));
   c[a.c++] = b;
 }
 function Fmc(a, b) {
   var c;
   c = a.a;
-  a.c == c.length && (c = Jmc(a, $wnd.Math.max(8, $qf(a.c * Noi))));
+  a.c == c.length && (c = Jmc(a, $wnd.Math.max(8, Cast_round_int(a.c * Noi))));
   c[a.c++] = b;
 }
 function geg(a, b) {
@@ -37379,9 +37535,9 @@ function hch() {
   this.a = new pch(this);
 }
 function Cwh(a, b) {
-  jag.call(this, yth.p, yth.a, a);
+  jag.call(this, PixelScene_uiCamera.p, PixelScene_uiCamera.a, a);
   this.a = b;
-  this.kb = yth;
+  this.kb = PixelScene_uiCamera;
   this.T = 1;
   this.R = 0;
   this.b = Bwh;
@@ -37600,7 +37756,7 @@ function jIb(a) {
 function G9b(a) {
   var b;
   b = a.a;
-  a.c == b.length && (b = J9b(a, $wnd.Math.max(8, $qf(a.c * Noi))));
+  a.c == b.length && (b = J9b(a, $wnd.Math.max(8, Cast_round_int(a.c * Noi))));
   b[a.c++] = false;
 }
 function M_(a) {
@@ -37769,8 +37925,8 @@ function qih(a) {
   }
 }
 function sTh(a, b, c) {
-  a.a = c * (p_(), (K_(), J_)[$qf((b + Fgi) * Egi) & cdi]);
-  a.b = c * J_[$qf(b * Egi) & cdi];
+  a.a = c * (p_(), (K_(), J_)[Cast_round_int((b + Fgi) * Egi) & cdi]);
+  a.b = c * J_[Cast_round_int(b * Egi) & cdi];
   return a;
 }
 function dvg(a, b, c) {
@@ -37788,11 +37944,11 @@ function O3g(a, b) {
 }
 function SNh(a) {
   a.b = new jag(26, 26, Aaj);
-  _ag(a, a.b);
+  Group_$add(a, a.b);
   a.d = new AGh();
-  _ag(a, a.d);
+  Group_$add(a, a.d);
   a.k = new Tfg(a);
-  _ag(a, a.k);
+  Group_$add(a, a.k);
 }
 function sz(a, b) {
   a.c = b.c;
@@ -37933,11 +38089,11 @@ function Q8f(a, b, c) {
   a.b = c;
 }
 function qcg(a, b) {
-  !b && (b = (g9f(), f9f));
+  !b && (b = (g9f(), Camera_main));
   if (b != a.c) {
     a.c = b;
     q6f(a.d, b.b);
-    rf(dc, b.q, pag - b.c - b.r, b.d, b.c);
+    rf(dc, b.q, Game_height - b.c - b.r, b.d, b.c);
   }
 }
 function ekg() {
@@ -37953,7 +38109,7 @@ function CMg(a) {
   var b;
   b = new Z9f(PGj);
   !xMg && (xMg = new rjf(b.O, 16, 16));
-  U9f(b, ljf(xMg, rXh(a)));
+  U9f(b, TextureFilm_$get(xMg, rXh(a)));
   return b;
 }
 function kcd() {
@@ -38001,7 +38157,7 @@ function xNh(a, b, c) {
   pfg.call(this);
   this.b = b;
   this.e = c;
-  q8f(this.a, b.a);
+  BitmapText_$text(this.a, b.a);
   this.a.G_();
   vNh(this);
 }
@@ -38155,7 +38311,7 @@ function YT(a, b, c) {
   var d, e, f;
   e = a.c;
   f = c * e;
-  d = c >= 1 ? e - 1 : $qf(f);
+  d = c >= 1 ? e - 1 : Cast_round_int(f);
   f -= d;
   return jU(b, a.a ? d : d + 1, f, a.b, a.a, a.d);
 }
@@ -38163,7 +38319,7 @@ function aU(a, b, c) {
   var d, e, f;
   e = a.c;
   f = c * e;
-  d = c >= 1 ? e - 1 : $qf(f);
+  d = c >= 1 ? e - 1 : Cast_round_int(f);
   f -= d;
   return iU(b, a.a ? d : d + 1, f, a.b, a.a, a.d);
 }
@@ -38290,16 +38446,16 @@ function uWg(b) {
 }
 function O$g(a) {
   a.k = new Tfg(a);
-  _ag(a, a.k);
+  Group_$add(a, a.k);
   a.e = ajg((kjg(), bjg));
-  _ag(a, a.e);
-  a.g = Gth(null, 9);
-  _ag(a, a.g);
+  Group_$add(a, a.e);
+  a.g = PixelScene_createText(null, 9);
+  Group_$add(a, a.g);
 }
 function xCh(a, b) {
   a.a[0] = a.g.K;
   a.a[1] = b;
-  _ag(a.mb, new zPg(a.a, 2, a.g));
+  Group_$add(a.mb, new zPg(a.a, 2, a.g));
   Ryh(a, a.g.K, b);
   Hbg(a, a.B, false);
 }
@@ -38477,7 +38633,7 @@ function OEh() {
   this.a = 0;
   this.c = -1;
   this.n = (mWg(), hWg);
-  ofg(this, 24, 16);
+  Component_$setSize(this, 24, 16);
   this.nb = false;
 }
 function Vjb() {
@@ -38529,7 +38685,7 @@ function i$h(a) {
   return a;
 }
 function SNg(a, b, c) {
-  U9f(a, ljf(LNg, rXh(b)));
+  U9f(a, TextureFilm_$get(LNg, rXh(b)));
   !(a.i = c) && ((a.cb = a.Z = a.X = a.T = 1), (a.bb = a.Y = a.W = a.R = 0));
   return a;
 }
@@ -38612,7 +38768,7 @@ function Pnc(a, b, c) {
   }
   throw w$f(new fZh());
 }
-function lWh(a) {
+function Character_valueOf(a) {
   var b;
   if (a < 128) {
     b = (nWh(), mWh)[a];
@@ -38802,8 +38958,8 @@ function T$f(a) {
     e += qKj;
     d = nKj;
   }
-  c = $qf(e / pKj);
-  b = $qf(e - c * pKj);
+  c = Cast_round_int(e / pKj);
+  b = Cast_round_int(e - c * pKj);
   return fqf(b, c, d);
 }
 function Y0h(a, b) {
@@ -39157,7 +39313,7 @@ function ei(e, a, b) {
 function Emc(a, b) {
   var c;
   c = a.a;
-  a.c == c.length && (c = Jmc(a, $wnd.Math.max(8, $qf(a.c * Noi))));
+  a.c == c.length && (c = Jmc(a, $wnd.Math.max(8, Cast_round_int(a.c * Noi))));
   c[a.c++] = (b << 16) >> 16;
 }
 function Gbb(a) {
@@ -39342,7 +39498,7 @@ function kxh(a) {
   Jfg.call(this);
   this.B = this.a.fb;
   this.A = this.a.$;
-  this.a.T = ngg((Kig(), Dig)) ? 1 : 0.5;
+  this.a.T = Badges_isUnlocked((Kig(), Dig)) ? 1 : 0.5;
 }
 function wR(a, b, c) {
   var d;
@@ -39809,7 +39965,7 @@ function k4f(a) {
 function lhc(a) {
   var b;
   b = (knf(), (inf[0] = a), undefined, jnf[0]);
-  b |= $qf((b >>> 24) * 1.0039370078740157) << 24;
+  b |= Cast_round_int((b >>> 24) * 1.0039370078740157) << 24;
   return b;
 }
 function aqf(a, b, c, d, e) {
@@ -40050,14 +40206,6 @@ function Vac(a, b) {
   R8h(true, "Self-causation not permitted");
   a.f = b;
   return a;
-}
-function Kfd() {
-  if (JHc) return JHc;
-  return (JHc = new Dkf(
-    "rec",
-    eHf,
-    "Lcom/watabou/pixeldungeon/Rankings$Record;",
-  ));
 }
 function Ydd() {
   if (YFc) return YFc;
@@ -40361,6 +40509,7 @@ function Bnf(b) {
     var d = c.nodeName;
     return c;
   } catch (a) {
+    console.error(a)
     return null;
   }
 }
@@ -40403,7 +40552,7 @@ function eKh(a, b) {
   var c, d;
   c = a.a * 29;
   d = 12 + a.g * 29;
-  _ag(a, mfg(new AKh(a, b), c, d));
+  Group_$add(a, Component_$setPos(new AKh(a, b), c, d));
   if (++a.a >= a.e) {
     a.a = 0;
     ++a.g;
@@ -40696,7 +40845,7 @@ function SWd(a, b, c, d, e) {
   return (
     (f = d ? c.length : c.length - 3),
     (g = b * f),
-    (h = b >= 1 ? f - 1 : $qf(g)),
+    (h = b >= 1 ? f - 1 : Cast_round_int(g)),
     (g -= h),
     $S(a, h, g, c, d, e)
   );
@@ -40706,7 +40855,7 @@ function QWd(a, b, c, d, e) {
   return (
     (f = d ? c.length : c.length - 3),
     (g = b * f),
-    (h = b >= 1 ? f - 1 : $qf(g)),
+    (h = b >= 1 ? f - 1 : Cast_round_int(g)),
     (g -= h),
     $S(a, h, g, c, d, e)
   );
@@ -40716,7 +40865,7 @@ function sXd(a, b, c, d, e) {
   return (
     (f = d ? c.length : c.length - 3),
     (g = b * f),
-    (h = b >= 1 ? f - 1 : $qf(g)),
+    (h = b >= 1 ? f - 1 : Cast_round_int(g)),
     (g -= h),
     iU(a, h, g, c, d, e)
   );
@@ -40726,7 +40875,7 @@ function uXd(a, b, c, d, e) {
   return (
     (f = d ? c.length : c.length - 3),
     (g = b * f),
-    (h = b >= 1 ? f - 1 : $qf(g)),
+    (h = b >= 1 ? f - 1 : Cast_round_int(g)),
     (g -= h),
     jU(a, h, g, c, d, e)
   );
@@ -40868,14 +41017,14 @@ function UDh(a) {
   abg(this, a);
   this.B = a.B;
   this.A = a.A;
-  a.kb = new v9f(0, 0, 1, 1, nth);
+  a.kb = new v9f(0, 0, 1, 1, PixelScene_defaultZoom);
   w9f(a.kb);
 }
 function yYb(a) {
   return (
     ((a.d.c / 2) | 0) +
     (a.T.length != 0 &&
-    (nYh(a.T, a.T.length - 1) == 10 || nYh(a.T, a.T.length - 1) == 13)
+    (String_$charAt(a.T, a.T.length - 1) == 10 || String_$charAt(a.T, a.T.length - 1) == 13)
       ? 1
       : 0)
   );
@@ -41046,7 +41195,7 @@ function gE(a, b, c) {
   }
   return -1;
 }
-function ogg(a, b) {
+function Badges_leaveBest(a, b) {
   jgg();
   var c, d;
   for (c = b.length - 1; c > 0; c--) {
@@ -41062,8 +41211,8 @@ function Rgh(a) {
   var b;
   for (b = 0; b < oei; b++) {
     if (Igh[b]) {
-      _ag(a, new xVg(b));
-      b >= 32 && Ngh[b - 32] && _ag(a, new jTg(b - 32));
+      Group_$add(a, new xVg(b));
+      b >= 32 && Ngh[b - 32] && Group_$add(a, new jTg(b - 32));
     }
   }
 }
@@ -41100,11 +41249,11 @@ function uag(a) {
   ad(gc, a.b);
   xag();
 }
-function Dvh() {
+function InterlevelScene_$fall() {
   var a;
   _jf();
   Dungeon_saveLevel();
-  if ((Fjg(), Dungeon.depth) >= fmg) {
+  if ((Fjg(), Dungeon.depth) >= Statistics_deepestFloor) {
     a = Dungeon_newLevel();
   } else {
     ++Dungeon.depth;
@@ -41498,7 +41647,7 @@ function UWd(a, b, c, d, e, f) {
   return (
     (g = e ? c.length : c.length - d),
     (h = b * g),
-    (i = b >= 1 ? g - 1 : $qf(h)),
+    (i = b >= 1 ? g - 1 : Cast_round_int(h)),
     (h -= i),
     ZS(a, i, h, c, d, e, f)
   );
@@ -41508,7 +41657,7 @@ function WWd(a, b, c, d, e, f) {
   return (
     (g = e ? c.length : c.length - d),
     (h = b * g),
-    (i = b >= 1 ? g - 1 : $qf(h)),
+    (i = b >= 1 ? g - 1 : Cast_round_int(h)),
     (h -= i),
     aT(a, i, h, c, d, e, f)
   );
@@ -41523,17 +41672,6 @@ function Vjg() {
   qJh(Dungeon.level.F, Dungeon.visible, Dungeon.level.F);
   Ruh();
 }
-
-function saveRankings(a) {
-  var b;
-  b = new Bundle();
-  UQh(b, _Dj, a.b);
-  PQh(b, Z6i, a.a);
-  PQh(b, Lqj, a.c);
-  PQh(b, "won", a.d);
-  Game_$writeFile(qag, $Ij, ARh(b));
-}
-
 function $og(a) {
   var b;
   do {
@@ -41758,24 +41896,24 @@ function cFh(a) {
     b = F1h(c);
     a.b = Fth(b.b, 6);
     D7f(a.b, (a.a = b.a));
-    _ag(a, a.b);
+    Group_$add(a, a.b);
   }
 }
 function NS(a, b, c) {
   var d, e, f;
   e = a.e;
   f = c * e;
-  d = c >= 1 ? e - 1 : $qf(f);
+  d = c >= 1 ? e - 1 : Cast_round_int(f);
   f -= d;
-  return aT(b, a.a ? d : d + $qf(a.c * 0.5), f, a.b, a.c, a.a, a.f);
+  return aT(b, a.a ? d : d + Cast_round_int(a.c * 0.5), f, a.b, a.c, a.a, a.f);
 }
 function RS(a, b, c) {
   var d, e, f;
   e = a.e;
   f = c * e;
-  d = c >= 1 ? e - 1 : $qf(f);
+  d = c >= 1 ? e - 1 : Cast_round_int(f);
   f -= d;
-  return ZS(b, a.a ? d : d + $qf(a.c * 0.5), f, a.b, a.c, a.a, a.f);
+  return ZS(b, a.a ? d : d + Cast_round_int(a.c * 0.5), f, a.b, a.c, a.a, a.f);
 }
 function P8(a, b) {
   var c, d, e, f;
@@ -41808,9 +41946,9 @@ function g2h(a, b, c, d, e, f, g, h) {
 }
 function J8f(a, b) {
   u8f.call(this, a, b);
-  this.d = njf(
+  this.d = TextureFilm_$width(
     b,
-    ljf(b, lWh(b.a ? nYh(String.fromCharCode(32).toUpperCase(), 0) : 32)),
+    TextureFilm_$get(b, Character_valueOf(b.a ? String_$charAt(String.fromCharCode(32).toUpperCase(), 0) : 32)),
   );
 }
 function fQg() {
@@ -41876,13 +42014,13 @@ function oqh(a) {
   }
   return IXg(cUh(aqf(Vpf(dMf, 1), aMi, 117, 0, [(XXg(), RXg), TXg, OXg, PXg])));
 }
-function Kth(a) {
+function PixelScene_showBadge(a) {
   var b;
   b = EMg(a.b);
-  b.kb = yth;
-  b.gb = Bth(b.kb, (b.kb.p - b.fb) / 2);
-  b.hb = Bth(b.kb, (b.kb.a - b.$) / 3);
-  _ag(qag.g, b);
+  b.kb = PixelScene_uiCamera;
+  b.gb = PixelScene_align(b.kb, (b.kb.p - b.fb) / 2);
+  b.hb = PixelScene_align(b.kb, (b.kb.a - b.$) / 3);
+  Group_$add(qag.g, b);
 }
 function PEg(a, b) {
   var c;
@@ -41929,7 +42067,7 @@ function BVd(a, b) {
 }
 function Pxg(a, b, c) {
   if (!a.p && b == (Fjg(), Dungeon.hero) && b.s == (Axg(), rxg)) {
-    c += 1 + $qf($wnd.Math.random() * (c - 1));
+    c += 1 + Cast_round_int($wnd.Math.random() * (c - 1));
     aSg(a, 0);
   }
   return c;
@@ -41957,7 +42095,7 @@ function c7(a) {
 function rbc(a, b, c) {
   var d;
   d = a.a;
-  a.c + 1 >= d.length && (d = Bbc(a, $wnd.Math.max(8, $qf(a.c * Noi))));
+  a.c + 1 >= d.length && (d = Bbc(a, $wnd.Math.max(8, Cast_round_int(a.c * Noi))));
   d[a.c] = b;
   d[a.c + 1] = c;
   a.c += 2;
@@ -41977,7 +42115,7 @@ function Dnc(a, b) {
 function xJh(a) {
   return (
     Pqf(
-      nYh(
+      String_$charAt(
         String.fromCharCode((b9h(0, a.length), a.charCodeAt(0))).toUpperCase(),
         0,
       ),
@@ -42272,10 +42410,10 @@ function _Ih(a, b, c, d) {
   a.R = 0;
 }
 function eMh(a, b, c) {
-  _ag(a, b);
-  nfg(b, 0, a.a > 0 ? (a.a += 2) : 0, 59, 20);
-  _ag(a, c);
-  nfg(c, b.C + b.B + 2, b.D, 120 - (b.C + b.B) - 2, 20);
+  Group_$add(a, b);
+  Component_$setRect(b, 0, a.a > 0 ? (a.a += 2) : 0, 59, 20);
+  Group_$add(a, c);
+  Component_$setRect(c, b.C + b.B + 2, b.D, 120 - (b.C + b.B) - 2, 20);
   a.a += 20;
 }
 function MRg(a, b, c) {
@@ -42322,6 +42460,7 @@ function F_f(b) {
     $wnd[b].removeItem(c);
     return true;
   } catch (a) {
+      console.error(a);
     return false;
   }
 }
@@ -42453,8 +42592,8 @@ function ATg(a, b, c) {
 }
 function yzh(a) {
   vTh(a.ab, a.fb / 2, a.$ - 8);
-  a.V = $qf($wnd.Math.random() * 2) == 0 ? -720 : 720;
-  _ag(a.mb, new YBh(a, a, new yTh(0, 0)));
+  a.V = Cast_round_int($wnd.Math.random() * 2) == 0 ? -720 : 720;
+  Group_$add(a.mb, new YBh(a, a, new yTh(0, 0)));
 }
 function mug(b) {
   Xsg();
@@ -42513,17 +42652,17 @@ function Ygg() {
     Y5h(fgg, Dhg)
   ) {
     a = Jig;
-    X5h(hgg, a);
-    lgg(a);
+    X5h(Badges_local, a);
+    Badges_displayBadge(a);
   }
 }
 function hNh(a, b, c, d) {
   var e, f;
   e = d.Aeb();
   f = new xNh(a, e, d.Beb());
-  nfg(f, 0, a.c, c, 12);
-  a.c = $qf(a.c + 12);
-  _ag(b, f);
+  Component_$setRect(f, 0, a.c, c, 12);
+  a.c = Cast_round_int(a.c + 12);
+  Group_$add(b, f);
   aQh(a.a, e, f);
 }
 function f2h(a, b, c, d) {
@@ -42562,9 +42701,9 @@ function Ab(a, b) {
 function gyh(a, b) {
   Jfg.call(this);
   this.a.f0(V4f(this.a.O, b * 32, 0, (b + 1) * 32, 32));
-  q8f(this.b, a);
+  BitmapText_$text(this.b, a);
   this.b.G_();
-  ofg(this, 48, 48);
+  Component_$setSize(this, 48, 48);
 }
 function $oh() {
   Qeg.call(this);
@@ -42907,15 +43046,15 @@ function Xof(a, b) {
 function Bag(a, b) {
   var c;
   Gf(dc, 0, 0, a, b);
-  if (a != tag || b != pag) {
-    tag = a;
-    pag = b;
+  if (a != Game_width || b != Game_height) {
+    Game_width = a;
+    Game_height = b;
     c = qag.g;
     if (c) {
       o5f();
       g9f();
       G9f(z9f(1));
-      Yag(c.Peb);
+      Game_switchScene(c.Peb);
     }
   }
 }
@@ -43102,7 +43241,7 @@ function yjc(a) {
   var b;
   this.g = ppi;
   b = Fjc(a, ppi);
-  this.n = $qf(b * ppi);
+  this.n = Cast_round_int(b * ppi);
   this.i = b - 1;
   this.j = EXh(this.i);
   this.f = Zpf(WXf, E9h, 1, b, 5, 1);
@@ -43111,14 +43250,14 @@ function Z6() {
   W6();
   var a, b, c;
   c = V6++ + Date.now();
-  a = $qf($wnd.Math.floor(c * pji)) & Yci;
-  b = $qf(c - a * qji);
+  a = Cast_round_int($wnd.Math.floor(c * pji)) & Yci;
+  b = Cast_round_int(c - a * qji);
   this.c = a ^ ybi;
   this.d = b ^ oji;
 }
 function mBh(a, b) {
   var c, d, e;
-  e = ljf(sBh(), rXh(b));
+  e = TextureFilm_$get(sBh(), rXh(b));
   c = new Z9f(_wg(a));
   d = V4f(c.O, 1, 0, 12, 15);
   d = fUh(d, e.b, e.d);
@@ -43270,16 +43409,16 @@ function Vpe(a, b, c, d) {
   return (
     mj(),
     (e =
-      ($qf(255 * d) << 24) |
-      ($qf(255 * c) << 16) |
-      ($qf(255 * b) << 8) |
-      $qf(255 * a)),
+      (Cast_round_int(255 * d) << 24) |
+      (Cast_round_int(255 * c) << 16) |
+      (Cast_round_int(255 * b) << 8) |
+      Cast_round_int(255 * a)),
     knf(),
     (jnf[0] = e & Obi),
     inf[0]
   );
 }
-function ugg() {
+function Badges_validateAllItemsIdentified() {
   jgg();
   var a;
   if (
@@ -43290,7 +43429,7 @@ function ugg() {
     Y5h(fgg, chg)
   ) {
     a = $gg;
-    lgg(a);
+    Badges_displayBadge(a);
   }
 }
 function Dungeon_saveAll() {
@@ -43808,9 +43947,9 @@ function gp(a) {
   }
 }
 function SJh(a, b) {
-  mfg(b, a.k.a.length == 0 ? -a.o.e + 1 : lfg(U0h(a.k, a.k.a.length - 1)), a.p);
+  Component_$setPos(b, a.k.a.length == 0 ? -a.o.e + 1 : lfg(U0h(a.k, a.k.a.length - 1)), a.p);
   b.jcb(false);
-  _ag(a, b);
+  Group_$add(a, b);
   T0h(a.k, b);
   return b;
 }
@@ -43876,8 +44015,8 @@ function et(a, b, c, d, e) {
   this.S = a.S;
   Ys(
     this,
-    $qf($wnd.Math.round(a.T * a.S.a.rd())) + b,
-    $qf($wnd.Math.round(a.V * a.S.a.pd())) + c,
+    Cast_round_int($wnd.Math.round(a.T * a.S.a.rd())) + b,
+    Cast_round_int($wnd.Math.round(a.V * a.S.a.pd())) + c,
     d,
     e,
   );
@@ -44084,12 +44223,12 @@ function Dah(a) {
 function qIg(a, b) {
   gIg();
   a.C$();
-  _ag(a.M.mb, new DIg(a.M, a));
+  Group_$add(a.M.mb, new DIg(a.M, a));
   b.K = a.K;
   Kuh(b);
   b.M.L = a.M.L;
   x7f(b.M, 0);
-  _ag(b.M.mb, new Yeg(b.M, 1, 0.5));
+  Group_$add(b.M.mb, new Yeg(b.M, 1, 0.5));
 }
 function rLg(a, b, c, d) {
   c > 0 ? aQh(a.a, rXh(c), new tWg(b, true)) : cQh(a.a, rXh(c));
@@ -44246,9 +44385,9 @@ function Guh(a, b) {
   }
   if (b != null) {
     a.o = new uvh(b);
-    a.o.kb = yth;
-    mfg(a.o, (yth.p - a.o.B) / 2, yth.a - 60);
-    _ag(a, a.o);
+    a.o.kb = PixelScene_uiCamera;
+    Component_$setPos(a.o, (PixelScene_uiCamera.p - a.o.B) / 2, PixelScene_uiCamera.a - 60);
+    Group_$add(a, a.o);
   }
 }
 function $Eb(a, b) {
@@ -44299,7 +44438,7 @@ function dJb(a, b) {
     d -= c.Vf() + c.Lf();
     b -= c.Lf();
   }
-  e = $qf((d - b) / a.d);
+  e = Cast_round_int((d - b) / a.d);
   if (e < 0 || e >= a.e.i) return -1;
   return e;
 }
@@ -44324,7 +44463,7 @@ function u5b() {
   if (l5b.i == 0) Ve(dc, 3089);
   else {
     b = w6b(l5b);
-    CN($qf(b.d), $qf(b.e), $qf(b.c), $qf(b.b));
+    CN(Cast_round_int(b.d), Cast_round_int(b.e), Cast_round_int(b.c), Cast_round_int(b.b));
   }
   return a;
 }
@@ -44432,7 +44571,7 @@ function Icc() {
   var a;
   this.e = ppi;
   a = Fjc(51, ppi);
-  this.j = $qf(a * ppi);
+  this.j = Cast_round_int(a * ppi);
   this.f = a - 1;
   this.g = EXh(E$f(this.f));
   this.d = Zpf(erf, $9h, 23, a, 15, 1);
@@ -44440,10 +44579,10 @@ function Icc() {
 function sj(a) {
   var b;
   b =
-    ($qf(255 * a.a) << 24) |
-    ($qf(255 * a.b) << 16) |
-    ($qf(255 * a.c) << 8) |
-    $qf(255 * a.d);
+    (Cast_round_int(255 * a.a) << 24) |
+    (Cast_round_int(255 * a.b) << 16) |
+    (Cast_round_int(255 * a.c) << 8) |
+    Cast_round_int(255 * a.d);
   return (knf(), (jnf[0] = b & Obi), undefined, inf[0]);
 }
 function Z7e() {
@@ -44531,8 +44670,8 @@ function aFh(a) {
   d = a.D;
   for (c = a.F - 1; c >= 0; c--) {
     b = U0h(a.G, c);
-    b.b = $qf(a.B);
-    H8f(b);
+    b.b = Cast_round_int(a.B);
+    BitmapTextMultiline_$measure(b);
     b.gb = a.C;
     b.hb = d - b.$ * b.db.b;
     d -= b.$ * b.db.b;
@@ -45262,7 +45401,7 @@ function uah(a, b) {
 }
 function eic(a) {
   Ohc();
-  dic.call(this, $qf(a.d.length * a.g), a.g);
+  dic.call(this, Cast_round_int(a.d.length * a.g), a.g);
   kZh(a.d, 0, this.d, 0, a.d.length);
   kZh(a.o, 0, this.o, 0, a.o.length);
   this.k = a.k;
@@ -45313,7 +45452,7 @@ function qDg() {
 function mFg() {
   kFg();
   byg.call(this);
-  this.I = (Fjg(), Dungeon.depth) == fmg ? "Tengu" : "memory of Tengu";
+  this.I = (Fjg(), Dungeon.depth) == Statistics_deepestFloor ? "Tengu" : "memory of Tengu";
   this.u = xTf;
   this.A = this.B = 120;
   this.d = 20;
@@ -45422,7 +45561,7 @@ function evg(a) {
   c
     ? (b = c.y7(a))
     : (b = (a.v ? a.a - 2 : a.a) > 10 ? WTh(1, (a.v ? a.a - 2 : a.a) - 9) : 1);
-  return wmg(a, NHf) ? $qf(b * 1.5) : b;
+  return wmg(a, NHf) ? Cast_round_int(b * 1.5) : b;
 }
 function Kyh(a, b) {
   if (b == a.s) {
@@ -45479,7 +45618,7 @@ function k8b(a, b, c) {
   var d;
   d = j8b(a, b);
   if (d == -1) {
-    a.g == a.c.length && o8b(a, $wnd.Math.max(8, $qf(a.g * Noi)));
+    a.g == a.c.length && o8b(a, $wnd.Math.max(8, Cast_round_int(a.g * Noi)));
     d = a.g++;
   }
   a.c[d] = b;
@@ -45491,7 +45630,7 @@ function tbc(a, b, c) {
   d = a.a;
   e = a.c + c;
   e > d.length &&
-    (d = Bbc(a, $wnd.Math.max($wnd.Math.max(8, e), $qf(a.c * Noi))));
+    (d = Bbc(a, $wnd.Math.max($wnd.Math.max(8, e), Cast_round_int(a.c * Noi))));
   kZh(b, 0, d, a.c, c);
   a.c += c;
 }
@@ -45546,13 +45685,13 @@ function pSb(b, c, d) {
   }
   (!d || d != c) && qSb(b, c);
 }
-function pgg() {
+function Badges_loadGlobal() {
   jgg();
   var b;
   if (!fgg) {
     try {
-      b = yRh(zag(qag, KIj));
-      fgg = qgg(b);
+      b = yRh(Game_$readFile(qag, KIj));
+      fgg = Badges_restore(b);
     } catch (a) {
       a = v$f(a);
       if (Rqf(a, 119)) {
@@ -45613,7 +45752,7 @@ function Gzg() {
 function kPg(a, b, c) {
   hPg();
   jPg.call(this);
-  C7f(this, (b >> 16) / 255, ((b >> 8) & 255) / 255, (b & 255) / 255);
+  Visual_$hardlight(this, (b >> 16) / 255, ((b >> 8) & 255) / 255, (b & 255) / 255);
   x7f(this, (this.c = c));
   uTh(this.db, (this.d = a) / 64);
 }
@@ -45656,7 +45795,7 @@ function m6b(a, b, c, d) {
   e = a.d;
   f = a.i + d;
   f > e.length &&
-    (e = D6b(a, $wnd.Math.max($wnd.Math.max(8, f), $qf(a.i * Noi))));
+    (e = D6b(a, $wnd.Math.max($wnd.Math.max(8, f), Cast_round_int(a.i * Noi))));
   kZh(b, c, e, a.i, d);
   a.i = f;
 }
@@ -45788,14 +45927,14 @@ function _Hh(a) {
   var b;
   b = 18;
   if (a.u) {
-    mfg(a.f, a.B - a.f.B, b);
+    Component_$setPos(a.f, a.B - a.f.B, b);
     b = hfg(a.f) + 1;
   }
   if (a.v) {
-    mfg(a.r, a.B - a.r.B, b);
+    Component_$setPos(a.r, a.B - a.r.B, b);
     b = hfg(a.r) + 1;
   }
-  a.w && mfg(a.s, a.B - a.s.B, b);
+  a.w && Component_$setPos(a.s, a.B - a.s.B, b);
 }
 function _c(a) {
   var b;
@@ -45837,7 +45976,7 @@ function Hac(a, b, c, d) {
   e = a.a;
   f = a.c + d;
   f > e.length &&
-    (e = Mac(a, $wnd.Math.max($wnd.Math.max(8, f), $qf(a.c * Noi))));
+    (e = Mac(a, $wnd.Math.max($wnd.Math.max(8, f), Cast_round_int(a.c * Noi))));
   kZh(b, c, e, a.c, d);
   a.c += d;
 }
@@ -45919,7 +46058,7 @@ function Pgf() {
     "Lcom/badlogic/gdx/graphics/g3d/particles/values/WeightMeshSpawnShapeValue;",
   ));
 }
-function Ndg(a, b, c) {
+function Music_$play(a, b, c) {
   if (!!a.d && a.d.d && sYh(a.c, b)) {
     return;
   }
@@ -45963,7 +46102,7 @@ function XUb(a) {
   c = a.o.a;
   e = a.ub;
   b = a.Hb - c.PC();
-  f = $qf(b * a.n);
+  f = Cast_round_int(b * a.n);
   g = b - f;
   d = c.PC();
   u7(a.c, 0, 0, f, e);
@@ -46002,7 +46141,7 @@ function Flh(a) {
   var b, c, d;
   c = (Fjg(), Dungeon.depth) <= 1 ? 0 : VTh(1, fQh(a.j.a) + Dungeon.depth);
   for (b = 0; b < c; b++) {
-    d = $qf($wnd.Math.random() * oei);
+    d = Cast_round_int($wnd.Math.random() * oei);
     a.w[d] == 1 && (a.w[d] = 27);
   }
 }
@@ -46121,7 +46260,7 @@ function CRh(a, b) {
   } else if (a >= 1) {
     return b[b.length - 1];
   }
-  c = $qf(b.length * a);
+  c = Cast_round_int(b.length * a);
   return DRh(b[c], b[c + 1], (a * (b.length - 1)) % 1);
 }
 function tYh(a, b) {
@@ -46161,10 +46300,10 @@ function Tv(a, b) {
   rj(a.f, b);
   a.g =
     ((c =
-      ($qf(255 * b.a) << 24) |
-      ($qf(255 * b.b) << 16) |
-      ($qf(255 * b.c) << 8) |
-      $qf(255 * b.d)),
+      (Cast_round_int(255 * b.a) << 24) |
+      (Cast_round_int(255 * b.b) << 16) |
+      (Cast_round_int(255 * b.c) << 8) |
+      Cast_round_int(255 * b.d)),
     knf(),
     (jnf[0] = c & Obi),
     undefined,
@@ -46245,8 +46384,8 @@ function duh(a) {
   this.a = a;
   this.ib = !!a;
   this.b = this.ib ? CMg(a.b) : new Z9f(QGj);
-  _ag(this, this.b);
-  ofg(this, this.b.C_(), this.b.p_());
+  Group_$add(this, this.b);
+  Component_$setSize(this, this.b.C_(), this.b.p_());
 }
 function Cqb(a, b, c) {
   wqb(this);
@@ -46470,9 +46609,9 @@ function KNg(a) {
 }
 function eNh(a, b) {
   pfg.call(this);
-  q8f(this.b, a.a);
+  BitmapText_$text(this.b, a.a);
   this.b.G_();
-  q8f(this.a, "" + b);
+  BitmapText_$text(this.a, "" + b);
   this.a.G_();
   if (b == (Fjg(), Dungeon.depth)) {
     D7f(this.b, zaj);
@@ -46512,10 +46651,10 @@ function HN(a, b, c, d, e) {
   a.p[a.n + a.a] =
     (mj(),
     (f =
-      ($qf(255 * e) << 24) |
-      ($qf(255 * d) << 16) |
-      ($qf(255 * c) << 8) |
-      $qf(255 * b)),
+      (Cast_round_int(255 * e) << 24) |
+      (Cast_round_int(255 * d) << 16) |
+      (Cast_round_int(255 * c) << 8) |
+      Cast_round_int(255 * b)),
     knf(),
     (jnf[0] = f & Obi),
     undefined,
@@ -46565,8 +46704,8 @@ function ckg(a, b, c) {
   I7f(d, tTh(new yTh(b % 32, (b / 32) | 0), 16));
   d.cb = d.Z = d.X = a.cb;
   d.bb = d.Y = d.W = a.bb;
-  _ag(a.mb, d);
-  _ag(a.mb, new nkg(d, d));
+  Group_$add(a.mb, d);
+  Group_$add(a.mb, new nkg(d, d));
 }
 function $Sh(a, b) {
   var c, d;
@@ -46595,7 +46734,7 @@ function LZh(a, b) {
   }
   return c;
 }
-function qh(a) {
+function Preloader(a) {
   this.g = new Bg();
   this.e = new bic();
   this.f = new bic();
@@ -46729,35 +46868,35 @@ function p6b(a, b) {
   var c;
   if (b < 0) throw w$f(new _Wh(Ooi + b));
   c = a.i + b;
-  c > a.d.length && D6b(a, $wnd.Math.max($wnd.Math.max(8, c), $qf(a.i * Noi)));
+  c > a.d.length && D6b(a, $wnd.Math.max($wnd.Math.max(8, c), Cast_round_int(a.i * Noi)));
   return a.d;
 }
 function H9b(a, b) {
   var c;
   if (b < 0) throw w$f(new _Wh(Ooi + b));
   c = a.c + b;
-  c > a.a.length && J9b(a, $wnd.Math.max($wnd.Math.max(8, c), $qf(a.c * Noi)));
+  c > a.a.length && J9b(a, $wnd.Math.max($wnd.Math.max(8, c), Cast_round_int(a.c * Noi)));
   return a.a;
 }
 function Gmc(a, b) {
   var c;
   if (b < 0) throw w$f(new _Wh(Ooi + b));
   c = a.c + b;
-  c > a.a.length && Jmc(a, $wnd.Math.max($wnd.Math.max(8, c), $qf(a.c * Noi)));
+  c > a.a.length && Jmc(a, $wnd.Math.max($wnd.Math.max(8, c), Cast_round_int(a.c * Noi)));
   return a.a;
 }
 function Iac(a, b) {
   var c;
   if (b < 0) throw w$f(new _Wh(Ooi + b));
   c = a.c + b;
-  c > a.a.length && Mac(a, $wnd.Math.max($wnd.Math.max(8, c), $qf(a.c * Noi)));
+  c > a.a.length && Mac(a, $wnd.Math.max($wnd.Math.max(8, c), Cast_round_int(a.c * Noi)));
   return a.a;
 }
 function ubc(a, b) {
   var c;
   if (b < 0) throw w$f(new _Wh(Ooi + b));
   c = a.c + b;
-  c > a.a.length && Bbc(a, $wnd.Math.max($wnd.Math.max(8, c), $qf(a.c * Noi)));
+  c > a.a.length && Bbc(a, $wnd.Math.max($wnd.Math.max(8, c), Cast_round_int(a.c * Noi)));
   return a.a;
 }
 
@@ -46780,11 +46919,11 @@ function Impl_enter() {
 function z9f(a) {
   g9f();
   var b, c;
-  c = $qf($wnd.Math.ceil(tag / a));
-  b = $qf($wnd.Math.ceil(pag / a));
+  c = Cast_round_int($wnd.Math.ceil(Game_width / a));
+  b = Cast_round_int($wnd.Math.ceil(Game_height / a));
   return new v9f(
-    ($qf(tag - c * a) / 2) | 0,
-    ($qf(pag - b * a) / 2) | 0,
+    (Cast_round_int(Game_width - c * a) / 2) | 0,
+    (Cast_round_int(Game_height - b * a) / 2) | 0,
     c,
     b,
     a,
@@ -46855,7 +46994,7 @@ function Meg(a) {
 function gGg() {
   eGg();
   byg.call(this);
-  this.I = (Fjg(), Dungeon.depth) == fmg ? "Yog-Dzewa" : "echo of Yog-Dzewa";
+  this.I = (Fjg(), Dungeon.depth) == Statistics_deepestFloor ? "Yog-Dzewa" : "echo of Yog-Dzewa";
   this.u = FTf;
   this.A = this.B = 300;
   this.d = 50;
@@ -46944,7 +47083,7 @@ function YUb(a) {
   h = a.Hb;
   f = a.ub;
   b = f - d.OC();
-  g = $qf(b * a.n);
+  g = Cast_round_int(b * a.n);
   c = b - g;
   e = d.OC();
   u7(a.c, 0, f - g, h, g);
@@ -46983,7 +47122,7 @@ function N5g(a, b) {
 function Oxh(a, b, c) {
   Z9f.call(this, aHj);
   this.a = $wnd.Math.random() * 5;
-  T9f(this, 88 + $qf($wnd.Math.random() * 4) * 16, 60, 16, 14);
+  T9f(this, 88 + Cast_round_int($wnd.Math.random() * 4) * 16, 60, 16, 14);
   this.d = a;
   this.e = b;
   this.c = c;
@@ -46991,7 +47130,7 @@ function Oxh(a, b, c) {
 function cEh(a, b, c) {
   if (b >= a.C && c >= a.D && b < a.C + a.B && c < a.D + a.A) {
     ieg((eeg(), deg), UHj, Ini, KLj);
-    _ag(qag.g, new RJh(a.a));
+    Group_$add(qag.g, new RJh(a.a));
     return true;
   } else {
     return false;
@@ -47166,20 +47305,20 @@ function Wif(a, b, c, d) {
 }
 function HOg() {
   Z9f.call(this, bHj);
-  U9f(this, $qf($wnd.Math.random() * 2) == 0 ? (vOg(), sOg) : (vOg(), tOg));
+  U9f(this, Cast_round_int($wnd.Math.random() * 2) == 0 ? (vOg(), sOg) : (vOg(), tOg));
   vTh(this.ab, this.fb / 2, this.$ / 2);
   vTh(this.S, 0, DOg);
 }
 function GMh(a, b, c) {
   var d;
-  d = Gth(b, 8);
+  d = PixelScene_createText(b, 8);
   d.hb = a.a;
-  _ag(a, d);
-  d = Gth(c, 8);
-  p8f(d);
-  d.gb = $qf(64.99999761581421 * nth) / nth;
+  Group_$add(a, d);
+  d = PixelScene_createText(c, 8);
+  BitmapText_$measure(d);
+  d.gb = Cast_round_int(64.99999761581421 * PixelScene_defaultZoom) / PixelScene_defaultZoom;
   d.hb = a.a;
-  _ag(a, d);
+  Group_$add(a, d);
   a.a += 5 + d.g.b * d.db.b;
 }
 function Vo(a, b, c) {
@@ -47247,13 +47386,18 @@ function NSh(b, c) {
     } else throw w$f(a);
   }
 }
-function Dag(b) {
+
+function Game_$step(game) {
   var c;
-  if (b.e) {
-    b.e = false;
+  if (game.e) {
+    game.e = false;
     try {
-      b.f = apc(b.i);
-      Game_$switchScene(b);
+        if (game.i === "RankingsScene") {
+            game.f = new RankingsScene();
+        } else {
+            game.f = apc(game.i);
+        }
+      Game_$switchScene(game);
     } catch (a) {
       a = v$f(a);
       if (Rqf(a, 43)) {
@@ -47262,8 +47406,9 @@ function Dag(b) {
       } else throw w$f(a);
     }
   }
-  Fag(b);
+  Game_$update(game);
 }
+
 function O9b(a) {
   var b;
   b = null;
@@ -47319,7 +47464,7 @@ function smh(a, b, c) {
     return a;
   }
 }
-function kGh(a) {
+function Icons_get(a) {
   hGh();
   switch (a.f) {
     case 0:
@@ -47340,7 +47485,7 @@ function zJh(a) {
     : (xYh(
         vJh,
         OYh(
-          nYh(
+          String_$charAt(
             String.fromCharCode(
               (b9h(0, a.length), a.charCodeAt(0)),
             ).toLowerCase(),
@@ -47454,8 +47599,8 @@ function qNg(a, b) {
   var c;
   nbg.call(this);
   for (c = 0; c < b.length; c += 2) {
-    _ag(this, new tNg(a.a, a.b, b[c], b[c + 1]));
-    _ag(this, new tNg(a.a, a.b, b[c], b[c + 1]));
+    Group_$add(this, new tNg(a.a, a.b, b[c], b[c + 1]));
+    Group_$add(this, new tNg(a.a, a.b, b[c], b[c + 1]));
   }
 }
 function R9g(a, b) {
@@ -47474,26 +47619,26 @@ function R9g(a, b) {
 }
 function vGh(a) {
   a.k = new Tfg(a);
-  _ag(a, a.k);
+  Group_$add(a, a.k);
   a.f = new TNg();
-  _ag(a, a.f);
+  Group_$add(a, a.f);
   a.g = new t8f(qth);
-  _ag(a, a.g);
+  Group_$add(a, a.g);
   a.i = new t8f(qth);
-  _ag(a, a.i);
+  Group_$add(a, a.i);
   a.e = new t8f(qth);
-  _ag(a, a.e);
+  Group_$add(a, a.e);
 }
 function iOh(a, b, c, d) {
   var e;
-  e = Gth(b, 7);
+  e = PixelScene_createText(b, 7);
   e.hb = d;
-  _ag(a, e);
-  e = Gth(c, 7);
-  p8f(e);
-  e.gb = $qf(72.79999732971191 * nth) / nth;
+  Group_$add(a, e);
+  e = PixelScene_createText(c, 7);
+  BitmapText_$measure(e);
+  e.gb = Cast_round_int(72.79999732971191 * PixelScene_defaultZoom) / PixelScene_defaultZoom;
   e.hb = d;
-  _ag(a, e);
+  Group_$add(a, e);
   return d + 4 + e.g.b * e.db.b;
 }
 function mUh(a, b) {
@@ -47575,19 +47720,19 @@ function XRb(a, b, c, d, e, f) {
   !e && (e = h.b);
   WRb(a, b, g, d, e, f);
 }
-function vgg() {
+function Badges_validateAllPotionsIdentified() {
   jgg();
   var a;
   if (
     !!(Fjg(), Dungeon.hero) &&
     Dungeon.hero.A > 0 &&
-    !Y5h(hgg, (Kig(), _gg)) &&
+    !Y5h(Badges_local, (Kig(), _gg)) &&
     (N3g(), fQh(K3g.c.a) == M3g.length)
   ) {
     a = (Kig(), _gg);
-    X5h(hgg, a);
-    lgg(a);
-    ugg();
+    X5h(Badges_local, a);
+    Badges_displayBadge(a);
+    Badges_validateAllItemsIdentified();
   }
 }
 function xgg() {
@@ -47596,13 +47741,13 @@ function xgg() {
   if (
     !!(Fjg(), Dungeon.hero) &&
     Dungeon.hero.A > 0 &&
-    !Y5h(hgg, (Kig(), bhg)) &&
+    !Y5h(Badges_local, (Kig(), bhg)) &&
     (H8g(), fQh(D8g.c.a) == G8g.length)
   ) {
     a = (Kig(), bhg);
-    X5h(hgg, a);
-    lgg(a);
-    ugg();
+    X5h(Badges_local, a);
+    Badges_displayBadge(a);
+    Badges_validateAllItemsIdentified();
   }
 }
 function ygg() {
@@ -47611,13 +47756,13 @@ function ygg() {
   if (
     !!(Fjg(), Dungeon.hero) &&
     Dungeon.hero.A > 0 &&
-    !Y5h(hgg, (Kig(), chg)) &&
+    !Y5h(Badges_local, (Kig(), chg)) &&
     (qah(), fQh(lah.c.a) == nah.length)
   ) {
     a = (Kig(), chg);
-    X5h(hgg, a);
-    lgg(a);
-    ugg();
+    X5h(Badges_local, a);
+    Badges_displayBadge(a);
+    Badges_validateAllItemsIdentified();
   }
 }
 function rug(a, b) {
@@ -47687,11 +47832,11 @@ function ENh(a) {
   var b;
   EHg.call(this);
   b = Fth(a, 6);
-  b.b = (tag > pag ? 144 : 120) - 8;
-  H8f(b);
+  b.b = (Game_width > Game_height ? 144 : 120) - 8;
+  BitmapTextMultiline_$measure(b);
   b.gb = b.hb = 4;
-  _ag(this, b);
-  DHg(this, $qf(b.fb * b.db.a) + 8, $qf(b.$ * b.db.b) + 8);
+  Group_$add(this, b);
+  DHg(this, Cast_round_int(b.fb * b.db.a) + 8, Cast_round_int(b.$ * b.db.b) + 8);
 }
 function B$h(a, b, c) {
   var d, e;
@@ -47713,10 +47858,10 @@ function l9h(a) {
   c = ":" + a;
   d = i9h[c];
   if (d != null) {
-    return $qf((W8h(d), d));
+    return Cast_round_int((W8h(d), d));
   }
   d = g9h[c];
-  b = d == null ? k9h(a) : $qf((W8h(d), d));
+  b = d == null ? k9h(a) : Cast_round_int((W8h(d), d));
   m9h();
   i9h[c] = b;
   return b;
@@ -47725,7 +47870,7 @@ function Eb(a) {
   return Wqf(a)
     ? l9h(a)
     : Uqf(a)
-      ? $qf((W8h(a), a))
+      ? Cast_round_int((W8h(a), a))
       : Tqf(a)
         ? (W8h(a), a)
           ? p9h
@@ -47776,14 +47921,14 @@ function amc(a, b, c, d) {
 function G9f(a) {
   g9f();
   var b, c;
-  e9f = 2 / tag;
-  d9f = 2 / pag;
+  e9f = 2 / Game_width;
+  d9f = 2 / Game_height;
   c = c9f.a.length;
   for (b = 0; b < c; b++) {
     j9f(U0h(c9f, b));
   }
   c9f.a = Zpf(WXf, E9h, 1, 0, 5, 1);
-  return (f9f = (T0h(c9f, a), a));
+  return (Camera_main = (T0h(c9f, a), a));
 }
 function kvg(a, b) {
   Cmg(a, b);
@@ -47870,7 +48015,7 @@ function $bc(a) {
   var b;
   this.g = ppi;
   b = Fjc(a, ppi);
-  this.n = $qf(b * ppi);
+  this.n = Cast_round_int(b * ppi);
   this.i = b - 1;
   this.j = EXh(this.i);
   this.d = Zpf(erf, $9h, 23, b, 15, 1);
@@ -47983,13 +48128,13 @@ function wgg() {
   if (
     !!(Fjg(), Dungeon.hero) &&
     Dungeon.hero.A > 0 &&
-    !Y5h(hgg, (Kig(), ahg)) &&
+    !Y5h(Badges_local, (Kig(), ahg)) &&
     (E6g(), fQh(B6g.c.a) == D6g.length - 2)
   ) {
     a = (Kig(), ahg);
-    X5h(hgg, a);
-    lgg(a);
-    ugg();
+    X5h(Badges_local, a);
+    Badges_displayBadge(a);
+    Badges_validateAllItemsIdentified();
   }
 }
 function mUg(a, b, c) {
@@ -48180,7 +48325,7 @@ function xsg(a, b, c) {
 }
 function bWh(a, b, c) {
   var d, e;
-  d = nYh(a, b++);
+  d = String_$charAt(a, b++);
   if (
     d >= 55296 &&
     d <= 56319 &&
@@ -48379,7 +48524,7 @@ function byg() {
 function vBg() {
   tBg();
   byg.call(this);
-  this.I = (Fjg(), Dungeon.depth) == fmg ? "Goo" : "spawn of Goo";
+  this.I = (Fjg(), Dungeon.depth) == Statistics_deepestFloor ? "Goo" : "spawn of Goo";
   this.A = this.B = 80;
   this.d = 10;
   this.n = 12;
@@ -48404,9 +48549,9 @@ function o1b(a) {
   k1b();
   var b;
   if (a == 0) return kWb;
-  if (a >= -10 && a <= 100 && a == $qf(a)) {
-    b = j1b[$qf(a) + 10];
-    !b && (j1b[$qf(a) + 10] = b = new l1b(a));
+  if (a >= -10 && a <= 100 && a == Cast_round_int(a)) {
+    b = j1b[Cast_round_int(a) + 10];
+    !b && (j1b[Cast_round_int(a) + 10] = b = new l1b(a));
     return b;
   }
   return new l1b(a);
@@ -48491,7 +48636,7 @@ function Fyh(a, b, c, d) {
     e * cci,
   );
   a.s.g = a;
-  _ag(a.mb, a.s);
+  Group_$add(a.mb, a.s);
   Ryh(a, b, c);
 }
 function aPh(a, b) {
@@ -48557,10 +48702,10 @@ function v5(a) {
 }
 function pKb(a, b, c, d, e, f, g) {
   if (a.s) {
-    d = $qf($wnd.Math.round(d));
-    e = $qf($wnd.Math.round(e));
-    f = $qf($wnd.Math.round(f));
-    g = $qf($wnd.Math.round(g));
+    d = Cast_round_int($wnd.Math.round(d));
+    e = Cast_round_int($wnd.Math.round(e));
+    f = Cast_round_int($wnd.Math.round(f));
+    g = Cast_round_int($wnd.Math.round(g));
   }
   c.Jf(b, d, e, f, g);
 }
@@ -48573,7 +48718,7 @@ function nlc(a, b) {
   c >= d.length && (c -= d.length);
   return d[c];
 }
-function $pf(a, b) {
+function Array_initializeArrayElementsWithDefaults(a, b) {
   var c = new Array(b);
   var d;
   switch (a) {
@@ -48638,7 +48783,7 @@ function dDg() {
 }
 function pvh(a) {
   pfg.call(this);
-  q8f(this.c, a);
+  BitmapText_$text(this.c, a);
   this.c.G_();
   this.B = O7f(this.c) + this.b.B + Wbg(this.a) + 6;
   this.A = $wnd.Math.max(E7f(this.c), this.b.A) + Xbg(this.a) + 4;
@@ -48727,7 +48872,7 @@ function zZg(a, b) {
 }
 function iih(a) {
   var b, c, d;
-  d = 2 + ((Fjg(), Dungeon.depth) % 5) + $qf($wnd.Math.random() * 3);
+  d = 2 + ((Fjg(), Dungeon.depth) % 5) + Cast_round_int($wnd.Math.random() * 3);
   for (b = 0; b < d; b++) {
     c = Bzg(Dungeon.depth);
     do {
@@ -48772,7 +48917,7 @@ function whc() {
   var a;
   this.d = ppi;
   a = Fjc(51, ppi);
-  this.i = $qf(a * ppi);
+  this.i = Cast_round_int(a * ppi);
   this.e = a - 1;
   this.f = EXh(E$f(this.e));
   this.c = Zpf(WXf, E9h, 1, a, 5, 1);
@@ -48818,8 +48963,8 @@ function uPg(a) {
   var b;
   nbg.call(this);
   for (b = 0; b < sPg.length; b += 2) {
-    _ag(this, new xPg(a.a, a.b, sPg[b], sPg[b + 1]));
-    _ag(this, new xPg(a.a, a.b, sPg[b], sPg[b + 1]));
+    Group_$add(this, new xPg(a.a, a.b, sPg[b], sPg[b + 1]));
+    Group_$add(this, new xPg(a.a, a.b, sPg[b], sPg[b + 1]));
   }
 }
 function BVg(a, b, c) {
@@ -48839,16 +48984,16 @@ function luh(a) {
   this.e = new xTh();
   this.kb = a.kb ? a.kb : a.mb ? a.mb.c_() : null;
   this.g = this.kb.s;
-  this.b = (nth * 16) / 2;
+  this.b = (PixelScene_defaultZoom * 16) / 2;
 }
 function DFh(a) {
   pfg.call(this);
   this.c = Yci;
   this.a = zaj;
   this.d = Fth(null, a);
-  _ag(this, this.d);
+  Group_$add(this, this.d);
   this.b = Fth(null, a);
-  _ag(this, this.b);
+  Group_$add(this, this.b);
   D7f(this.d, Yci);
   D7f(this.b, zaj);
 }
@@ -48942,7 +49087,7 @@ function Wjg(a, b) {
 function hAg() {
   gAg();
   byg.call(this);
-  this.I = (Fjg(), Dungeon.depth) == fmg ? "DM-300" : "DM-350";
+  this.I = (Fjg(), Dungeon.depth) == Statistics_deepestFloor ? "DM-300" : "DM-350";
   this.u = HSf;
   this.A = this.B = 200;
   this.d = 30;
@@ -48967,7 +49112,7 @@ function ash(b, c) {
 function Tc(a, b) {
   var c;
   c = b.width / (b.clientWidth | 0);
-  return $qf(
+  return Cast_round_int(
     $wnd.Math.round(
       c *
         (((a.clientX || 0) | 0) -
@@ -48980,7 +49125,7 @@ function Tc(a, b) {
 function Uc(a, b) {
   var c;
   c = b.width / (b.clientWidth | 0);
-  return $qf(
+  return Cast_round_int(
     $wnd.Math.round(
       c *
         (((a.clientX || 0) | 0) -
@@ -49275,20 +49420,20 @@ function M7f(a) {
 }
 function Badges_validateGamesPlayed() {
   jgg();
-  var a;
-  a = null;
-  (Jlg(), rankings).c >= 10 && (a = (Kig(), Jhg));
-  rankings.c >= 100 && (a = (Kig(), Khg));
-  rankings.c >= 500 && (a = (Kig(), Lhg));
-  rankings.c >= E_i && (a = (Kig(), Mhg));
-  lgg(a);
+  var badge = null;
+  const totalNumber = Rankings.totalNumber + 1;
+  totalNumber >= 10 && (badge = (Kig(), Jhg));
+  totalNumber >= 100 && (badge = (Kig(), Khg));
+  totalNumber >= 500 && (badge = (Kig(), Lhg));
+  totalNumber >= 2000 && (badge = (Kig(), Mhg));
+  Badges_displayBadge(badge);
 }
 function dnh() {
   Lmh();
   var a, b, c, d;
   c = Kmh.a.length;
   for (a = 0; a < c - 1; a++) {
-    b = a + $qf($wnd.Math.random() * (c - a));
+    b = a + Cast_round_int($wnd.Math.random() * (c - a));
     if (b != a) {
       d = U0h(Kmh, a);
       Z0h(Kmh, a, U0h(Kmh, b));
@@ -49482,7 +49627,7 @@ function pph() {
   var a, b;
   b = (Fjg(), Dungeon.hero);
   wyh(b.M, b.M.Tab(), 10);
-  r9f((g9f(), f9f), 4, zii);
+  r9f((g9f(), Camera_main), 4, zii);
   Ojf();
   a = hog(b, JHf);
   a.P < Njf + 10 && (a.P = Njf + 10);
@@ -49530,7 +49675,7 @@ function Fvb(a) {
 function Hcc(a, b) {
   var c, d, e, f;
   e = a.d.length;
-  a.j = $qf(b * a.e);
+  a.j = Cast_round_int(b * a.e);
   a.f = b - 1;
   a.g = EXh(a.f);
   f = a.d;
@@ -49545,7 +49690,7 @@ function Hcc(a, b) {
 function vjc(a, b) {
   var c, d, e, f;
   e = a.f.length;
-  a.n = $qf(b * a.g);
+  a.n = Cast_round_int(b * a.g);
   a.i = b - 1;
   a.j = EXh(a.i);
   f = a.f;
@@ -49601,7 +49746,7 @@ function SBg() {
   PBg();
   byg.call(this);
   this.I =
-    (Fjg(), Dungeon.depth) == fmg
+    (Fjg(), Dungeon.depth) == Statistics_deepestFloor
       ? "King of Dwarves"
       : "undead King of Dwarves";
   this.u = YSf;
@@ -49694,7 +49839,7 @@ function VGg(a) {
   b = Obc((Fjg(), Dungeon.level).u, a.K);
   if (b) {
     do {
-      c = a.K + (Pgh(), zgh)[$qf($wnd.Math.random() * 8)];
+      c = a.K + (Pgh(), zgh)[Cast_round_int($wnd.Math.random() * 8)];
     } while (!(Pgh(), Hgh)[c] && !Bgh[c]);
     MNg(Dungeon.level.V8(vYg(b), c).c, a.K);
   }
@@ -49788,23 +49933,23 @@ function Wh(a, b) {
 }
 function Mbb(a, b, c) {
   var d, e, f, g;
-  e = (p_(), (K_(), J_)[$qf((c + Fgi) * Egi) & cdi]);
-  g = J_[$qf(c * Egi) & cdi];
-  d = J_[$qf((b + Fgi) * Egi) & cdi];
-  f = J_[$qf(b * Egi) & cdi];
+  e = (p_(), (K_(), J_)[Cast_round_int((c + Fgi) * Egi) & cdi]);
+  g = J_[Cast_round_int(c * Egi) & cdi];
+  d = J_[Cast_round_int((b + Fgi) * Egi) & cdi];
+  f = J_[Cast_round_int(b * Egi) & cdi];
   return Kbb(a, d * g, f * g, e);
 }
 function rmg(a) {
-  PQh(a, gEj, jmg);
-  PQh(a, vGj, fmg);
-  PQh(a, iEj, hmg);
-  PQh(a, jEj, img);
-  PQh(a, kEj, mmg);
-  PQh(a, oJj, lmg);
-  PQh(a, lEj, kmg);
-  PQh(a, mEj, dmg);
-  OQh(a, Nfi, gmg);
-  VQh(a, nEj, cmg);
+  PQh(a, gEj, Statistics_goldCollected);
+  PQh(a, vGj, Statistics_deepestFloor);
+  PQh(a, iEj, Statistics_enemiesSlain);
+  PQh(a, jEj, Statistics_foodEaten);
+  PQh(a, kEj, Statistics_potionsCooked);
+  PQh(a, oJj, Statistics_piranhasKilled);
+  PQh(a, lEj, Statistics_nightHunt);
+  PQh(a, mEj, Statistics_ankhsUsed);
+  OQh(a, Nfi, Statistics_duration);
+  VQh(a, nEj, Statistics_amuletObtained);
 }
 function _Ng(a, b, c) {
   var d, e, f, g, h, i, j;
@@ -49915,10 +50060,10 @@ function Fwh(a) {
   g9f();
   v9f.call(
     this,
-    ($qf(tag - $wnd.Math.ceil(tag / a) * a) / 2) | 0,
-    ($qf(pag - $wnd.Math.ceil(pag / a) * a) / 2) | 0,
-    $qf($wnd.Math.ceil(tag / a)),
-    $qf($wnd.Math.ceil(pag / a)),
+    (Cast_round_int(Game_width - $wnd.Math.ceil(Game_width / a) * a) / 2) | 0,
+    (Cast_round_int(Game_height - $wnd.Math.ceil(Game_height / a) * a) / 2) | 0,
+    Cast_round_int($wnd.Math.ceil(Game_width / a)),
+    Cast_round_int($wnd.Math.ceil(Game_height / a)),
     a,
   );
 }
@@ -50054,7 +50199,7 @@ function Gdc(a) {
     case 2:
       return CVh(a.j, 10, cbi, v9h);
     case 3:
-      return $qf(a.b);
+      return Cast_round_int(a.b);
     case 4:
       return V$f(a.c);
     case 5:
@@ -50070,7 +50215,7 @@ function ugc(a, b) {
   a.b = true;
   return a;
 }
-function _ag(a, b) {
+function Group_$add(a, b) {
   var c;
   if (b.mb == a) {
     return b;
@@ -50098,17 +50243,17 @@ function uih(a, b) {
   }
   return null;
 }
-function Uvh(a, b) {
+function WndTitledMessage(a, b) {
   var c, d;
   EHg.call(this);
-  d = tag > pag ? 144 : 120;
-  nfg(a, 0, 0, d, 0);
-  _ag(this, a);
+  d = Game_width > Game_height ? 144 : 120;
+  Component_$setRect(a, 0, 0, d, 0);
+  Group_$add(this, a);
   c = new DFh(6);
   CFh(c, b, d);
-  mfg(c, a.C, a.D + a.A + 2);
-  _ag(this, c);
-  DHg(this, d, $qf(c.D + c.A));
+  Component_$setPos(c, a.C, a.D + a.A + 2);
+  Group_$add(this, c);
+  DHg(this, d, Cast_round_int(c.D + c.A));
 }
 function nGh() {
   hGh();
@@ -50518,7 +50663,7 @@ function Ebh(a, b) {
   a.M.u6(b);
   if (a.H == 0) {
     x7f(a.M, 0);
-    _ag(a.M.mb, new Yeg(a.M, 1, xii));
+    Group_$add(a.M.mb, new Yeg(a.M, 1, xii));
   }
   zeg(zyh(a.M), (gRg(), jRg(2, false)), zii, 3);
   ieg((eeg(), deg), yIj, 1, 1);
@@ -50631,12 +50776,12 @@ function MLh(a, b, c) {
   e = new HJh();
   DJh(e, new UNg(b.t, null));
   EJh(e, b.w);
-  nfg(e, 0, 0, 120, 0);
-  _ag(a, e);
+  Component_$setRect(e, 0, 0, 120, 0);
+  Group_$add(a, e);
   d = new DFh(6);
   CFh(d, c, 120);
-  mfg(d, e.C, e.D + e.A + 2);
-  _ag(a, d);
+  Component_$setPos(d, e.C, e.D + e.A + 2);
+  Group_$add(a, d);
   return d.D + d.A;
 }
 function oh(a, b, c) {
@@ -50946,7 +51091,7 @@ function idg(a, b) {
   P7f.call(this, 0, 0, 0, 0);
   this.j = m5f(a);
   this.k = b;
-  c = ljf(b, rXh(0));
+  c = TextureFilm_$get(b, rXh(0));
   this.c = (c.c - c.b) * b.i;
   this.b = (c.a - c.d) * b.g;
   this.o = Zpf(drf, Vci, 23, 16, 15, 1);
@@ -50955,7 +51100,7 @@ function idg(a, b) {
 function UNg(a, b) {
   Kbg.call(this, zHj);
   !LNg && (LNg = new rjf(this.O, 16, 16));
-  U9f(this, ljf(LNg, rXh(a)));
+  U9f(this, TextureFilm_$get(LNg, rXh(a)));
   !(this.i = b) &&
     ((this.cb = this.Z = this.X = this.T = 1),
     (this.bb = this.Y = this.W = this.R = 0));
@@ -51001,7 +51146,7 @@ function y6h() {
 function Vc(a, b) {
   var c;
   c = b.height / (b.clientHeight | 0);
-  return $qf(
+  return Cast_round_int(
     $wnd.Math.round(
       c *
         (((a.clientY || 0) | 0) -
@@ -51014,7 +51159,7 @@ function Vc(a, b) {
 function Wc(a, b) {
   var c;
   c = b.height / (b.clientHeight | 0);
-  return $qf(
+  return Cast_round_int(
     $wnd.Math.round(
       c *
         (((a.clientY || 0) | 0) -
@@ -51190,15 +51335,15 @@ function Pjf(a) {
 function xwh(a) {
   vwh();
   var b, c;
-  if (Y5h((Fjg(), rjg), rXh(a))) {
+  if (Y5h((Fjg(), Dungeon.chapters), rXh(a))) {
     return;
   }
   b = Obc(uwh, a);
   if (b != null) {
     c = new wwh(b);
     (c.a = wii) > 0 && (c.q.nb = c.o.nb = c.b.nb = false);
-    _ag(qag.g, c);
-    X5h(rjg, rXh(a));
+    Group_$add(qag.g, c);
+    X5h(Dungeon.chapters, rXh(a));
   }
 }
 function dbb(a, b, c) {
@@ -51272,7 +51417,7 @@ function Ypf(a, b, c, d, e, f, g) {
   k = e[f];
   j = f == g - 1;
   h = j ? d : 0;
-  l = $pf(h, k);
+  l = Array_initializeArrayElementsWithDefaults(h, k);
   d != 10 && aqf(Vpf(a, g - f), b[f], c[f], h, l);
   if (!j) {
     ++f;
@@ -51282,7 +51427,7 @@ function Ypf(a, b, c, d, e, f, g) {
   }
   return l;
 }
-function qgg(b) {
+function Badges_restore(b) {
   jgg();
   var c, d, e;
   c = new $5h();
@@ -51324,7 +51469,7 @@ function wDh(a) {
       a.f.Z = 2 * a.g * (1 - a.i);
       a.f.X = 2 * a.e * (1 - a.i);
     } else {
-      C7f(a.f, a.j, a.g, a.e);
+      Visual_$hardlight(a.f, a.j, a.g, a.e);
     }
   }
 }
@@ -51644,13 +51789,13 @@ function _Dh(a) {
   var b, c, d;
   UDh.call(this, new pfg());
   this.a = new a1h();
-  for (c = new G1h(mgg(a)); c.a < c.c.a.length; ) {
+  for (c = new G1h(Badges_filtered(a)); c.a < c.c.a.length; ) {
     b = F1h(c);
     if (b.b == -1) {
       continue;
     }
     d = new dEh(b);
-    _ag(this.b, d);
+    Group_$add(this.b, d);
     T0h(this.a, d);
   }
 }
@@ -51719,10 +51864,10 @@ function Rt(a, b) {
   rj(a.D, b);
   d =
     ((c =
-      ($qf(255 * b.a) << 24) |
-      ($qf(255 * b.b) << 16) |
-      ($qf(255 * b.c) << 8) |
-      $qf(255 * b.d)),
+      (Cast_round_int(255 * b.a) << 24) |
+      (Cast_round_int(255 * b.b) << 16) |
+      (Cast_round_int(255 * b.c) << 8) |
+      Cast_round_int(255 * b.d)),
     knf(),
     (jnf[0] = c & Obi),
     undefined,
@@ -51822,7 +51967,7 @@ function t_b(a, b, c, d) {
 function Ddc(a) {
   switch (a.k.f) {
     case 2:
-      return a.j.length == 0 ? 0 : nYh(a.j, 0);
+      return a.j.length == 0 ? 0 : String_$charAt(a.j, 0);
     case 3:
       return Zqf(a.b);
     case 4:
@@ -51946,8 +52091,8 @@ function v9f(a, b, c, d, e) {
   this.p = c;
   this.a = d;
   this.s = e;
-  this.d = $qf(c * e);
-  this.c = $qf(d * e);
+  this.d = Cast_round_int(c * e);
+  this.c = Cast_round_int(d * e);
   this.e = new xTh();
   this.b = Zpf(drf, Vci, 23, 16, 15, 1);
   T5f(this.b);
@@ -51957,11 +52102,11 @@ function Dungeon_loadLevel(a) {
   var b, c;
   Dungeon.level = null;
   Wjf();
-  c = zag(qag, yJh(Kjg(a), aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(Dungeon.depth)])));
+  c = Game_$readFile(qag, yJh(Kjg(a), aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(Dungeon.depth)])));
   b = yRh(c);
   return IQh(new $Qh(Ndc(b.a, LSi) ? Ndc(b.a, LSi) : new gec((igc(), ggc))));
 }
-function j7h(a, b, c) {
+function Locale_toNewString(a, b, c) {
   var d;
   if (a.length == 0 && b.length == 0) {
     return "";
@@ -52073,7 +52218,7 @@ function t7h(a) {
   if (a.b < c) {
     if (a.c) return true;
     for (b = a.b; b < c; b++)
-      if (yYh(a.a, OYh(nYh(a.d, b)), 0) == -1) return true;
+      if (yYh(a.a, OYh(String_$charAt(a.d, b)), 0) == -1) return true;
   }
   return false;
 }
@@ -52168,7 +52313,7 @@ function Nf(a, b) {
   var c, d;
   d =
     ((c = a.b.g ? $wnd.devicePixelRatio || 1 : 1),
-    new Sf($qf($wnd.screen.width * c), $qf($wnd.screen.height * c)));
+    new Sf(Cast_round_int($wnd.screen.width * c), Cast_round_int($wnd.screen.height * c)));
   if (b.d != d.d && b.b != d.b) return false;
   return Mf(a, a.a, b.d, b.b);
 }
@@ -52209,7 +52354,7 @@ function Evh() {
   Fjg();
   Dungeon_loadGame(Qjg((Qwh(), Owh)), true);
   if (Dungeon.depth == -1) {
-    Dungeon.depth = fmg;
+    Dungeon.depth = Statistics_deepestFloor;
     Dungeon_switchLevel(Dungeon_loadLevel(Owh), -1);
   } else {
     a = Dungeon_loadLevel(Owh);
@@ -52268,7 +52413,7 @@ function u6b(a, b, c) {
   if (b > a.i) throw w$f(new sVh(Soi + b + " > " + a.i));
   d = a.i + c;
   d > a.d.length &&
-    (a.d = D6b(a, $wnd.Math.max($wnd.Math.max(8, d), $qf(a.i * Noi))));
+    (a.d = D6b(a, $wnd.Math.max($wnd.Math.max(8, d), Cast_round_int(a.i * Noi))));
   kZh(a.d, b, a.d, b + c, a.i - b);
   a.i = d;
 }
@@ -52344,7 +52489,7 @@ function Cvh() {
   if (!(Fjg(), Dungeon.hero)) {
     Dungeon_init();
     if (yvh) {
-      X5h(rjg, rXh(0));
+      X5h(Dungeon.chapters, rXh(0));
       yvh = false;
     }
     _Eh();
@@ -52352,7 +52497,7 @@ function Cvh() {
   } else {
     Dungeon_saveLevel();
   }
-  if (Dungeon.depth >= fmg) {
+  if (Dungeon.depth >= Statistics_deepestFloor) {
     a = Dungeon_newLevel();
   } else {
     ++Dungeon.depth;
@@ -52428,7 +52573,7 @@ function t6b(a, b, c) {
   var d;
   if (b > a.i) throw w$f(new sVh(Soi + b + " > " + a.i));
   d = a.d;
-  a.i == d.length && (d = D6b(a, $wnd.Math.max(8, $qf(a.i * Noi))));
+  a.i == d.length && (d = D6b(a, $wnd.Math.max(8, Cast_round_int(a.i * Noi))));
   a.f ? kZh(d, b, d, b + 1, a.i - b) : (d[a.i] = d[b]);
   ++a.i;
   d[b] = c;
@@ -52437,7 +52582,7 @@ function xbc(a, b, c) {
   var d;
   if (b > a.c) throw w$f(new sVh(Soi + b + " > " + a.c));
   d = a.a;
-  a.c == d.length && (d = Bbc(a, $wnd.Math.max(8, $qf(a.c * Noi))));
+  a.c == d.length && (d = Bbc(a, $wnd.Math.max(8, Cast_round_int(a.c * Noi))));
   a.b ? kZh(d, b, d, b + 1, a.c - b) : (d[a.c] = d[b]);
   ++a.c;
   d[b] = c;
@@ -52474,8 +52619,8 @@ function G8f(a, b, c) {
   d = 0;
   f = b.length;
   for (e = 0; e < f; e++) {
-    g = yjf(a.g, (b9h(e, b.length), b.charCodeAt(e)));
-    h += njf(a.g, g) + (h > 0 ? a.g.e : 0);
+    g = BitmapText$Font_$get(a.g, (b9h(e, b.length), b.charCodeAt(e)));
+    h += TextureFilm_$width(a.g, g) + (h > 0 ? a.g.e : 0);
     d = $wnd.Math.max(d, mjf(a.g, g));
   }
   c.a = h;
@@ -52566,8 +52711,8 @@ function OR(a, b, c, d, e, f) {
     a.d = 0;
     a.e = f;
   } else {
-    h = (p_(), (K_(), J_)[$qf(d * bdi) & cdi]);
-    g = J_[$qf((d + 90) * bdi) & cdi];
+    h = (p_(), (K_(), J_)[Cast_round_int(d * bdi) & cdi]);
+    g = J_[Cast_round_int((d + 90) * bdi) & cdi];
     a.a = g * e;
     a.b = -h * f;
     a.d = h * e;
@@ -52585,8 +52730,8 @@ function NR(a, b, c, d, e, f) {
     a.d = 0;
     a.e = f;
   } else {
-    h = (p_(), (K_(), J_)[$qf(d * Egi) & cdi]);
-    g = J_[$qf((d + Fgi) * Egi) & cdi];
+    h = (p_(), (K_(), J_)[Cast_round_int(d * Egi) & cdi]);
+    g = J_[Cast_round_int((d + Fgi) * Egi) & cdi];
     a.a = g * e;
     a.b = -h * f;
     a.d = h * e;
@@ -52735,7 +52880,7 @@ function qug(a, b) {
         c.G3(a);
       }
     }
-    tgg(a);
+    Badges_validateAllBagsBought(a);
     return true;
   } else {
     return false;
@@ -52907,13 +53052,13 @@ function _ug(a) {
 }
 function tNh(a) {
   var b, c;
-  b = $qf((a.D + (a.A - a.a.D_()) / 2) * nth) / nth;
+  b = Cast_round_int((a.D + (a.A - a.a.D_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
   c = a.B / 4;
   a.a.gb = 0;
   a.a.hb = b;
-  a.c.gb = $qf((c * 2 + (c - O7f(a.c)) / 2) * nth) / nth;
+  a.c.gb = Cast_round_int((c * 2 + (c - O7f(a.c)) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
   a.c.hb = b;
-  a.d.gb = $qf((c * 3 + (c - O7f(a.d)) / 2) * nth) / nth;
+  a.d.gb = Cast_round_int((c * 3 + (c - O7f(a.d)) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
   a.d.hb = b;
 }
 function L2h(a) {
@@ -53007,8 +53152,8 @@ function WAb(a, b) {
 }
 function KLb(a) {
   var b, c;
-  b = a.fb.d - (a.R ? $qf(a.cb) : 0);
-  c = a.fb.e - $qf(a.S ? a.K - a.db : a.K);
+  b = a.fb.d - (a.R ? Cast_round_int(a.cb) : 0);
+  c = a.fb.e - Cast_round_int(a.S ? a.K - a.db : a.K);
   Ogb(a.eb, b, c);
   if (Rqf(a.eb, 161)) {
     a.gb.d = a.fb.d - b;
@@ -53031,15 +53176,15 @@ function Jdc(a) {
   }
   throw w$f(new bXh(Gpi + a.k));
 }
-function p8f(a) {
+function BitmapText_$measure(a) {
   var b, c, d, e, f;
   a.fb = 0;
   a.$ = 0;
   a.k == null && (a.k = "");
   d = a.k.length;
   for (c = 0; c < d; c++) {
-    e = yjf(a.g, nYh(a.k, c));
-    f = njf(a.g, e);
+    e = BitmapText$Font_$get(a.g, String_$charAt(a.k, c));
+    f = TextureFilm_$width(a.g, e);
     b = mjf(a.g, e);
     a.fb += f + a.g.e;
     b > a.$ && (a.$ = b);
@@ -53060,14 +53205,14 @@ function rah(a, b) {
 function CFh(a, b, c) {
   var d;
   d = new NRh(b);
-  q8f(a.d, d.b);
+  BitmapText_$text(a.d, d.b);
   a.d.b = c;
-  H8f(a.d);
+  BitmapTextMultiline_$measure(a.d);
   if (MRh(d)) {
     a.d.a = LRh(d);
-    q8f(a.b, d.b);
+    BitmapText_$text(a.b, d.b);
     a.b.b = c;
-    H8f(a.b);
+    BitmapTextMultiline_$measure(a.b);
     a.b.a = d.a;
     a.b.nb = true;
   } else {
@@ -53172,7 +53317,7 @@ function m8b(a, b, c, d) {
   var e;
   if (c + d > b.g) throw w$f(new _Wh(Yoi + c + " + " + d + qmi + b.g));
   e = a.g + d - c;
-  e >= a.c.length && o8b(a, $wnd.Math.max(8, $qf(e * Noi)));
+  e >= a.c.length && o8b(a, $wnd.Math.max(8, Cast_round_int(e * Noi)));
   kZh(b.c, c, a.c, a.g, d);
   kZh(b.i, c, a.i, a.g, d);
   a.g += d;
@@ -53202,7 +53347,7 @@ function vyh(a, b, c) {
   var d, e;
   if (a.nb) {
     d = new yTh(a.gb + a.fb / 2, a.hb + a.$ / 2);
-    e = $qf($wnd.Math.min(9 * $wnd.Math.sqrt(c / a.g.B), 9));
+    e = Cast_round_int($wnd.Math.min(9 * $wnd.Math.sqrt(c / a.g.B), 9));
     LRg(
       d,
       $wnd.Math.atan2(d.b - b.b, d.a - b.a),
@@ -53252,18 +53397,18 @@ function Ujb(a, b, c) {
   }
   Rmc(a.kb);
 }
-function Aag(a) {
+function Game_$render(a) {
   var b;
-  if (tag == 0 || pag == 0) {
+  if (Game_width == 0 || Game_height == 0) {
     return;
   }
   AUh = (jZh(), D$f(Date.now()));
   b = AUh;
   a.j = C$f(a.c, 0) ? 0 : S$f(b, a.c);
   a.c = b;
-  Dag(a);
+  Game_$step(a);
   (x4f(), D4f(iGf)).c = null;
-  rf(dc, 0, 0, tag, pag);
+  rf(dc, 0, 0, Game_width, Game_height);
   dc.d.clear(Vii);
   fbg(a.g);
 }
@@ -53286,22 +53431,22 @@ function kmh(a) {
   b = new yTh(((a % 32) + 0.5) * 16, (((a / 32) | 0) + 0.5) * 16);
   xeg(this, b.a - 1, b.b + 3, 2, 0);
   zeg(this, (VSg(), USg), Bii, 0);
-  _ag(this, iPg(new kPg(16, 16777164, zii), b.a, b.b));
+  Group_$add(this, iPg(new kPg(16, 16777164, zii), b.a, b.b));
 }
 function vNh(a) {
   if (a.e.a > 0) {
-    q8f(a.c, jc(a.e.a));
+    BitmapText_$text(a.c, jc(a.e.a));
     D7f(a.c, zaj);
   } else {
-    q8f(a.c, _aj);
+    BitmapText_$text(a.c, _aj);
     D7f(a.c, naj);
   }
   a.c.G_();
   if (a.e.b > 0) {
-    q8f(a.d, jc(a.e.b));
+    BitmapText_$text(a.d, jc(a.e.b));
     D7f(a.d, zaj);
   } else {
-    q8f(a.d, _aj);
+    BitmapText_$text(a.d, _aj);
     D7f(a.d, naj);
   }
   a.d.G_();
@@ -53502,7 +53647,7 @@ function HQb(a) {
 function cYg(a, b) {
   Fjg();
   Dungeon.gold += a.A;
-  jmg += a.A;
+  Statistics_goldCollected += a.A;
   Igg();
   zuh();
   wIh(yuh.u, a);
@@ -53512,15 +53657,15 @@ function cYg(a, b) {
   return true;
 }
 function vIh(a) {
-  mfg(a.f, a.C, a.D);
-  mfg(a.e, lfg(a.f), a.D);
-  mfg(a.a, lfg(a.e), a.D);
-  mfg(a.c, a.B - a.c.B, a.D);
+  Component_$setPos(a.f, a.C, a.D);
+  Component_$setPos(a.e, lfg(a.f), a.D);
+  Component_$setPos(a.a, lfg(a.e), a.D);
+  Component_$setPos(a.c, a.B - a.c.B, a.D);
   if (a.d.nb) {
-    mfg(a.d, a.c.C - a.d.B, a.D);
-    mfg(a.b, a.d.C - a.b.B, a.D);
+    Component_$setPos(a.d, a.c.C - a.d.B, a.D);
+    Component_$setPos(a.b, a.d.C - a.b.B, a.D);
   } else {
-    mfg(a.b, a.c.C - a.b.B, a.D);
+    Component_$setPos(a.b, a.c.C - a.b.B, a.D);
   }
 }
 function c_f() {
@@ -53650,8 +53795,8 @@ function fGg(a) {
   b = new LGg();
   c = new sGg();
   do {
-    b.K = a.K + (Pgh(), zgh)[$qf($wnd.Math.random() * 8)];
-    c.K = a.K + zgh[$qf($wnd.Math.random() * 8)];
+    b.K = a.K + (Pgh(), zgh)[Cast_round_int($wnd.Math.random() * 8)];
+    c.K = a.K + zgh[Cast_round_int($wnd.Math.random() * 8)];
   } while (!(Pgh(), Hgh)[b.K] || !Hgh[c.K] || b.K == c.K);
   Kuh(b);
   Kuh(c);
@@ -53661,13 +53806,13 @@ function CMh(a, b) {
   d = b.Y2();
   if (d != -1) {
     c = new Z9f(a.b.c);
-    U9f(c, ljf(a.b.b, rXh(d)));
+    U9f(c, TextureFilm_$get(a.b.b, rXh(d)));
     c.hb = a.a;
-    _ag(a, c);
-    e = Gth(g_f(b), 8);
+    Group_$add(a, c);
+    e = PixelScene_createText(g_f(b), 8);
     e.gb = c.fb + 2;
-    e.hb = a.a + (($qf(c.$ - e.g.b * e.db.b) / 2) | 0);
-    _ag(a, e);
+    e.hb = a.a + ((Cast_round_int(c.$ - e.g.b * e.db.b) / 2) | 0);
+    Group_$add(a, e);
     a.a += 2 + c.$;
   }
 }
@@ -53751,7 +53896,7 @@ function Fqh(a, b) {
   for (c = b.j + 1; c < b.f; c++) {
     for (d = b.g + 1; d < b.i; d++) {
       e = 9;
-      switch ($qf($wnd.Math.random() * 5)) {
+      switch (Cast_round_int($wnd.Math.random() * 5)) {
         case 0:
           e = 1;
           break;
@@ -53836,7 +53981,7 @@ function jbg(b, c) {
     return null;
   } else {
     try {
-      return _ag(b, apc(c));
+      return Group_$add(b, apc(c));
     } catch (a) {
       a = v$f(a);
       if (Rqf(a, 43)) {
@@ -53934,7 +54079,7 @@ function Iyh(a, b, c) {
     cci,
   );
   a.u.g = a;
-  _ag(a.mb, a.u);
+  Group_$add(a.mb, a.u);
   a.q = true;
   Ryh(a, b, c);
   a.nb && (Pgh(), Ngh)[b] && !a.g.G && fvh(b);
@@ -54043,8 +54188,8 @@ function R$g(a) {
   a.e.gb = a.C;
   a.e.hb = a.D;
   a.e.i0(a.B, a.A);
-  a.g.gb = a.C + (($qf(a.B - O7f(a.g)) / 2) | 0);
-  a.g.hb = a.D + (($qf(a.A - a.g.D_()) / 2) | 0);
+  a.g.gb = a.C + ((Cast_round_int(a.B - O7f(a.g)) / 2) | 0);
+  a.g.hb = a.D + ((Cast_round_int(a.A - a.g.D_()) / 2) | 0);
   if (a.f) {
     a.f.gb = a.C + a.g.gb - a.f.C_() - 2;
     a.f.hb = a.D + (a.A - a.f.p_()) / 2;
@@ -54148,7 +54293,7 @@ function ptb(a, b) {
     YO(b, f + c.d, g + c.e, c.c, c.b);
   }
 }
-function sgg(a, b) {
+function Badges_store(a, b) {
   jgg();
   var c, d, e, f, g, h;
   e = 0;
@@ -54178,7 +54323,7 @@ function Mgg() {
   }
   if (!Y5h(fgg, a)) {
     X5h(fgg, a);
-    igg = true;
+    Badges_saveNeeded = true;
   }
 }
 function bqg(a, b) {
@@ -54188,7 +54333,7 @@ function bqg(a, b) {
     sJh();
     uJh("++ " + aqg, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(a.a)]));
     Rjf(a, 1.409999966621399 - a.a / 10);
-    return $qf((b * (a.a - 2)) / 5);
+    return Cast_round_int((b * (a.a - 2)) / 5);
   } else {
     a.P < Njf + wmi && (a.P = Njf + wmi);
     return 0;
@@ -54264,10 +54409,10 @@ function kBb(a, b) {
 }
 function r5b(a) {
   o5b();
-  a.d = $qf($wnd.Math.round(a.d));
-  a.e = $qf($wnd.Math.round(a.e));
-  a.c = $qf($wnd.Math.round(a.c));
-  a.b = $qf($wnd.Math.round(a.b));
+  a.d = Cast_round_int($wnd.Math.round(a.d));
+  a.e = Cast_round_int($wnd.Math.round(a.e));
+  a.c = Cast_round_int($wnd.Math.round(a.c));
+  a.b = Cast_round_int($wnd.Math.round(a.b));
   if (a.c < 0) {
     a.c = -a.c;
     a.d -= a.c;
@@ -54357,11 +54502,11 @@ function M5g(a) {
   var b;
   if ($wnd.Math.random() < 0.4) {
     b = 1;
-    if ($qf($wnd.Math.random() * 3) == 0) {
+    if (Cast_round_int($wnd.Math.random() * 3) == 0) {
       ++b;
-      $qf($wnd.Math.random() * 3) == 0 && ++b;
+      Cast_round_int($wnd.Math.random() * 3) == 0 && ++b;
     }
-    if ($qf($wnd.Math.random() * 2) == 0) {
+    if (Cast_round_int($wnd.Math.random() * 2) == 0) {
       ptg(a, b);
     } else {
       btg(a, b);
@@ -54397,7 +54542,7 @@ function IDh() {
   this.b = true;
   CDh = this;
   this.n = (mWg(), gWg);
-  ofg(this, 24, 24);
+  Component_$setSize(this, 24, 24);
   this.f.nb = false;
   !!this.c && (this.c.nb = false);
   this.b = false;
@@ -54465,7 +54610,7 @@ function Tbc(a, b, c) {
 function Wbc(a, b) {
   var c, d, e, f, g;
   e = a.d.length;
-  a.n = $qf(b * a.g);
+  a.n = Cast_round_int(b * a.g);
   a.i = b - 1;
   a.j = EXh(a.i);
   f = a.d;
@@ -54482,7 +54627,7 @@ function Wbc(a, b) {
 function aic(a, b) {
   var c, d, e, f, g;
   e = a.d.length;
-  a.n = $qf(b * a.g);
+  a.n = Cast_round_int(b * a.g);
   a.i = b - 1;
   a.j = EXh(a.i);
   f = a.d;
@@ -54646,8 +54791,8 @@ function Hd(a, b) {
   if (a.a.d) {
     if (a.a.c.g) {
       c = $wnd.devicePixelRatio || 1;
-      e = $qf(e * c);
-      d = $qf(d * c);
+      e = Cast_round_int(e * c);
+      d = Cast_round_int(d * c);
     }
     Lf(a.a.d, e, d);
   }
@@ -54898,7 +55043,7 @@ function Kdc(a) {
 function uhc(a, b) {
   var c, d, e, f, g;
   e = a.c.length;
-  a.i = $qf(b * a.d);
+  a.i = Cast_round_int(b * a.d);
   a.e = b - 1;
   a.f = EXh(a.e);
   f = a.c;
@@ -54994,8 +55139,8 @@ function BYb(a) {
     a.d.a[b + 1] != a.d.a[b]) &&
     (c < ((a.d.c / 2) | 0) ||
       a.T.length == 0 ||
-      nYh(a.T, a.T.length - 1) == 10 ||
-      nYh(a.T, a.T.length - 1) == 13) &&
+      String_$charAt(a.T, a.T.length - 1) == 10 ||
+      String_$charAt(a.T, a.T.length - 1) == 13) &&
     (a.a = c);
   CYb(a);
 }
@@ -55034,7 +55179,7 @@ function GDh(b) {
     b.c = apc(DDh.u);
     Dyh(b.c);
     b.c.I = true;
-    _ag(b, b.c);
+    Group_$add(b, b.c);
     b.c.gb = b.C + (b.B - O7f(b.c)) / 2 + 1;
     b.c.hb = b.D + (b.A - E7f(b.c)) / 2;
     Cth(b.c);
@@ -55045,9 +55190,9 @@ function GDh(b) {
 }
 function RE(a, b, c) {
   var d, e, f, g, h, i;
-  f = a.p + $qf(a.r * FM(a.v, a.B));
+  f = a.p + Cast_round_int(a.r * FM(a.v, a.B));
   e = f;
-  i = $qf(a.s + a.t * FM(a.u, a.B));
+  i = Cast_round_int(a.s + a.t * FM(a.u, a.B));
   if (i > 0) {
     i >= f && (i = f - 1);
     e -= i;
@@ -55134,7 +55279,7 @@ function aGg(a) {
     b.v = b.f;
     Luh(b, 2);
     x7f(b.M, 0);
-    _ag(b.M.mb, new Yeg(b.M, 1, 0.5));
+    Group_$add(b.M.mb, new Yeg(b.M, 1, 0.5));
     zeg(zyh(b.M), (kUg(), hUg), 0, 5);
     return b;
   } else {
@@ -55153,7 +55298,7 @@ function uNh(a, b, c) {
     '", or press ' +
     jc(129) +
     " to remove the binding.";
-  _ag(qag.g, new FNh(a, e, d));
+  Group_$add(qag.g, new FNh(a, e, d));
   return true;
 }
 function k2h(a) {
@@ -55343,8 +55488,8 @@ function Enc(a, b, c) {
 function opc(a, b, c) {
   var d, e, f;
   d = omc(b, c);
-  f = $qf($wnd.Math.round(d.a));
-  e = $qf($wnd.Math.round(d.b));
+  f = Cast_round_int($wnd.Math.round(d.a));
+  e = Cast_round_int($wnd.Math.round(d.b));
   a.e = ((b - f) / 2) | 0;
   a.f = ((c - e) / 2) | 0;
   a.d = f;
@@ -55356,16 +55501,16 @@ function opc(a, b, c) {
   Qk(a.b);
 }
 function qmg(a) {
-  jmg = Qdc(a.a, gEj, 0);
-  fmg = Qdc(a.a, vGj, 0);
-  hmg = Qdc(a.a, iEj, 0);
-  img = Qdc(a.a, jEj, 0);
-  mmg = Qdc(a.a, kEj, 0);
-  lmg = Qdc(a.a, oJj, 0);
-  kmg = Qdc(a.a, lEj, 0);
-  dmg = Qdc(a.a, mEj, 0);
-  gmg = Pdc(a.a, Nfi, 0);
-  cmg = Odc(a.a, nEj, false);
+  Statistics_goldCollected = Qdc(a.a, gEj, 0);
+  Statistics_deepestFloor = Qdc(a.a, vGj, 0);
+  Statistics_enemiesSlain = Qdc(a.a, iEj, 0);
+  Statistics_foodEaten = Qdc(a.a, jEj, 0);
+  Statistics_potionsCooked = Qdc(a.a, kEj, 0);
+  Statistics_piranhasKilled = Qdc(a.a, oJj, 0);
+  Statistics_nightHunt = Qdc(a.a, lEj, 0);
+  Statistics_ankhsUsed = Qdc(a.a, mEj, 0);
+  Statistics_duration = Pdc(a.a, Nfi, 0);
+  Statistics_amuletObtained = Odc(a.a, nEj, false);
 }
 function ehh(a, b) {
   WQh(b, hZi, a.w);
@@ -55424,9 +55569,9 @@ function DHg(a, b, c) {
   a.r = b;
   a.p = c;
   a.o.i0(a.r + Wbg(a.o), a.p + Xbg(a.o));
-  n9f(a.kb, $qf(a.o.fb), $qf(a.o.$));
-  a.kb.q = ($qf(tag - q9f(a.kb)) / 2) | 0;
-  a.kb.r = ($qf(pag - o9f(a.kb)) / 2) | 0;
+  n9f(a.kb, Cast_round_int(a.o.fb), Cast_round_int(a.o.$));
+  a.kb.q = (Cast_round_int(Game_width - q9f(a.kb)) / 2) | 0;
+  a.kb.r = (Cast_round_int(Game_height - o9f(a.kb)) / 2) | 0;
   aRg(a.q, a.kb.q / a.kb.s, a.kb.r / a.kb.s, O7f(a.o), a.o.$);
 }
 function Q5g(a, b) {
@@ -55468,10 +55613,10 @@ function CN(a, b, c, d) {
   fc.a.width != fc.a.width || fc.a.height != fc.a.height
     ? rf(
         dc,
-        $qf((a * fc.a.width) / fc.a.width),
-        $qf((b * fc.a.height) / fc.a.height),
-        $qf((c * fc.a.width) / fc.a.width),
-        $qf((d * fc.a.height) / fc.a.height),
+        Cast_round_int((a * fc.a.width) / fc.a.width),
+        Cast_round_int((b * fc.a.height) / fc.a.height),
+        Cast_round_int((c * fc.a.width) / fc.a.width),
+        Cast_round_int((d * fc.a.height) / fc.a.height),
       )
     : rf(dc, a, b, c, d);
 }
@@ -55479,10 +55624,10 @@ function DN(a, b, c, d) {
   fc.a.width != fc.a.width || fc.a.height != fc.a.height
     ? Gf(
         dc,
-        $qf((a * fc.a.width) / fc.a.width),
-        $qf((b * fc.a.height) / fc.a.height),
-        $qf((c * fc.a.width) / fc.a.width),
-        $qf((d * fc.a.height) / fc.a.height),
+        Cast_round_int((a * fc.a.width) / fc.a.width),
+        Cast_round_int((b * fc.a.height) / fc.a.height),
+        Cast_round_int((c * fc.a.width) / fc.a.width),
+        Cast_round_int((d * fc.a.height) / fc.a.height),
       )
     : Gf(dc, a, b, c, d);
 }
@@ -55599,7 +55744,7 @@ function xlb() {
 function Fjc(a, b) {
   var c;
   if (a < 0) throw w$f(new _Wh("capacity must be >= 0: " + a));
-  c = D_($wnd.Math.max(2, $qf($wnd.Math.ceil(a / b))));
+  c = D_($wnd.Math.max(2, Cast_round_int($wnd.Math.ceil(a / b))));
   if (c > 1073741824)
     throw w$f(new _Wh("The required capacity is too large: " + a));
   return c;
@@ -55620,10 +55765,10 @@ function Qxg(a) {
   Z5h((Fjg(), Dungeon.level).B, a);
   if (Dungeon.hero.A > 0) {
     if (a.q) {
-      ++hmg;
+      ++Statistics_enemiesSlain;
       Ogg();
-      nmg = false;
-      Dungeon.nightMode ? ++kmg : (kmg = 0);
+      Statistics_qualifiedForNoKilling = false;
+      Dungeon.nightMode ? ++Statistics_nightHunt : (Statistics_nightHunt = 0);
       Pgg();
     }
     b = Dungeon.hero.o <= a.t ? a.d : 0;
@@ -55700,9 +55845,9 @@ function DRh(a, b, c) {
   i = (b >> 8) & 255;
   f = b & 255;
   j = 1 - c;
-  k = $qf(j * l + c * m);
-  g = $qf(j * h + c * i);
-  d = $qf(j * e + c * f);
+  k = Cast_round_int(j * l + c * m);
+  g = Cast_round_int(j * h + c * i);
+  d = Cast_round_int(j * e + c * f);
   return (k << 16) + (g << 8) + d;
 }
 function l6h(a, b, c) {
@@ -55827,7 +55972,7 @@ function aIg(a) {
       if (b.e == (goh(), $nh) && b.i - b.g > 4 && b.f - b.j > 4) {
         b.e = Lnh;
         YHg = true;
-        UHg = $qf($wnd.Math.random() * 2) == 0;
+        UHg = Cast_round_int($wnd.Math.random() * 2) == 0;
         WHg = false;
         break;
       }
@@ -55908,21 +56053,21 @@ function vKh(a, b) {
         : Rqf(this.a, 394)
           ? lGh((hGh(), SFh))
           : lGh((hGh(), IFh));
-  _ag(this, this.b);
+  Group_$add(this, this.b);
 }
 function YMh(a) {
   pfg.call(this);
-  this.d = Gth(xJh(a.I), 9);
+  this.d = PixelScene_createText(xJh(a.I), 9);
   D7f(this.d, zaj);
   this.d.G_();
-  _ag(this, this.d);
+  Group_$add(this, this.d);
   this.c = a.q5();
-  _ag(this, this.c);
+  Group_$add(this, this.c);
   this.b = new rFh();
   qFh(this.b, a.A / a.B);
-  _ag(this, this.b);
+  Group_$add(this, this.b);
   this.a = new yEh(a);
-  _ag(this, this.a);
+  Group_$add(this, this.a);
 }
 function YRh(a, b, c) {
   var d, e, f, g, h, i;
@@ -55967,8 +56112,8 @@ function rp(a, b, c) {
   var d, e, f, g, h, i;
   if (b == 0 && c == 0) return;
   if (a.f) {
-    b = $qf($wnd.Math.round(b));
-    c = $qf($wnd.Math.round(c));
+    b = Cast_round_int($wnd.Math.round(b));
+    c = Cast_round_int($wnd.Math.round(c));
   }
   a.o += b;
   a.p += c;
@@ -56308,8 +56453,8 @@ function hu(a, b, c, d, e) {
   this.S = a.S;
   Ys(
     this,
-    $qf($wnd.Math.round(a.T * a.S.a.rd())) + b,
-    $qf($wnd.Math.round(a.V * a.S.a.pd())) + c,
+    Cast_round_int($wnd.Math.round(a.T * a.S.a.rd())) + b,
+    Cast_round_int($wnd.Math.round(a.V * a.S.a.pd())) + c,
     d,
     e,
   );
@@ -56332,7 +56477,7 @@ function kjg() {
 function Dzg(b) {
   var c;
   c = Czg(b);
-  $qf($wnd.Math.random() * 30) == 0 &&
+  Cast_round_int($wnd.Math.random() * 30) == 0 &&
     (c == $If
       ? (c = zIf)
       : c == lJf
@@ -56379,23 +56524,23 @@ function Sgg() {
   jgg();
   var a;
   a = null;
-  if (!Y5h(hgg, (Kig(), mig)) && mmg >= 3) {
+  if (!Y5h(Badges_local, (Kig(), mig)) && Statistics_potionsCooked >= 3) {
     a = mig;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  if (!Y5h(hgg, nig) && mmg >= 6) {
+  if (!Y5h(Badges_local, nig) && Statistics_potionsCooked >= 6) {
     a = nig;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  if (!Y5h(hgg, oig) && mmg >= 9) {
+  if (!Y5h(Badges_local, oig) && Statistics_potionsCooked >= 9) {
     a = oig;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  if (!Y5h(hgg, pig) && mmg >= 12) {
+  if (!Y5h(Badges_local, pig) && Statistics_potionsCooked >= 12) {
     a = pig;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  lgg(a);
+  Badges_displayBadge(a);
 }
 function Gog(a) {
   Ojf();
@@ -56424,7 +56569,7 @@ function WQg(a) {
   );
   vTh(this.S, -this.eb.a / Bii, -this.eb.b / Bii);
   this.b = 0;
-  _ag(a.c.mb, this);
+  Group_$add(a.c.mb, this);
 }
 function N2h(a, b) {
   y2h();
@@ -56501,7 +56646,7 @@ function dic(a, b) {
     throw w$f(new _Wh("loadFactor must be > 0 and < 1: " + b));
   this.g = b;
   c = Fjc(a, b);
-  this.n = $qf(c * b);
+  this.n = Cast_round_int(c * b);
   this.i = c - 1;
   this.j = EXh(this.i);
   this.d = Zpf(WXf, E9h, 1, c, 5, 1);
@@ -56573,16 +56718,16 @@ function $Mh(a) {
   c = new HJh();
   DJh(c, new jCh(a.a));
   EJh(c, a.b);
-  nfg(c, 0, 0, 120, 0);
-  _ag(this, c);
+  Component_$setRect(c, 0, 0, 120, 0);
+  Group_$add(this, c);
   b = Fth(null, 6);
-  _ag(this, b);
-  q8f(b, a.K3());
+  Group_$add(this, b);
+  BitmapText_$text(b, a.K3());
   b.b = 120;
-  H8f(b);
+  BitmapTextMultiline_$measure(b);
   b.gb = c.C;
   b.hb = c.D + c.A + 2;
-  DHg(this, 120, $qf(b.hb + b.$ * b.db.b));
+  DHg(this, 120, Cast_round_int(b.hb + b.$ * b.db.b));
 }
 function Jh(d) {
   var a = d.a;
@@ -56601,7 +56746,7 @@ function Jh(d) {
 }
 function vKb(a, b) {
   var c, d, e, f;
-  b = oKb(a, $qf($wnd.Math.round(b / a.t)) * a.t);
+  b = oKb(a, Cast_round_int($wnd.Math.round(b / a.t)) * a.t);
   e = a.v;
   if (b == e) return false;
   f = tKb(a);
@@ -56693,7 +56838,7 @@ function AMg(a) {
   Z9f.call(this, PGj);
   !xMg && (xMg = new rjf(this.O, 16, 16));
   this.a = a;
-  U9f(this, ljf(xMg, rXh(a)));
+  U9f(this, TextureFilm_$get(xMg, rXh(a)));
   vTh(this.ab, this.fb / 2, this.$ / 2);
   this.T = 0;
   this.R = 0;
@@ -56706,23 +56851,23 @@ function Ggg() {
   jgg();
   var a;
   a = null;
-  if (!Y5h(hgg, (Kig(), Fhg)) && img >= 10) {
+  if (!Y5h(Badges_local, (Kig(), Fhg)) && Statistics_foodEaten >= 10) {
     a = Fhg;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  if (!Y5h(hgg, Ghg) && img >= 20) {
+  if (!Y5h(Badges_local, Ghg) && Statistics_foodEaten >= 20) {
     a = Ghg;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  if (!Y5h(hgg, Hhg) && img >= 30) {
+  if (!Y5h(Badges_local, Hhg) && Statistics_foodEaten >= 30) {
     a = Hhg;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  if (!Y5h(hgg, Ihg) && img >= 40) {
+  if (!Y5h(Badges_local, Ihg) && Statistics_foodEaten >= 40) {
     a = Ihg;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  lgg(a);
+  Badges_displayBadge(a);
 }
 function dtg(a, b) {
   var c, d, e;
@@ -56897,23 +57042,23 @@ function Ogg() {
   jgg();
   var a;
   a = null;
-  if (!Y5h(hgg, (Kig(), fig)) && hmg >= 10) {
+  if (!Y5h(Badges_local, (Kig(), fig)) && Statistics_enemiesSlain >= 10) {
     a = fig;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  if (!Y5h(hgg, gig) && hmg >= 50) {
+  if (!Y5h(Badges_local, gig) && Statistics_enemiesSlain >= 50) {
     a = gig;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  if (!Y5h(hgg, hig) && hmg >= 150) {
+  if (!Y5h(Badges_local, hig) && Statistics_enemiesSlain >= 150) {
     a = hig;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  if (!Y5h(hgg, iig) && hmg >= 250) {
+  if (!Y5h(Badges_local, iig) && Statistics_enemiesSlain >= 250) {
     a = iig;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  lgg(a);
+  Badges_displayBadge(a);
 }
 
 function F$(a, b, c) {
@@ -56930,7 +57075,7 @@ function F$(a, b, c) {
     return true;
   } else return false;
 }
-function tgg(a) {
+function Badges_validateAllBagsBought(a) {
   jgg();
   var b;
   b = null;
@@ -56940,16 +57085,16 @@ function tgg(a) {
       ? (b = (Kig(), dhg))
       : Rqf(a, 360) && (b = (Kig(), fhg));
   if (b) {
-    X5h(hgg, b);
+    X5h(Badges_local, b);
     if (
-      !Y5h(hgg, (Kig(), Zgg)) &&
-      Y5h(hgg, dhg) &&
-      Y5h(hgg, ehg) &&
-      Y5h(hgg, fhg)
+      !Y5h(Badges_local, (Kig(), Zgg)) &&
+      Y5h(Badges_local, dhg) &&
+      Y5h(Badges_local, ehg) &&
+      Y5h(Badges_local, fhg)
     ) {
       b = Zgg;
-      X5h(hgg, b);
-      lgg(b);
+      X5h(Badges_local, b);
+      Badges_displayBadge(b);
     }
   }
 }
@@ -56969,7 +57114,7 @@ function Ywg(a, b) {
     case 3:
       exg(b);
   }
-  ngg(Zwg(a)) && $sg(new l$g(), (Fjg(), Dungeon.hero).d.b);
+  Badges_isUnlocked(Zwg(a)) && $sg(new l$g(), (Fjg(), Dungeon.hero).d.b);
   b.c =
     1 -
     $wnd.Math.pow(b.j == Twg ? 0.85 : 0.9, (1 + $wnd.Math.min(b.o, 9)) * 0.5);
@@ -57167,23 +57312,23 @@ function Igg() {
   jgg();
   var a;
   a = null;
-  if (!Y5h(hgg, (Kig(), Nhg)) && jmg >= 100) {
+  if (!Y5h(Badges_local, (Kig(), Nhg)) && Statistics_goldCollected >= 100) {
     a = Nhg;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  if (!Y5h(hgg, Ohg) && jmg >= 500) {
+  if (!Y5h(Badges_local, Ohg) && Statistics_goldCollected >= 500) {
     a = Ohg;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  if (!Y5h(hgg, Phg) && jmg >= 2500) {
+  if (!Y5h(Badges_local, Phg) && Statistics_goldCollected >= 2500) {
     a = Phg;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  if (!Y5h(hgg, Qhg) && jmg >= 7500) {
+  if (!Y5h(Badges_local, Qhg) && Statistics_goldCollected >= 7500) {
     a = Qhg;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  lgg(a);
+  Badges_displayBadge(a);
 }
 function wf(a, b, c, d, e, f, g) {
   var h, i, j, k, l, m;
@@ -57252,17 +57397,17 @@ function Srh(a) {
   fCh(a.d);
   Dungeon.visible[a.c] && zeg(fNg(a.c), (pTg(), lTg), 0, 6);
   if (Dungeon.hero.s == (Axg(), yxg)) {
-    $qf($wnd.Math.random() * 5) == 0 &&
+    Cast_round_int($wnd.Math.random() * 5) == 0 &&
       Dungeon.level.V8(IXg((XXg(), UXg)), a.c).c.q6();
-    $qf($wnd.Math.random() * 5) == 0 && Dungeon.level.V8(new tXg(), a.c).c.q6();
+    Cast_round_int($wnd.Math.random() * 5) == 0 && Dungeon.level.V8(new tXg(), a.c).c.q6();
   }
 }
 function Xs(a, b, c, d, e) {
   var f, g, h, i;
   i = a.S.a.rd();
   h = a.S.a.pd();
-  a.R = $qf($wnd.Math.round($wnd.Math.abs(d - b) * i));
-  a.Q = $qf($wnd.Math.round($wnd.Math.abs(e - c) * h));
+  a.R = Cast_round_int($wnd.Math.round($wnd.Math.abs(d - b) * i));
+  a.Q = Cast_round_int($wnd.Math.round($wnd.Math.abs(e - c) * h));
   if (a.R == 1 && a.Q == 1) {
     f = Bdi / i;
     b += f;
@@ -57331,18 +57476,20 @@ function Sug(a, b) {
     }
   }
 }
-function LNh(a) {
+
+function WndRanking_$createControls(a) {
   var b, c, d, e;
   c = aqf(Vpf(cYf, 1), Rci, 2, 6, ["Stats", "Items", paj]);
   d = aqf(Vpf(cGf, 1), Ubj, 30, 0, [new jOh(), new aOh(a), new RNh(a)]);
   for (b = 0; b < d.length; b++) {
-    _ag(a, d[b]);
+    Group_$add(a, d[b]);
     e = new gOh(a, c[b], d[b]);
-    ofg(e, 40, 25);
+    Component_$setSize(e, 40, 25);
     SJh(a, e);
   }
   UJh(a, U0h(a.k, 0));
 }
+
 function Mt(a, b) {
   var c, d;
   d = a.M;
@@ -57376,17 +57523,17 @@ function XE(a) {
   a.f = 0;
   a.e = mM(a.g);
   a.B = a.f / a.e;
-  a.i = $qf(mM(a.o));
-  a.k = $qf(HM(a.o));
+  a.i = Cast_round_int(mM(a.o));
+  a.k = Cast_round_int(HM(a.o));
   a.o.c || (a.k -= a.i);
-  a.p = $qf(mM(a.v));
-  a.r = $qf(HM(a.v));
+  a.p = Cast_round_int(mM(a.v));
+  a.r = Cast_round_int(HM(a.v));
   a.v.c || (a.r -= a.p);
-  a.s = a.u.r ? $qf(mM(a.u)) : 0;
-  a.t = $qf(HM(a.u));
+  a.s = a.u.r ? Cast_round_int(mM(a.u)) : 0;
+  a.t = Cast_round_int(HM(a.u));
   a.u.c || (a.t -= a.s);
 }
-function m2f() {
+function VerticalPanel() {
   W0f.call(this);
   this.d = (X_f(), $doc.createElement(Cni));
   this.c = $doc.createElement("tbody");
@@ -57640,18 +57787,18 @@ function p_g(a) {
   var b;
   if ($wnd.Math.random() < 0.4) {
     b = 1;
-    if ($qf($wnd.Math.random() * 3) == 0) {
+    if (Cast_round_int($wnd.Math.random() * 3) == 0) {
       ++b;
-      $qf($wnd.Math.random() * 3) == 0 && ++b;
+      Cast_round_int($wnd.Math.random() * 3) == 0 && ++b;
     }
-    if ($qf($wnd.Math.random() * 2) == 0) {
+    if (Cast_round_int($wnd.Math.random() * 2) == 0) {
       ptg(a, b);
     } else {
       btg(a, b);
       a.p = true;
     }
   }
-  $qf($wnd.Math.random() * 10) == 0 && l_g(a);
+  Cast_round_int($wnd.Math.random() * 10) == 0 && l_g(a);
   return a;
 }
 function CPh(a, b) {
@@ -57721,23 +57868,23 @@ function Kgg(a) {
     return;
   }
   b = null;
-  if (!Y5h(hgg, (Kig(), Thg)) && a.u >= 3) {
+  if (!Y5h(Badges_local, (Kig(), Thg)) && a.u >= 3) {
     b = Thg;
-    X5h(hgg, b);
+    X5h(Badges_local, b);
   }
-  if (!Y5h(hgg, Uhg) && a.u >= 6) {
+  if (!Y5h(Badges_local, Uhg) && a.u >= 6) {
     b = Uhg;
-    X5h(hgg, b);
+    X5h(Badges_local, b);
   }
-  if (!Y5h(hgg, Vhg) && a.u >= 9) {
+  if (!Y5h(Badges_local, Vhg) && a.u >= 9) {
     b = Vhg;
-    X5h(hgg, b);
+    X5h(Badges_local, b);
   }
-  if (!Y5h(hgg, Whg) && a.u >= 12) {
+  if (!Y5h(Badges_local, Whg) && a.u >= 12) {
     b = Whg;
-    X5h(hgg, b);
+    X5h(Badges_local, b);
   }
-  lgg(b);
+  Badges_displayBadge(b);
 }
 function fMh() {
   var a;
@@ -57746,7 +57893,7 @@ function fMh() {
   (Fjg(), Dungeon.challenges) > 0 && dMh(this, new kMh(this));
   if (Dungeon.hero.A <= 0) {
     dMh(this, (a = new mMh()));
-    Q$g(a, kGh(Dungeon.hero.j));
+    Q$g(a, Icons_get(Dungeon.hero.j));
     dMh(this, new oMh());
   }
   eMh(this, new qMh(), new sMh());
@@ -57769,7 +57916,7 @@ function vd(a) {
   }
   n6b(a.s);
   a.d.e = x$f(a.d.e, 1);
-  Aag(a.j);
+  Game_$render(a.j);
   _c(a.e);
 }
 function jU(a, b, c, d, e, f) {
@@ -58027,6 +58174,7 @@ function Runtime_defineClass(a, b, c) {
   }
   f && (_.Peb = f);
 }
+
 function Ke(a, b, c, d, e) {
   if (Rqf(d, 343)) {
     T2f(a.d, b, L_f(d.meb(), d.f, d.d - d.f), e);
@@ -58357,18 +58505,18 @@ function Vgh(a) {
     Cgh[c] = b;
   }
 }
-function MNh(a) {
-  VJh.call(this);
+function WndRanking(record) {
+  WndTabbed.call(this);
   this.b = null;
-  TJh(this, 112, 134);
-  this.c = cMg(new PNh(this, a));
+  WndTabbed_$resize(this, 112, 134);
+  this.c = cMg(new PNh(this, record));
   rMg(this.c);
   this.a = lGh((hGh(), JFh));
   vTh(this.a.ab, this.a.fb / 2, this.a.$ / 2);
   this.a.V = 720;
   this.a.gb = (112 - this.a.fb) / 2;
   this.a.hb = (134 - this.a.$) / 2;
-  _ag(this, this.a);
+  Group_$add(this, this.a);
 }
 function yLb(a, b, c, d, e, f, g) {
   var h, i;
@@ -58539,7 +58687,7 @@ function Gqh(a, b) {
     for (e = b.g + 2; e < b.i - 1; e++) {
       f = $wnd.Math.min(d - b.j, b.f - d);
       c = $wnd.Math.min(e - b.g, b.i - e);
-      ($wnd.Math.min(f, c) > 2 || $qf($wnd.Math.random() * 2) == 0) &&
+      ($wnd.Math.min(f, c) > 2 || Cast_round_int($wnd.Math.random() * 2) == 0) &&
         (a.w[e + d * 32] = 0);
     }
   }
@@ -58863,16 +59011,16 @@ function Zgb(a, b) {
 function Ojg(a, b, c, d, e) {
   Fjg();
   var f, g, h, i, j;
-  a.G ? qJh(d, (Pgh(), Bgh), zjg) : kZh(d, 0, zjg, 0, oei);
+  a.G ? qJh(d, (Pgh(), Bgh), Dungeon.passable) : kZh(d, 0, Dungeon.passable, 0, oei);
   for (g = (Ojf(), (i = new Q_h(Jjf.a).a.Ocb().Pd()), new W_h(i)); g.a.Rd(); ) {
     f = ((h = g.a.Sd()), h.Aeb());
     if (Rqf(f, 73)) {
       j = f.K;
-      e[j] && (zjg[j] = false);
+      e[j] && (Dungeon.passable[j] = false);
     }
   }
-  zjg[b] = true;
-  return bSh(b, c, zjg);
+  Dungeon.passable[b] = true;
+  return bSh(b, c, Dungeon.passable);
 }
 function h3(a, b, c, d, e) {
   f3();
@@ -59061,11 +59209,11 @@ function avg(a, b) {
   c = d == 0 ? 1 : $wnd.Math.pow(1.4, d);
   !!a.p && shh(a.K, b.K) == 1 && (c *= 0.5);
   i = a.p ? a.p : a.d.f;
-  return i ? $qf(a.b * c * i.x7(a)) : $qf(a.b * c);
+  return i ? Cast_round_int(a.b * c * i.x7(a)) : Cast_round_int(a.b * c);
 }
 function qd(a) {
   var b, c, d, e, f;
-  f = new m2f();
+  f = new VerticalPanel();
   (X_f(), f.j).className = "gdx-preloader";
   b = new E1f();
   b.j.className = "logo";
@@ -59183,7 +59331,7 @@ function P5c() {
 
 function cDg(a, b, c) {
   var d, e;
-  if ($qf($wnd.Math.random() * 6) == 0 && b == (Fjg(), Dungeon.hero)) {
+  if (Cast_round_int($wnd.Math.random() * 6) == 0 && b == (Fjg(), Dungeon.hero)) {
     d = (Fjg(), Dungeon.hero);
     e = d.d.f;
     if (!!e && !Rqf(e, 446) && !e.p) {
@@ -59411,7 +59559,7 @@ function Xgg() {
   jgg();
   var a;
   a = (Kig(), Dig);
-  lgg(a);
+  Badges_displayBadge(a);
   switch ((Fjg(), Dungeon.hero).j.f) {
     case 0:
       a = Iig;
@@ -59425,14 +59573,14 @@ function Xgg() {
     case 3:
       a = Fig;
   }
-  X5h(hgg, a);
+  X5h(Badges_local, a);
   if (!Y5h(fgg, a)) {
     X5h(fgg, a);
-    igg = true;
+    Badges_saveNeeded = true;
   }
   if (Y5h(fgg, Iig) && Y5h(fgg, Gig) && Y5h(fgg, Hig) && Y5h(fgg, Fig)) {
     a = Eig;
-    lgg(a);
+    Badges_displayBadge(a);
   }
 }
 function Y0(a, b, c) {
@@ -59533,45 +59681,45 @@ function Lgg() {
   jgg();
   var a;
   a = null;
-  if (!Y5h(hgg, (Kig(), Xhg)) && (Fjg(), Dungeon.hero).o >= 6) {
+  if (!Y5h(Badges_local, (Kig(), Xhg)) && (Fjg(), Dungeon.hero).o >= 6) {
     a = Xhg;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  if (!Y5h(hgg, Yhg) && (Fjg(), Dungeon.hero).o >= 12) {
+  if (!Y5h(Badges_local, Yhg) && (Fjg(), Dungeon.hero).o >= 12) {
     a = Yhg;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  if (!Y5h(hgg, Zhg) && (Fjg(), Dungeon.hero).o >= 18) {
+  if (!Y5h(Badges_local, Zhg) && (Fjg(), Dungeon.hero).o >= 18) {
     a = Zhg;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  if (!Y5h(hgg, $hg) && (Fjg(), Dungeon.hero).o >= 24) {
+  if (!Y5h(Badges_local, $hg) && (Fjg(), Dungeon.hero).o >= 24) {
     a = $hg;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  lgg(a);
+  Badges_displayBadge(a);
 }
 function Wgg() {
   jgg();
   var a;
   a = null;
-  if (!Y5h(hgg, (Kig(), yig)) && (Fjg(), Dungeon.hero).a >= 13) {
+  if (!Y5h(Badges_local, (Kig(), yig)) && (Fjg(), Dungeon.hero).a >= 13) {
     a = yig;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  if (!Y5h(hgg, zig) && (Fjg(), Dungeon.hero).a >= 15) {
+  if (!Y5h(Badges_local, zig) && (Fjg(), Dungeon.hero).a >= 15) {
     a = zig;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  if (!Y5h(hgg, Aig) && (Fjg(), Dungeon.hero).a >= 17) {
+  if (!Y5h(Badges_local, Aig) && (Fjg(), Dungeon.hero).a >= 17) {
     a = Aig;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  if (!Y5h(hgg, Big) && (Fjg(), Dungeon.hero).a >= 19) {
+  if (!Y5h(Badges_local, Big) && (Fjg(), Dungeon.hero).a >= 19) {
     a = Big;
-    X5h(hgg, a);
+    X5h(Badges_local, a);
   }
-  lgg(a);
+  Badges_displayBadge(a);
 }
 function QMg(a) {
   var b;
@@ -59599,17 +59747,17 @@ function jNh() {
   EHg.call(this);
   this.c = 0;
   this.a = new qQh(32);
-  d = $wnd.Math.min(160, yth.p - 16);
-  c = yth.a - 24;
+  d = $wnd.Math.min(160, PixelScene_uiCamera.p - 16);
+  c = PixelScene_uiCamera.a - 24;
   DHg(this, d, c);
   a = new nNh(this);
-  nfg(a, 0, this.p - 20, this.r, 20);
-  _ag(this, a);
+  Component_$setRect(a, 0, this.p - 20, this.r, 20);
+  Group_$add(this, a);
   this.b = new pfg();
   b = new pNh(this, this.b);
   iNh(this);
-  _ag(this, b);
-  nfg(b, 0, 0, this.r, a.D);
+  Group_$add(this, b);
+  Component_$setRect(b, 0, 0, this.r, a.D);
 }
 function dXb(a, b, c) {
   var d;
@@ -59708,7 +59856,7 @@ function UUe() {
   ]);
   return xvd;
 }
-function H8f(a) {
+function BitmapTextMultiline_$measure(a) {
   var b, c, d, e, f, g, h;
   h = new Z8f(a);
   d = new xTh();
@@ -59837,7 +59985,7 @@ function Zsg(a, b, c) {
 }
 function SDh(a) {
   var b, c;
-  mfg(a.b, 0, 0);
+  Component_$setPos(a.b, 0, 0);
   a.c.gb = a.C;
   a.c.hb = a.D;
   a.c.fb = a.B;
@@ -59846,7 +59994,7 @@ function SDh(a) {
   b = a.b.kb;
   b.q = c.b;
   b.r = c.c;
-  n9f(b, $qf(a.B), $qf(a.A));
+  n9f(b, Cast_round_int(a.B), Cast_round_int(a.A));
   a.i.nb = a.A < a.b.A;
   if (a.i.nb) {
     vTh(a.i.db, 2, (a.A * a.A) / a.b.A);
@@ -59896,7 +60044,7 @@ function QS(a, b, c, d) {
     p6b(a.d, a.e);
   }
   for (e = 0; e < a.e; e++)
-    i6b(a.d, ZS(b[0].$t(), d ? e : $qf(e + 0.5 * c), 0, b, c, d, a.f));
+    i6b(a.d, ZS(b[0].$t(), d ? e : Cast_round_int(e + 0.5 * c), 0, b, c, d, a.f));
   return a;
 }
 function XT(a, b, c) {
@@ -60087,7 +60235,7 @@ function $Rh(a, b, c, d) {
     if (f > e) {
       return e;
     }
-    k == a && (e = $qf(f * c) + 1);
+    k == a && (e = Cast_round_int(f * c) + 1);
     j = f + 1;
     for (h = 0; h < QRh.length; h++) {
       i = k + QRh[h];
@@ -60152,7 +60300,7 @@ function Bjf(a, b, c, d) {
   e = l;
   for (f = 0; f < h; f++) {
     i = new gUh(g, j, (g += k), e);
-    kjf(this, lWh((b9h(f, d.length), d.charCodeAt(f))), i);
+    kjf(this, Character_valueOf((b9h(f, d.length), d.charCodeAt(f))), i);
     if (g >= 1) {
       g = 0;
       j = e;
@@ -60315,12 +60463,12 @@ function NLh(a, b) {
       ),
   );
   e = new WLh(this, a, b);
-  nfg(e, 0, c + 2, 120, 18);
-  _ag(this, e);
+  Component_$setRect(e, 0, c + 2, 120, 18);
+  Group_$add(this, e);
   d = new YLh(this);
-  nfg(d, 0, e.D + e.A + 2, 120, 18);
-  _ag(this, d);
-  DHg(this, 120, $qf(d.D + d.A));
+  Component_$setRect(d, 0, e.D + e.A + 2, 120, 18);
+  Group_$add(this, d);
+  DHg(this, 120, Cast_round_int(d.D + d.A));
 }
 function M2h(a, b) {
   y2h();
@@ -60371,7 +60519,7 @@ function wJg(a, b) {
     Ojf();
     Kjf[c.K] = c;
     sJg = true;
-    oJg = $qf($wnd.Math.random() * 2) == 0;
+    oJg = Cast_round_int($wnd.Math.random() * 2) == 0;
     qJg = false;
     do {
       rJg = IXg((XXg(), SXg));
@@ -60901,7 +61049,7 @@ function Cmg(a, b) {
   Pgh();
   c = $wnd.Math.abs(b - a.K);
   if ((c == 1 || c == 32 || c == 33 || c == 31) && !!wmg(a, eIf)) {
-    b = a.K + zgh[$qf($wnd.Math.random() * 8)];
+    b = a.K + zgh[Cast_round_int($wnd.Math.random() * 8)];
     if (!(Hgh[b] || Bgh[b]) || (Ojf(), !!Kjf[b])) {
       return;
     }
@@ -60983,8 +61131,8 @@ function pjf(a, b, c, d) {
   h = ZPh(a.f, b);
   k = c / this.i;
   l = d / this.g;
-  e = $qf(((h.c - h.b) * this.i) / c);
-  j = $qf(((h.a - h.d) * this.g) / d);
+  e = Cast_round_int(((h.c - h.b) * this.i) / c);
+  j = Cast_round_int(((h.a - h.d) * this.g) / d);
   for (f = 0; f < j; f++) {
     for (g = 0; g < e; g++) {
       i = new gUh(g * k, f * l, (g + 1) * k, (f + 1) * l);
@@ -60998,7 +61146,7 @@ function odg(a, b) {
   if (!g7f(a)) {
     return;
   }
-  c = !!b && a.p.t_($qf(b.c.a), $qf(b.c.b));
+  c = !!b && a.p.t_(Cast_round_int(b.c.a), Cast_round_int(b.c.b));
   if (c) {
     qag.b.d.a = true;
     if (b.b) {
@@ -61008,7 +61156,7 @@ function odg(a, b) {
       a.t1(b);
       if (a.q == b) {
         a.q = null;
-        a.p.t_($qf(b.a.a), $qf(b.a.b)) && a.m1(b);
+        a.p.t_(Cast_round_int(b.a.a), Cast_round_int(b.a.b)) && a.m1(b);
       }
     }
   } else {
@@ -61022,8 +61170,8 @@ function odg(a, b) {
 }
 function Zs(a, b, c) {
   var d, e, f, g, h, i, j, k, l, m;
-  l = $qf($wnd.Math.round(a.T * a.S.a.rd()));
-  m = $qf($wnd.Math.round(a.V * a.S.a.pd()));
+  l = Cast_round_int($wnd.Math.round(a.T * a.S.a.rd()));
+  m = Cast_round_int($wnd.Math.round(a.V * a.S.a.pd()));
   k = a.R;
   f = a.Q;
   h = (f / c) | 0;
@@ -61284,7 +61432,7 @@ function ckf() {
 function _jf() {
   Ojf();
   var a, b, c, d, e, f, g;
-  !!(Fjg(), Dungeon.hero) && Y5h(Jjf, Dungeon.hero) && (gmg += Njf);
+  !!(Fjg(), Dungeon.hero) && Y5h(Jjf, Dungeon.hero) && (Statistics_duration += Njf);
   e = $hi;
   for (c = ((g = new Q_h(Jjf.a).a.Ocb().Pd()), new W_h(g)); c.a.Rd(); ) {
     a = ((d = c.a.Sd()), d.Aeb());
@@ -61439,7 +61587,7 @@ function hvh(a, b, c) {
           ? new gKh(bKh, a, b, c)
           : new gKh((Fjg(), Dungeon.hero).d.b, a, b, c);
   }
-  _ag(yuh, e);
+  Group_$add(yuh, e);
   return e;
 }
 function SMh(a, b, c, d, e, f) {
@@ -61449,22 +61597,22 @@ function SMh(a, b, c, d, e, f) {
   FJh(
     g,
     Pqf(
-      nYh(
+      String_$charAt(
         String.fromCharCode((b9h(0, e.length), e.charCodeAt(0))).toUpperCase(),
         0,
       ),
     ) + e.substr(1),
     d,
   );
-  nfg(g, 0, 0, 120, 0);
-  _ag(a, g);
+  Component_$setRect(g, 0, 0, 120, 0);
+  Group_$add(a, g);
   h = Fth(f, 6);
   h.b = 120;
-  H8f(h);
+  BitmapTextMultiline_$measure(h);
   h.gb = g.C;
   h.hb = g.D + g.A + 2;
-  _ag(a, h);
-  DHg(a, 120, $qf(h.hb + h.$ * h.db.b));
+  Group_$add(a, h);
+  DHg(a, 120, Cast_round_int(h.hb + h.$ * h.db.b));
 }
 function yRh(b) {
   HQh();
@@ -61904,14 +62052,14 @@ function vxh(a, b) {
   this.c = b;
   T9f(this.a, b.f * 24, 0, 24, 28);
   uTh(this.a.db, 2);
-  if (ngg(Zwg(b))) {
+  if (Badges_isUnlocked(Zwg(b))) {
     this.g = 6710852;
     this.e = eaj;
   } else {
     this.g = 4473924;
     this.e = naj;
   }
-  q8f(this.f, b.e != null ? b.e : "" + b.f);
+  BitmapText_$text(this.f, b.e != null ? b.e : "" + b.f);
   this.f.G_();
   D7f(this.f, this.g);
   this.b = wii;
@@ -62052,7 +62200,7 @@ function k9h(a) {
     c += 4;
   }
   while (c < d) {
-    b = b * 31 + nYh(a, c++);
+    b = b * 31 + String_$charAt(a, c++);
   }
   b = b | 0;
   return b;
@@ -62074,7 +62222,7 @@ function As(a, b) {
         break;
       case 2:
         f = 1 - e.e / e.j;
-        e.f = $wnd.Math.min($qf(f * b.i), b.i - 1);
+        e.f = $wnd.Math.min(Cast_round_int(f * b.i), b.i - 1);
         g = r6b(b, e.f);
     }
     e.S = g.S;
@@ -62109,7 +62257,7 @@ function PUe() {
   ]);
   return svd;
 }
-function lgg(a) {
+function Badges_displayBadge(a) {
   jgg();
   if (!a) {
     return;
@@ -62119,12 +62267,12 @@ function lgg(a) {
       (sJh(), uJh("@@ Badge endorsed: %s", aqf(Vpf(WXf, 1), E9h, 1, 5, [a.a])));
   } else {
     X5h(fgg, a);
-    igg = true;
+    Badges_saveNeeded = true;
     a.c
       ? (sJh(),
         uJh("@@ New super badge: %s", aqf(Vpf(WXf, 1), E9h, 1, 5, [a.a])))
       : (sJh(), uJh("@@ New badge: %s", aqf(Vpf(WXf, 1), E9h, 1, 5, [a.a])));
-    Kth(a);
+    PixelScene_showBadge(a);
   }
 }
 function U$b(a, b) {
@@ -62159,15 +62307,15 @@ function tqf(a) {
   }
   d = 0;
   if (a >= qKj) {
-    d = $qf(a / qKj);
+    d = Cast_round_int(a / qKj);
     a -= d * qKj;
   }
   c = 0;
   if (a >= pKj) {
-    c = $qf(a / pKj);
+    c = Cast_round_int(a / pKj);
     a -= c * pKj;
   }
-  b = $qf(a);
+  b = Cast_round_int(a);
   f = fqf(b, c, d);
   e && lqf(f);
   return f;
@@ -62260,8 +62408,8 @@ function _Lh(a) {
   }
   c = new DFh(6);
   CFh(c, b, 102);
-  mfg(c, 4, 4);
-  _ag(this, c);
+  Component_$setPos(c, 4, 4);
+  Group_$add(this, c);
   this.a = c.D + c.A + 4;
   this.b = c.C + c.B + 4;
 }
@@ -62302,23 +62450,23 @@ function vBb(a) {
 function ZOg(a, b, c, d, e) {
   a.jb = true;
   a.lb = true;
-  if (a.a != (g9f(), f9f).s) {
-    a.a = f9f.s;
+  if (a.a != (g9f(), Camera_main).s) {
+    a.a = Camera_main.s;
     Dth(9, a.a);
     a.g = oth;
-    uTh(a.db, xth);
+    uTh(a.db, PixelScene_scale);
   }
-  if (a.a != f9f.s) {
-    a.a = f9f.s;
+  if (a.a != Camera_main.s) {
+    a.a = Camera_main.s;
     Dth(9, a.a);
     a.g = oth;
-    uTh(a.db, xth);
+    uTh(a.db, PixelScene_scale);
   }
   a.k = d;
   a.f = true;
-  C7f(a, (e >> 16) / 255, ((e >> 8) & 255) / 255, (e & 255) / 255);
-  p8f(a);
-  a.gb = $qf((b - (a.fb * a.db.a) / 2) * nth) / nth;
+  Visual_$hardlight(a, (e >> 16) / 255, ((e >> 8) & 255) / 255, (e & 255) / 255);
+  BitmapText_$measure(a);
+  a.gb = Cast_round_int((b - (a.fb * a.db.a) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
   a.hb = c - a.$ * a.db.b;
   a.c = 1;
 }
@@ -62683,7 +62831,7 @@ function Tgg(a) {
           : Rqf(a, 819) && (b = (Kig(), rig));
   if (!Y5h(fgg, b)) {
     X5h(fgg, b);
-    igg = true;
+    Badges_saveNeeded = true;
   }
   if (
     Y5h(fgg, (Kig(), sig)) &&
@@ -62693,7 +62841,7 @@ function Tgg(a) {
     Y5h(fgg, rig)
   ) {
     b = qig;
-    lgg(b);
+    Badges_displayBadge(b);
   }
 }
 function Vof(b, c) {
@@ -62895,25 +63043,25 @@ function i4g(a, b, c) {
   var d, e, f, g, h;
   EHg.call(this);
   h = Fth(a, 9);
-  C7f(h, 1, 1, ILj);
+  Visual_$hardlight(h, 1, 1, ILj);
   h.gb = h.hb = 2;
   h.b = 116;
-  H8f(h);
-  _ag(this, h);
+  BitmapTextMultiline_$measure(h);
+  Group_$add(this, h);
   g = Fth(b, 8);
   g.b = 116;
-  H8f(g);
+  BitmapTextMultiline_$measure(g);
   g.gb = 2;
   g.hb = h.hb + h.$ * h.db.b + 2;
-  _ag(this, g);
+  Group_$add(this, g);
   f = g.hb + g.$ * g.db.b + 2;
   for (e = 0; e < c.length; e++) {
     d = new HNh(this, c[e], e);
-    nfg(d, 2, f, 116, 20);
-    _ag(this, d);
+    Component_$setRect(d, 2, f, 116, 20);
+    Group_$add(this, d);
     f += 22;
   }
-  DHg(this, 120, $qf(f));
+  DHg(this, 120, Cast_round_int(f));
 }
 function G5(a, b) {
   var c, d, e, f, g, h, i, j, k;
@@ -63014,7 +63162,7 @@ function Jmg(a) {
 function oj(a, b, c, d) {
   var e, f, g, h, i, j;
   j = (b / 60 + 6) % 6;
-  f = $qf(j);
+  f = Cast_round_int(j);
   e = j - f;
   g = d * (1 - c);
   h = d * (1 - c * e);
@@ -63124,10 +63272,10 @@ function ILh(b, c) {
     this.b = apc(c);
     if ((this.a = this.b.a4())) {
       SNg(this.d, this.b.Y3(), null);
-      q8f(this.c, this.b.XX());
+      BitmapText_$text(this.c, this.b.XX());
     } else {
       SNg(this.d, 127, null);
-      q8f(this.c, this.b.w);
+      BitmapText_$text(this.c, this.b.w);
       D7f(this.c, _9i);
     }
   } catch (a) {
@@ -63135,7 +63283,7 @@ function ILh(b, c) {
     if (!Rqf(a, 43)) throw w$f(a);
   }
   d = vsg((Fjg(), Dungeon.hero).d, c);
-  q8f(this.f, !d || !this.a ? "" : "" + d.A);
+  BitmapText_$text(this.f, !d || !this.a ? "" : "" + d.A);
 }
 function IRh(a, b) {
   var c, d, e, f, g, h, i, j, k;
@@ -63251,7 +63399,7 @@ function Hdc(a) {
         d = CVh(e.j, 10, cbi, v9h);
         break;
       case 3:
-        d = $qf(e.b);
+        d = Cast_round_int(e.b);
         break;
       case 4:
         d = V$f(e.c);
@@ -63324,20 +63472,24 @@ function Q$(a, b, c) {
   }
   return false;
 }
-function Kwh(a, b, c) {
+function RankingsScene$Record(pos, latest, rec) {
   Jfg.call(this);
-  this.e = c;
-  if (b) {
+
+  this.rec = rec;
+
+  if (latest) {
     this.c = new OOg(6, 24);
     this.c.V = 90;
-    B7f(this.c, c.f ? 8947814 : 6710886);
+    B7f(this.c, rec.win ? 8947814 : 6710886);
     abg(this, this.c);
   }
-  q8f(this.d, "" + (a + 1));
+
+  BitmapText_$text(this.d, "" + (pos + 1));
   this.d.G_();
-  q8f(this.b, c.d);
-  H8f(this.b);
-  if (c.f) {
+
+    BitmapText_$text(this.b, rec.info);
+    BitmapTextMultiline_$measure(this.b);
+  if (rec.win) {
     SNg(this.f, 87, null);
     D7f(this.d, eaj);
     D7f(this.b, eaj);
@@ -63345,8 +63497,10 @@ function Kwh(a, b, c) {
     D7f(this.d, _9i);
     D7f(this.b, _9i);
   }
-  R9f(this.a, kGh(c.c));
+
+  R9f(this.a, Icons_get(rec.heroClass));
 }
+
 function YOh(a, b, c) {
   var d, e;
   e = new HJh();
@@ -63357,15 +63511,15 @@ function YOh(a, b, c) {
       ? yJh(wbj, aqf(Vpf(WXf, 1), E9h, 1, 5, [b.Nb(), rXh($Oh(b))]))
       : xJh(b.Nb()),
   );
-  nfg(e, 0, 0, 120, 0);
-  _ag(a, e);
+  Component_$setRect(e, 0, 0, 120, 0);
+  Group_$add(a, e);
   b.v && (b.u < 0 ? D7f(e.d, waj) : b.u > 0 && BJh(e, b.s <= 0 ? qaj : xaj));
   d = Fth(b.Z3(), 6);
   d.b = 120;
-  H8f(d);
+  BitmapTextMultiline_$measure(d);
   d.gb = e.C;
   d.hb = e.D + e.A + 2;
-  _ag(a, d);
+  Group_$add(a, d);
   return d.hb + d.$ * d.db.b;
 }
 function Hmf(a) {
@@ -63425,7 +63579,7 @@ function TRg(a, b, c, d) {
   );
   vTh(this.S, -this.eb.a / a.c, -this.eb.b / a.c);
   this.b = 0;
-  _ag(b.mb, this);
+  Group_$add(b.mb, this);
 }
 function uk(a, b, c) {
   var d, e;
@@ -63524,15 +63678,15 @@ function bPh(a, b) {
   g = $Oh(e);
   if (b) {
     c = new rPh(this, yJh(xbj, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(g)])), a);
-    nfg(c, 0, f + 2, 120, 16);
+    Component_$setRect(c, 0, f + 2, 120, 16);
     P$g(c, g <= (Fjg(), Dungeon.gold));
-    _ag(this, c);
+    Group_$add(this, c);
     d = new tPh(this);
-    nfg(d, 0, c.D + c.A + 2, 120, 16);
-    _ag(this, d);
-    DHg(this, 120, $qf(d.D + d.A));
+    Component_$setRect(d, 0, c.D + c.A + 2, 120, 16);
+    Group_$add(this, d);
+    DHg(this, 120, Cast_round_int(d.D + d.A));
   } else {
-    DHg(this, 120, $qf(f));
+    DHg(this, 120, Cast_round_int(f));
   }
 }
 function IW() {
@@ -63566,20 +63720,20 @@ function aMh(a) {
   g = 4;
   for (d = 0; d < f.length; d++) {
     d > 0 && (g += 4);
-    b = Gth("\x7F", 6);
+    b = PixelScene_createText("\x7F", 6);
     b.gb = 4;
     b.hb = g;
     if (c == 0) {
-      p8f(b);
+      BitmapText_$measure(b);
       c = b.fb * b.db.a;
     }
-    _ag(this, b);
+    Group_$add(this, b);
     e = Fth(f[d], 6);
     e.gb = b.gb + c;
     e.hb = g;
-    e.b = $qf(102 - c);
-    H8f(e);
-    _ag(this, e);
+    e.b = Cast_round_int(102 - c);
+    BitmapTextMultiline_$measure(e);
+    Group_$add(this, e);
     g += e.$ * e.db.b;
     h = e.fb * e.db.a;
     h > this.b && (this.b = h);
@@ -63638,15 +63792,15 @@ function OLh(a, b, c) {
   EHg.call(this);
   d = MLh(this, a, b.a + tMj + c.a + tMj + "Which way will you follow?");
   f = new QLh(this, xJh(b.b), a, b);
-  nfg(f, 0, d + 2, 59, 18);
-  _ag(this, f);
+  Component_$setRect(f, 0, d + 2, 59, 18);
+  Group_$add(this, f);
   g = new SLh(this, xJh(c.b), a, c);
-  nfg(g, f.C + f.B + 2, f.D, f.B, 18);
-  _ag(this, g);
+  Component_$setRect(g, f.C + f.B + 2, f.D, f.B, 18);
+  Group_$add(this, g);
   e = new ULh(this);
-  nfg(e, 0, g.D + g.A + 2, 120, 18);
-  _ag(this, e);
-  DHg(this, 120, $qf(e.D + e.A));
+  Component_$setRect(e, 0, g.D + g.A + 2, 120, 18);
+  Group_$add(this, e);
+  DHg(this, 120, Cast_round_int(e.D + e.A));
 }
 function hgb(b, c) {
   var d, e, f, g, h, i, j;
@@ -63703,7 +63857,7 @@ function Sxh() {
   this.H = this;
   Hbg(this, this.a, false);
 }
-function fd(a) {
+function DefaultGwtInput_getMouseWheelVelocity(a) {
   var b = 0;
   var c = nd;
   if (c.isFirefox) {
@@ -64156,16 +64310,16 @@ function tqh(a, b, c) {
   if (b == c - 1 || b == c + 1 || b == c - 32 || b == c + 32) {
     return;
   }
-  switch ($qf($wnd.Math.random() * 10)) {
+  switch (Cast_round_int($wnd.Math.random() * 10)) {
     case 0:
       d = IXg((XXg(), WXg));
-      Rqf(d, 169) ? (d.A = 1) : btg(d, $qf($wnd.Math.random() * 3));
+      Rqf(d, 169) ? (d.A = 1) : btg(d, Cast_round_int($wnd.Math.random() * 3));
       break;
     case 1:
-      d = btg(IXg((XXg(), NXg)), $qf($wnd.Math.random() * 3));
+      d = btg(IXg((XXg(), NXg)), Cast_round_int($wnd.Math.random() * 3));
       break;
     default:
-      d = new fYg(1 + $qf($wnd.Math.random() * 5));
+      d = new fYg(1 + Cast_round_int($wnd.Math.random() * 5));
   }
   a.V8(d, b).d = (XYg(), OYg);
 }
@@ -64196,7 +64350,7 @@ function PixelDungeon_$resize(a, b, c) {
   Bag(b, c);
   f =
     ((d = fc.b.g ? $wnd.devicePixelRatio || 1 : 1),
-    new Sf($qf($wnd.screen.width * d), $qf($wnd.screen.height * d)));
+    new Sf(Cast_round_int($wnd.screen.width * d), Cast_round_int($wnd.screen.height * d)));
   e = b >= f.d || c >= f.b;
   if (!e && !qag.d.a) {
     g = (olg(), nlg);
@@ -64519,7 +64673,7 @@ function N$(a, b, c, d) {
 function Bones_leave() {
   var a;
   Tig = null;
-  switch ($qf($wnd.Math.random() * 4)) {
+  switch (Cast_round_int($wnd.Math.random() * 4)) {
     case 0:
       Tig = (Fjg(), Dungeon.hero).d.f;
       break;
@@ -64624,11 +64778,11 @@ function aOh(a) {
   c = _Nh(dHh);
   if (this.a >= 4 && !!b && !!c) {
     d = new UNh(b);
-    nfg(d, 0, this.b, 26, 26);
-    _ag(this, d);
+    Component_$setRect(d, 0, this.b, 26, 26);
+    Group_$add(this, d);
     d = new UNh(c);
-    nfg(d, 27, this.b, 26, 26);
-    _ag(this, d);
+    Component_$setRect(d, 27, this.b, 26, 26);
+    Group_$add(this, d);
   } else {
     !!b && $Nh(this, b);
     !!c && $Nh(this, c);
@@ -64642,20 +64796,20 @@ function pOh(a, b) {
   f = new HJh();
   DJh(f, new UNg(a.t, null));
   EJh(f, a.w);
-  nfg(f, 0, 0, 120, 0);
-  _ag(this, f);
+  Component_$setRect(f, 0, 0, 120, 0);
+  Group_$add(this, f);
   e = Fth(gbj, 6);
   e.b = 120;
-  H8f(e);
+  BitmapTextMultiline_$measure(e);
   e.hb = f.D + f.A + 2;
-  _ag(this, e);
+  Group_$add(this, e);
   d = new sOh(this);
-  nfg(d, 0, e.hb + e.$ * e.db.b + 2, 120, 20);
-  _ag(this, d);
+  Component_$setRect(d, 0, e.hb + e.$ * e.db.b + 2, 120, 20);
+  Group_$add(this, d);
   c = new uOh(this);
-  nfg(c, 0, d.D + d.A + 2, 120, 20);
-  _ag(this, c);
-  DHg(this, 120, $qf(c.D + c.A));
+  Component_$setRect(c, 0, d.D + d.A + 2, 120, 20);
+  Group_$add(this, c);
+  DHg(this, 120, Cast_round_int(c.D + c.A));
 }
 function Kv(a, b, c, d, e, f) {
   var g, h, i, j, k;
@@ -65002,8 +65156,8 @@ function Vq(a, b, c, d, e, f, g, h, i, j, k) {
     for (m = 0; m < n; m += 5) {
       q = (p[m] - s) * i;
       r = (p[m + 1] - t) * j;
-      l = (p_(), (K_(), J_)[$qf((k + 90) * bdi) & cdi]);
-      o = J_[$qf(k * bdi) & cdi];
+      l = (p_(), (K_(), J_)[Cast_round_int((k + 90) * bdi) & cdi]);
+      o = J_[Cast_round_int(k * bdi) & cdi];
       p[m] = l * q - o * r + s;
       p[m + 1] = o * q + l * r + t;
     }
@@ -65041,26 +65195,26 @@ function c6f(a) {
 function QHg(a, b, c) {
   var d, e, f, g, h, i;
   EHg.call(this);
-  i = tag > pag ? 144 : 120;
+  i = Game_width > Game_height ? 144 : 120;
   h = new IJh(a.q5(), xJh(a.I));
-  nfg(h, 0, 0, i, 0);
-  _ag(this, h);
+  Component_$setRect(h, 0, 0, i, 0);
+  Group_$add(this, h);
   e = new DFh(6);
   CFh(e, b, i);
-  mfg(e, h.C, h.D + h.A + 2);
-  _ag(this, e);
+  Component_$setPos(e, h.C, h.D + h.A + 2);
+  Group_$add(this, e);
   if (c.length > 0) {
     g = e.D + e.A;
     for (f = 0; f < c.length; f++) {
       g += 2;
       d = new JNh(this, c[f], f);
-      nfg(d, 0, g, i, 20);
-      _ag(this, d);
+      Component_$setRect(d, 0, g, i, 20);
+      Group_$add(this, d);
       g += 20;
     }
-    DHg(this, i, $qf(g));
+    DHg(this, i, Cast_round_int(g));
   } else {
-    DHg(this, i, $qf(e.D + e.A));
+    DHg(this, i, Cast_round_int(e.D + e.A));
   }
 }
 function Lv(a, b, c, d, e, f, g, h, i, j) {
@@ -65211,7 +65365,7 @@ function K3f(b, c) {
         }
         return f;
       }
-    } catch (a) {}
+    } catch (a) {console.error(a)}
   }
   return null;
 }
@@ -65294,7 +65448,7 @@ function lih(a) {
       Room$Type_$paint(e.e, a, e);
     } else {
       a.t == (tlh(), plh) &&
-        $qf($wnd.Math.random() * 2) == 0 &&
+        Cast_round_int($wnd.Math.random() * 2) == 0 &&
         Eph(a, e.g, e.j, e.i - e.g + 1, e.f - e.j + 1, 4);
     }
   }
@@ -65618,15 +65772,15 @@ function GJh(a) {
   a.a.nb = !isNaN(a.b);
   a.c.gb = a.C;
   a.c.hb = a.D;
-  a.d.gb = Bth(yth, a.c.gb + a.c.C_() + 2);
-  a.d.b = $qf(a.B - a.d.gb);
-  H8f(a.d);
-  a.d.hb = Bth(
-    yth,
+  a.d.gb = PixelScene_align(PixelScene_uiCamera, a.c.gb + a.c.C_() + 2);
+  a.d.b = Cast_round_int(a.B - a.d.gb);
+  BitmapTextMultiline_$measure(a.d);
+  a.d.hb = PixelScene_align(
+    PixelScene_uiCamera,
     a.c.$ > E7f(a.d) ? a.c.hb + (a.c.p_() - F8f(a.d)) / 2 : a.c.hb,
   );
   if (a.a.nb) {
-    nfg(
+    Component_$setRect(
       a.a,
       a.d.gb,
       $wnd.Math.max(a.d.hb + E7f(a.d), a.c.hb + a.c.p_() - a.a.A),
@@ -65704,28 +65858,6 @@ function DUe() {
   ]);
   return gvd;
 }
-function PixelDungeon_fullscreen(a) {
-  var b, c, d, e;
-  c = (olg(), nlg);
-  d = qag.d;
-  if (a) {
-    !c.a && (c.a = td(ac, ZIj));
-    qg(c.a, WIj, true);
-    !c.a && (c.a = td(ac, ZIj));
-    lg(c.a);
-    eMg(d, Knf($doc), Jnf($doc));
-    d.a = true;
-  } else {
-    e = (!c.a && (c.a = td(ac, ZIj)), ng(c.a, XIj, 480));
-    b = (!c.a && (c.a = td(ac, ZIj)), ng(c.a, YIj, 800));
-    !c.a && (c.a = td(ac, ZIj));
-    qg(c.a, WIj, false);
-    !c.a && (c.a = td(ac, ZIj));
-    lg(c.a);
-    Of(fc, e, b);
-    d.a = false;
-  }
-}
 function M0f() {
   $wnd.addEventListener(
     "mouseout",
@@ -65758,35 +65890,6 @@ function M0f() {
     true,
   );
 }
-
-function loadRankings(b) {
-  var c, d, e, f, g;
-  if (b.b) {
-    return;
-  }
-  b.b = new a1h();
-  try {
-    c = yRh(zag(qag, $Ij));
-    for (g = new G1h(KQh(c, _Dj)); g.a < g.c.a.length; ) {
-      f = F1h(g);
-      T0h(b.b, f);
-    }
-    b.a = Qdc(c.a, Z6i, 0);
-    b.c = Qdc(c.a, Lqj, 0);
-    b.c == 0 && (b.c = b.b.a.length);
-    b.d = Qdc(c.a, "won", 0);
-    if (b.d == 0) {
-      for (e = new G1h(b.b); e.a < e.c.a.length; ) {
-        d = F1h(e);
-        d.f && ++b.d;
-      }
-    }
-  } catch (a) {
-    a = v$f(a);
-    if (!Rqf(a, 43)) throw w$f(a);
-  }
-}
-
 function chc(a, b) {
   var c, d, e;
   if (b == null) return Ymi;
@@ -65907,7 +66010,7 @@ function wwh(a) {
   GHg.call(this, 0, 0, ajg((kjg(), cjg)));
   this.b = Fth(a, 7);
   this.b.b = 108;
-  H8f(this.b);
+  BitmapTextMultiline_$measure(this.b);
   this.b.bb = tbj;
   this.b.Y = ubj;
   this.b.W = vbj;
@@ -65915,9 +66018,9 @@ function wwh(a) {
   this.b.Z = -0.7300000190734863;
   this.b.X = -0.6200000047683716;
   this.b.gb = 6;
-  _ag(this, this.b);
-  _ag(this, new VOh(this, this.o));
-  DHg(this, $qf(O7f(this.b) + 12), $qf($wnd.Math.min(E7f(this.b), 180)));
+  Group_$add(this, this.b);
+  Group_$add(this, new VOh(this, this.o));
+  DHg(this, Cast_round_int(O7f(this.b) + 12), Cast_round_int($wnd.Math.min(E7f(this.b), 180)));
 }
 function L$(a, b, c, d, e) {
   r$();
@@ -66004,7 +66107,7 @@ function iNh(a) {
     f = g.b = w_h(g.a);
     hNh(a, a.b, a.r, f);
   }
-  ofg(a.b, 0, a.c);
+  Component_$setSize(a.b, 0, a.c);
 }
 function pQe() {
   if (Uqd) return Uqd;
@@ -66054,20 +66157,20 @@ function pQe() {
 }
 function wMh() {
   var a, b;
-  VJh.call(this);
+  WndTabbed.call(this);
   this.c = m5f(LHj);
   this.b = new rjf(this.c, 16, 16);
   this.d = new HMh(this);
-  _ag(this, this.d);
+  Group_$add(this, this.d);
   this.a = new DMh(this);
-  _ag(this, this.a);
+  Group_$add(this, this.a);
   SJh(this, new yMh(this, this));
   SJh(this, new AMh(this, this));
   for (b = new G1h(this.k); b.a < b.c.a.length; ) {
     a = F1h(b);
-    ofg(a, 40, 25);
+    Component_$setSize(a, 40, 25);
   }
-  TJh(this, 100, $qf($wnd.Math.max(this.d.a, this.a.a)));
+  WndTabbed_$resize(this, 100, Cast_round_int($wnd.Math.max(this.d.a, this.a.a)));
   UJh(this, U0h(this.k, 0));
 }
 function oLb(a, b, c, d, e, f) {
@@ -66619,12 +66722,12 @@ function qxh(a, b) {
   var c, d, e, f;
   EHg.call(this);
   this.c = b;
-  f = Gth(Haj, 9);
-  C7f(f, 1, 1, ILj);
-  p8f(f);
-  f.gb = Bth(this.kb, (108 - f.fb * f.db.a) / 2);
-  f.hb = Bth(this.kb, (12 - f.$ * f.db.b) / 2);
-  _ag(this, f);
+  f = PixelScene_createText(Haj, 9);
+  Visual_$hardlight(f, 1, 1, ILj);
+  BitmapText_$measure(f);
+  f.gb = PixelScene_align(this.kb, (108 - f.fb * f.db.a) / 2);
+  f.hb = PixelScene_align(this.kb, (12 - f.$ * f.db.b) / 2);
+  Group_$add(this, f);
   this.b = new a1h();
   e = 12;
   for (d = 0; d < (Zig(), Yig).length; d++) {
@@ -66632,12 +66735,12 @@ function qxh(a, b) {
     GEh(c, (a & Xig[d]) != 0);
     c.ib = b;
     d > 0 && (e += 1);
-    nfg(c, 0, e, 108, 18);
+    Component_$setRect(c, 0, e, 108, 18);
     e = c.D + c.A;
-    _ag(this, c);
+    Group_$add(this, c);
     T0h(this.b, c);
   }
-  DHg(this, 108, $qf(e));
+  DHg(this, 108, Cast_round_int(e));
 }
 function pgb(a, b) {
   var c, d, e, f, g, h, i;
@@ -66727,16 +66830,16 @@ function Njg(a, b, c, d, e) {
     return (Ojf(), !Kjf[c] && (d[c] || Bgh[c]) ? c : -1);
   }
   a.G || !!wmg(a, AHf) || !!wmg(a, XHf)
-    ? qJh(d, Bgh, zjg)
-    : kZh(d, 0, zjg, 0, oei);
+    ? qJh(d, Bgh, Dungeon.passable)
+    : kZh(d, 0, Dungeon.passable, 0, oei);
   for (g = (Ojf(), (j = new Q_h(Jjf.a).a.Ocb().Pd()), new W_h(j)); g.a.Rd(); ) {
     f = ((i = g.a.Sd()), i.Aeb());
     if (Rqf(f, 73)) {
       k = f.K;
-      e[k] && (zjg[k] = false);
+      e[k] && (Dungeon.passable[k] = false);
     }
   }
-  return aSh(b, c, zjg);
+  return aSh(b, c, Dungeon.passable);
 }
 function Y_c() {
   if (bsc) return bsc;
@@ -67228,7 +67331,7 @@ function U2g(a, b, c) {
     wRg(b, 0);
     ieg((eeg(), deg), eIj, 1, 1);
     vvg(b, 3);
-    ++img;
+    ++Statistics_foodEaten;
     Ggg();
   } else {
     htg(a, b, c);
@@ -68240,7 +68343,7 @@ function jHh(a) {
   }
   if (a.e) {
     if (Y5h((Ojf(), Ojf(), Jjf), _Gh)) {
-      _ag(_Gh.M.mb, a.b);
+      Group_$add(_Gh.M.mb, a.b);
       I7f(a.b, mkg(_Gh.K));
       a.a.nb = true;
     } else {
@@ -68888,7 +68991,7 @@ function pih(a) {
   d = (Fjg(), Dungeon.depth) <= 1 ? 0 : VTh(1, fQh(a.j.a) + Dungeon.depth);
   e = ((b = aqf(Vpf(drf, 1), Vci, 23, 15, [1, 1, 1, 1, 1, 1, 1, 1])), b);
   for (c = 0; c < d; c++) {
-    f = $qf($wnd.Math.random() * oei);
+    f = Cast_round_int($wnd.Math.random() * oei);
     if (a.w[f] == 1) {
       switch ($Th(e)) {
         case 0:
@@ -69311,14 +69414,14 @@ function Dlh(a, b) {
   }
   return Alh;
 }
-function TJh(a, b, c) {
+function WndTabbed_$resize(a, b, c) {
   var d, e, f, g;
   a.r = b;
   a.p = c;
   a.o.i0(a.r + Wbg(a.o), a.p + Xbg(a.o));
-  n9f(a.kb, $qf(a.o.fb), a.o.g + a.p + a.gcb());
-  a.kb.q = ($qf(tag - q9f(a.kb)) / 2) | 0;
-  a.kb.r = ($qf(pag - o9f(a.kb)) / 2) | 0;
+  n9f(a.kb, Cast_round_int(a.o.fb), a.o.g + a.p + a.gcb());
+  a.kb.q = (Cast_round_int(Game_width - q9f(a.kb)) / 2) | 0;
+  a.kb.r = (Cast_round_int(Game_height - o9f(a.kb)) / 2) | 0;
   aRg(a.q, a.kb.q / a.kb.s, a.kb.r / a.kb.s, O7f(a.o), a.o.$);
   for (f = new G1h(a.k); f.a < f.c.a.length; ) {
     d = F1h(f);
@@ -69433,9 +69536,9 @@ function ymg(a, b, c) {
   d = Cb(c);
   Y5h(a.J2(), d)
     ? (b = 0)
-    : Y5h(a.S2(), d) && (b = $qf($wnd.Math.random() * (b + 1)));
+    : Y5h(a.S2(), d) && (b = Cast_round_int($wnd.Math.random() * (b + 1)));
   if (wmg(a, VHf)) {
-    if ((b > 0 ? $qf($wnd.Math.random() * b) : 0) >= UTh(a.A)) {
+    if ((b > 0 ? Cast_round_int($wnd.Math.random() * b) : 0) >= UTh(a.A)) {
       nog(wmg(a, VHf));
       (Fjg(), Dungeon.visible)[a.K] &&
         uJh(sJj, aqf(Vpf(WXf, 1), E9h, 1, 5, [a.I]));
@@ -69914,10 +70017,10 @@ function RJh(a) {
   EHg.call(this);
   b = CMg(a.b);
   uTh(b.db, 2);
-  _ag(this, b);
+  Group_$add(this, b);
   c = Fth(a.a, 8);
   c.b = 112;
-  H8f(c);
+  BitmapTextMultiline_$measure(c);
   g = $wnd.Math.max(b.fb * b.db.a, c.fb * c.db.a) + 8;
   b.gb = (g - b.fb * b.db.a) / 2;
   b.hb = 4;
@@ -69925,12 +70028,12 @@ function RJh(a) {
   for (e = new G1h(R8f(new S8f(c))); e.a < e.c.a.length; ) {
     d = F1h(e);
     d.G_();
-    d.gb = $qf(((g - d.fb * d.db.a) / 2) * nth) / nth;
-    d.hb = $qf(f * nth) / nth;
-    _ag(this, d);
+    d.gb = Cast_round_int(((g - d.fb * d.db.a) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+    d.hb = Cast_round_int(f * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+    Group_$add(this, d);
     f += d.$ * d.db.b;
   }
-  DHg(this, $qf(g), $qf(f + 4));
+  DHg(this, Cast_round_int(g), Cast_round_int(f + 4));
   BMg(b, a.b);
 }
 function v5b(a) {
@@ -69954,7 +70057,7 @@ function v5b(a) {
     a.b = $wnd.Math.max(1, c - e);
   }
   i6b(l5b, a);
-  CN($qf(a.d), $qf(a.e), $qf(a.c), $qf(a.b));
+  CN(Cast_round_int(a.d), Cast_round_int(a.e), Cast_round_int(a.c), Cast_round_int(a.b));
   return true;
 }
 function hdg(a) {
@@ -69967,7 +70070,7 @@ function hdg(a) {
     d = b * a.f + a.n.g;
     qZh(a.g, 16 * d);
     for (c = a.n.g; c < a.n.i; c++) {
-      e = ljf(a.k, rXh(a.d[d++]));
+      e = TextureFilm_$get(a.k, rXh(a.d[d++]));
       a.o[0] = f;
       a.o[1] = h;
       a.o[2] = e.b;
@@ -70103,9 +70206,9 @@ function yJh(a, b) {
   for (e = 0; e < a.length; e++) {
     b9h(e, a.length);
     if (a.charCodeAt(e) == 37) {
-      switch (nYh(a, ++e)) {
+      switch (String_$charAt(a, ++e)) {
         case 43:
-          if (nYh(a, ++e) != 100) throw w$f(new lbc("Invalid format"));
+          if (String_$charAt(a, ++e) != 100) throw w$f(new lbc("Invalid format"));
           GVh(b[c]) >= 0 && ((d.a += "+"), d);
         case 100:
         case 115:
@@ -70259,8 +70362,8 @@ function Hqh(a, b) {
   i = b.i - b.g - 1;
   c = b.f - b.j - 1;
   f = ($wnd.Math.max(i, c) / 2) | 0;
-  e = f > 0 ? $qf($wnd.Math.random() * f) : 0;
-  h = $qf($wnd.Math.random() * 2);
+  e = f > 0 ? Cast_round_int($wnd.Math.random() * f) : 0;
+  h = Cast_round_int($wnd.Math.random() * 2);
   for (d = 0; d < f; d++) {
     g =
       i > c
@@ -70268,10 +70371,10 @@ function Hqh(a, b) {
           1 +
           h +
           d * 2 +
-          (b.j + 2 + (c - 2 > 0 ? $qf($wnd.Math.random() * (c - 2)) : 0)) * 32
+          (b.j + 2 + (c - 2 > 0 ? Cast_round_int($wnd.Math.random() * (c - 2)) : 0)) * 32
         : b.g +
           2 +
-          (i - 2 > 0 ? $qf($wnd.Math.random() * (i - 2)) : 0) +
+          (i - 2 > 0 ? Cast_round_int($wnd.Math.random() * (i - 2)) : 0) +
           (b.j + 1 + h + d * 2) * 32;
     a.V8(d == e ? (GXg(), IXg(ZTh(FXg))) : new eYg(), g).d = (XYg(), WYg);
   }
@@ -70321,16 +70424,16 @@ function Dungeon_init() {
   lah = new BZg(nah, oah, mah);
   E6g();
   B6g = new BZg(D6g, A6g, C6g);
-  pmg();
+  Statistics_reset();
   Bkg = new a1h();
   Dungeon.depth = 0;
   Dungeon.gold = 0;
-  ujg = new xUh();
+  Dungeon.droppedItems = new xUh();
   Dungeon.potionOfStrength = 0;
   Dungeon.scrollsOfUpgrade = 0;
   Dungeon.scrollsOfEnchantment = 0;
   Dungeon.dewVial = true;
-  rjg = new $5h();
+  Dungeon.chapters = new $5h();
   QIg();
   RKg();
   $Hg();
@@ -70342,8 +70445,8 @@ function Dungeon_init() {
   Dungeon.hero = new zvg();
   jvg(Dungeon.hero);
   jgg();
-  eQh(hgg.a);
-  pgg();
+  eQh(Badges_local.a);
+  Badges_loadGlobal();
   Ywg((Qwh(), Owh), Dungeon.hero);
 }
 function nLb(a, b, c) {
@@ -70351,8 +70454,8 @@ function nLb(a, b, c) {
   if (!a.eb) return;
   Csb(a);
   Djb(a, b, Hjb(a));
-  a.R && (a.F.d = a.G.d + $qf((a.G.c - a.F.c) * vLb(a)));
-  a.S && (a.Y.e = a.Z.e + $qf((a.Z.b - a.Y.b) * (1 - wLb(a))));
+  a.R && (a.F.d = a.G.d + Cast_round_int((a.G.c - a.F.c) * vLb(a)));
+  a.S && (a.Y.e = a.Z.e + Cast_round_int((a.Z.b - a.Y.b) * (1 - wLb(a))));
   KLb(a);
   e = a.sb;
   d = e.a * c;
@@ -70375,7 +70478,7 @@ function Sgh(a) {
   var b, c, d, e;
   if (a.w.length < oei) {
     Kgh = true;
-    Fgh = $qf($wnd.Math.sqrt(a.w.length));
+    Fgh = Cast_round_int($wnd.Math.sqrt(a.w.length));
     c = Zpf(erf, $9h, 23, oei, 15, 1);
     b2h(c, 0, c.length, 4);
     e = Zpf(t$f, Z9h, 23, oei, 16, 1);
@@ -70518,10 +70621,10 @@ function xEh(a) {
     e = b.Y2();
     if (e != -1) {
       f = new Z9f(a.d);
-      U9f(f, ljf(a.b, rXh(e)));
+      U9f(f, TextureFilm_$get(a.b, rXh(e)));
       f.gb = a.C + a.G.a.length * 9;
       f.hb = a.D;
-      _ag(a, f);
+      Group_$add(a, f);
       Tbc(k, e, f);
     }
   }
@@ -70530,8 +70633,8 @@ function xEh(a) {
     if (Obc(k, g.a) == null) {
       e = Obc(a.c, g.a);
       uTh(e.ab, 3);
-      _ag(a, e);
-      _ag(a, new CEh(e));
+      Group_$add(a, e);
+      Group_$add(a, new CEh(e));
     }
   }
   a.c = k;
@@ -70697,7 +70800,7 @@ function Cog(a) {
       return true;
     } else {
       do {
-        d = a.a + (Pgh(), zgh)[$qf($wnd.Math.random() * 8)];
+        d = a.a + (Pgh(), zgh)[Cast_round_int($wnd.Math.random() * 8)];
       } while (!(Pgh(), Hgh)[d] && !Bgh[d]);
       MNg(Dungeon.level.V8(vYg(b), d).c, a.a);
       return false;
@@ -70725,26 +70828,26 @@ function ZUb(a) {
 }
 function $Lh(a) {
   var b;
-  VJh.call(this);
+  WndTabbed.call(this);
   this.a = a;
   this.c = new aMh(this);
-  _ag(this, this.c);
+  Group_$add(this, this.c);
   b = new bMh(this, xJh(a.a), this.c);
-  ofg(b, 50, 25);
+  Component_$setSize(b, 50, 25);
   SJh(this, b);
-  if (ngg(Zwg(a))) {
+  if (Badges_isUnlocked(Zwg(a))) {
     this.b = new _Lh(this);
-    _ag(this, this.b);
+    Group_$add(this, this.b);
     b = new bMh(this, "Mastery", this.b);
-    ofg(b, 50, 25);
+    Component_$setSize(b, 50, 25);
     SJh(this, b);
-    TJh(
+    WndTabbed_$resize(
       this,
-      $qf($wnd.Math.max(this.c.b, this.b.b)),
-      $qf($wnd.Math.max(this.c.a, this.b.a)),
+      Cast_round_int($wnd.Math.max(this.c.b, this.b.b)),
+      Cast_round_int($wnd.Math.max(this.c.a, this.b.a)),
     );
   } else {
-    TJh(this, $qf(this.c.b), $qf(this.c.a));
+    WndTabbed_$resize(this, Cast_round_int(this.c.b), Cast_round_int(this.c.a));
   }
   UJh(this, U0h(this.k, 0));
 }
@@ -70791,12 +70894,12 @@ function M5c() {
 function cNh() {
   var a, b, c, d, e;
   EHg.call(this);
-  DHg(this, 112, tag > pag ? 144 : 160);
-  this.b = Gth(Paj, 9);
+  DHg(this, 112, Game_width > Game_height ? 144 : 160);
+  this.b = PixelScene_createText(Paj, 9);
   D7f(this.b, zaj);
   this.b.G_();
-  this.b.gb = Bth(yth, (112 - O7f(this.b)) / 2);
-  _ag(this, this.b);
+  this.b.gb = PixelScene_align(PixelScene_uiCamera, (112 - O7f(this.b)) / 2);
+  Group_$add(this, this.b);
   a = new pfg();
   y2h();
   $0h(Bkg, null);
@@ -70804,14 +70907,14 @@ function cNh() {
   for (e = new G1h(Bkg); e.a < e.c.a.length; ) {
     d = F1h(e);
     b = new eNh(d.b, d.a);
-    nfg(b, 0, c, 112, 18);
-    _ag(a, b);
+    Component_$setRect(b, 0, c, 112, 18);
+    Group_$add(a, b);
     c += b.A;
   }
-  ofg(a, 112, c);
+  Component_$setSize(a, 112, c);
   this.a = new UDh(a);
-  _ag(this, this.a);
-  nfg(this.a, 0, E7f(this.b), 112, this.p - E7f(this.b));
+  Group_$add(this, this.a);
+  Component_$setRect(this.a, 0, E7f(this.b), 112, this.p - E7f(this.b));
 }
 function JW(a, b, c, d, e, f, g) {
   var h, i;
@@ -70832,7 +70935,7 @@ function cXg(a, b, c) {
   var d, e;
   if (sYh(c, X7i)) {
     if (a.a > 0) {
-      e = $qf($wnd.Math.ceil(($wnd.Math.pow(a.a, $Wg) / 20) * b.B));
+      e = Cast_round_int($wnd.Math.ceil(($wnd.Math.pow(a.a, $Wg) / 20) * b.B));
       d = $wnd.Math.min(b.B - b.A, e);
       if (d > 0) {
         b.A += d;
@@ -70957,8 +71060,8 @@ function g4(a) {
   n = a.i;
   l = m != 1 || n != 1;
   k = a.f;
-  b = (p_(), (K_(), J_)[$qf((k + 90) * bdi) & cdi]);
-  o = J_[$qf(k * bdi) & cdi];
+  b = (p_(), (K_(), J_)[Cast_round_int((k + 90) * bdi) & cdi]);
+  o = J_[Cast_round_int(k * bdi) & cdi];
   for (c = 0, e = d.length; c < e; c += 2) {
     q = d[c] - g;
     r = d[c + 1] - h;
@@ -71235,10 +71338,10 @@ function Vdh(a, b, c) {
       ((h = fQh(f.a)),
       h > 0
         ? hSh(f, Zpf(WXf, E9h, 1, fQh(f.a), 5, 1))[
-            h > 0 ? $qf($wnd.Math.random() * h) : 0
+            h > 0 ? Cast_round_int($wnd.Math.random() * h) : 0
           ]
         : null),
-      ((c / 2) | 0) + $qf($wnd.Math.random() * (c - ((c / 2) | 0))),
+      ((c / 2) | 0) + Cast_round_int($wnd.Math.random() * (c - ((c / 2) | 0))),
     );
 }
 function EV(a, b, c, d, e, f, g, h) {
@@ -71984,7 +72087,7 @@ function Vig() {
   var b, c;
   if (Sig == -1) {
     try {
-      b = yRh(zag(qag, LIj));
+      b = yRh(Game_$readFile(qag, LIj));
       Sig = Qdc(b.a, LSi, 0);
       Tig = IQh(new $Qh(Ndc(b.a, x2i) ? Ndc(b.a, x2i) : new gec((igc(), ggc))));
       return Vig();
@@ -72015,52 +72118,6 @@ function Vig() {
   }
 }
 
-function submitRanking(b, c) {
-  const e = new $lg();
-  e.d = (Fjg(), Dungeon.resultDescription);
-  e.f = c;
-  e.c = Dungeon.hero.j;
-  e.a = xvg(Dungeon.hero);
-  e.e = (jmg + Dungeon.hero.o * fmg * 100) * (c ? 2 : 1);
-  const d = yJh(_Ij, aqf(Vpf(WXf, 1), E9h, 1, 5, [HXh(AUh)]));
-  try {
-    Dungeon_saveGame(d);
-    e.b = d;
-  } catch (a) {
-    a = v$f(a);
-    if (Rqf(a, 119)) {
-      e.b = "";
-    } else throw w$f(a);
-  }
-  updateRankings(e);
-  const name = window.webxdc.selfName;
-  const info = `${name}: ${e.d}`;
-  window.webxdc.sendUpdate({ payload: null, info });
-}
-
-function updateRankings(result) {
-  var f, g;
-  loadRankings(rankings);
-  T0h(rankings.b, result);
-  y2h();
-  $0h(rankings.b, scoreComparator);
-  rankings.a = V0h(rankings.b, result, 0);
-  g = rankings.b.a.length;
-  if (g > 6) {
-    if (rankings.a == g - 1) {
-      f = X0h(rankings.b, g - 2);
-      --rankings.a;
-    } else {
-      f = X0h(rankings.b, g - 1);
-    }
-    f.b.length > 0 && vag(qag, f.b);
-  }
-  ++rankings.c;
-  result.f && ++rankings.d;
-  Badges_validateGamesPlayed();
-  saveRankings(rankings);
-}
-
 function RIg(a) {
   var b;
   b = new $Qh(Ndc(a.a, L7i) ? Ndc(a.a, L7i) : new gec((igc(), ggc)));
@@ -72077,23 +72134,23 @@ function RIg(a) {
     QIg();
   }
 }
-function uLh() {
+function WndCatalogus() {
   var a, b, c, d, e;
-  VJh.call(this);
+  WndTabbed.call(this);
   this.a = new a1h();
-  tag > pag ? TJh(this, 128, 128) : TJh(this, 112, 160);
-  this.c = Gth(Gaj, 9);
+  Game_width > Game_height ? WndTabbed_$resize(this, 128, 128) : WndTabbed_$resize(this, 112, 160);
+  this.c = PixelScene_createText(Gaj, 9);
   D7f(this.c, zaj);
   this.c.G_();
-  _ag(this, this.c);
+  Group_$add(this, this.c);
   this.b = new xLh(this, new pfg());
-  _ag(this, this.b);
-  nfg(this.b, 0, E7f(this.c), this.r, this.p - E7f(this.c));
+  Group_$add(this, this.b);
+  Component_$setRect(this.b, 0, E7f(this.c), this.r, this.p - E7f(this.c));
   a = sLh;
   e = aqf(Vpf(tWf, 1), Ubj, 241, 0, [new DLh(this, this), new FLh(this, this)]);
   for (c = 0, d = e.length; c < d; ++c) {
     b = e[c];
-    ofg(b, 50, 25);
+    Component_$setSize(b, 50, 25);
     SJh(this, b);
   }
   UJh(this, U0h(this.k, a ? 0 : 1));
@@ -72206,7 +72263,7 @@ function yZg(a, b, c, d) {
 function QBh(a, b, c, d, e, f) {
   var g, h, i;
   QNg(a);
-  U9f(a, ljf(LNg, rXh(d)));
+  U9f(a, TextureFilm_$get(LNg, rXh(d)));
   !(a.i = e) && ((a.cb = a.Z = a.X = a.T = 1), (a.bb = a.Y = a.W = a.R = 0));
   a.a = f;
   I7f(a, tTh(new yTh(b % 32, (b / 32) | 0), 16));
@@ -72221,14 +72278,14 @@ function QBh(a, b, c, d, e, f) {
   }
   i = new dfg(a, h, $wnd.Math.sqrt(g.a * g.a + g.b * g.b) / 240);
   i.g = a;
-  _ag(a.mb, i);
+  Group_$add(a.mb, i);
 }
 function DFg(a) {
   var b, c;
   Hmg(a, 1);
   if (ang(a, a.o, true)) {
     a.o == (Fjg(), Dungeon.hero) &&
-      $qf($wnd.Math.random() * 2) == 0 &&
+      Cast_round_int($wnd.Math.random() * 2) == 0 &&
       qog(
         a.o,
         fIf,
@@ -72236,7 +72293,7 @@ function DFg(a) {
         (c = wmg(a.o, RNf)),
         c ? (c.a < 0 ? 1 : (2 + 0.5 * c.a) / (2 + c.a)) * 40 : 40),
       );
-    b = 12 + $qf($wnd.Math.random() * 6);
+    b = 12 + Cast_round_int($wnd.Math.random() * 6);
     a.o.B2(b, a);
     if (a.o.A <= 0 && a.o == Dungeon.hero) {
       Dungeon_fail(
@@ -72341,12 +72398,12 @@ function yph(a, b, c) {
       !!d && (e = d.a);
     }
     e >= 0 &&
-      $qf($wnd.Math.random() * 18) <=
-        (e + 1 > 0 ? $qf($wnd.Math.random() * (e + 1)) : 0) &&
+      Cast_round_int($wnd.Math.random() * 18) <=
+        (e + 1 > 0 ? Cast_round_int($wnd.Math.random() * (e + 1)) : 0) &&
       a.V8(IXg((XXg(), UXg)), b).c.q6();
     e >= 0 &&
-      $qf($wnd.Math.random() * 6) <=
-        (e + 1 > 0 ? $qf($wnd.Math.random() * (e + 1)) : 0) &&
+      Cast_round_int($wnd.Math.random() * 6) <=
+        (e + 1 > 0 ? Cast_round_int($wnd.Math.random() * (e + 1)) : 0) &&
       a.V8(new tXg(), b).c.q6();
   }
   f = 4;
@@ -72606,7 +72663,7 @@ function VXh() {
   );
   UXh = Zpf(frf, ohi, 23, 37, 14, 1);
   for (a = 2; a <= 36; a++) {
-    SXh[a] = $qf($wnd.Math.pow(a, RXh[a]));
+    SXh[a] = Cast_round_int($wnd.Math.pow(a, RXh[a]));
     UXh[a] = B$f({ l: mKj, m: mKj, h: 524287 }, SXh[a]);
   }
 }
@@ -72932,46 +72989,46 @@ function Dth(a, b) {
   var c;
   c = a * b;
   if (c >= 19) {
-    xth = c / 19;
-    if (1.5 <= xth && xth < 2) {
+    PixelScene_scale = c / 19;
+    if (1.5 <= PixelScene_scale && PixelScene_scale < 2) {
       oth = rth;
-      xth = $qf(c / 14);
+      PixelScene_scale = Cast_round_int(c / 14);
     } else {
       oth = tth;
-      xth = $qf(xth);
+      PixelScene_scale = Cast_round_int(PixelScene_scale);
     }
   } else if (c >= 14) {
-    xth = c / 14;
-    if (1.8 <= xth && xth < 2) {
+    PixelScene_scale = c / 14;
+    if (1.8 <= PixelScene_scale && PixelScene_scale < 2) {
       oth = sth;
-      xth = $qf(c / 12);
+      PixelScene_scale = Cast_round_int(c / 12);
     } else {
       oth = rth;
-      xth = $qf(xth);
+      PixelScene_scale = Cast_round_int(PixelScene_scale);
     }
   } else if (c >= 12) {
-    xth = c / 12;
-    if (1.7 <= xth && xth < 2) {
+    PixelScene_scale = c / 12;
+    if (1.7 <= PixelScene_scale && PixelScene_scale < 2) {
       oth = pth;
-      xth = $qf(c / 10);
+      PixelScene_scale = Cast_round_int(c / 10);
     } else {
       oth = sth;
-      xth = $qf(xth);
+      PixelScene_scale = Cast_round_int(PixelScene_scale);
     }
   } else if (c >= 10) {
-    xth = c / 10;
-    if (1.4 <= xth && xth < 2) {
+    PixelScene_scale = c / 10;
+    if (1.4 <= PixelScene_scale && PixelScene_scale < 2) {
       oth = qth;
-      xth = $qf(c / 7);
+      PixelScene_scale = Cast_round_int(c / 7);
     } else {
       oth = pth;
-      xth = $qf(xth);
+      PixelScene_scale = Cast_round_int(PixelScene_scale);
     }
   } else {
     oth = qth;
-    xth = $wnd.Math.max(1, $qf(c / 7));
+    PixelScene_scale = $wnd.Math.max(1, Cast_round_int(c / 7));
   }
-  xth /= b;
+  PixelScene_scale /= b;
 }
 function ACh() {
   var a;
@@ -73013,7 +73070,7 @@ function Cs(a, b) {
   var c, d, e, f, g, h, i, j, k;
   a.a += b * Sai;
   if (a.a < 1) return;
-  e = $qf(a.a);
+  e = Cast_round_int(a.a);
   a.a -= e;
   if (a.o < a.n) {
     a.o += e;
@@ -73030,10 +73087,10 @@ function Cs(a, b) {
       if (g > 0) {
         g = Sai / g;
         if (a.u >= g) {
-          h = $qf(a.u / g);
+          h = Cast_round_int(a.u / g);
           h = $wnd.Math.min(h, a.M - a.c);
-          a.u = $qf(a.u - h * g);
-          a.u = $qf(a.u % g);
+          a.u = Cast_round_int(a.u - h * g);
+          a.u = Cast_round_int(a.u % g);
           js(a, h);
         }
       }
@@ -73108,17 +73165,17 @@ function u7h(a) {
   c = a.d.length;
   if (b < c) {
     if (a.c) {
-      if (yYh(a.a, OYh(nYh(a.d, a.b)), 0) >= 0)
-        return String.fromCharCode(nYh(a.d, a.b++));
+      if (yYh(a.a, OYh(String_$charAt(a.d, a.b)), 0) >= 0)
+        return String.fromCharCode(String_$charAt(a.d, a.b++));
       for (++a.b; a.b < c; a.b++)
-        if (yYh(a.a, OYh(nYh(a.d, a.b)), 0) >= 0) return IYh(a.d, b, a.b);
+        if (yYh(a.a, OYh(String_$charAt(a.d, a.b)), 0) >= 0) return IYh(a.d, b, a.b);
       return HYh(a.d, b);
     }
-    while (b < c && yYh(a.a, OYh(nYh(a.d, b)), 0) >= 0) ++b;
+    while (b < c && yYh(a.a, OYh(String_$charAt(a.d, b)), 0) >= 0) ++b;
     a.b = b;
     if (b < c) {
       for (++a.b; a.b < c; a.b++)
-        if (yYh(a.a, OYh(nYh(a.d, a.b)), 0) >= 0) return IYh(a.d, b, a.b);
+        if (yYh(a.a, OYh(String_$charAt(a.d, a.b)), 0) >= 0) return IYh(a.d, b, a.b);
       return HYh(a.d, b);
     }
   }
@@ -73865,7 +73922,7 @@ function R4c() {
   ]);
   return Wwc;
 }
-function $uh(a) {
+function GameScene_examineCell(a) {
   zuh();
   var b, c, d;
   if (!a) {
@@ -73961,9 +74018,9 @@ function Jqh(a, b) {
     a,
     new knh(
       (((b.g + b.i) / 2) | 0) +
-        (((b.i - b.g) & 1) == 1 ? $qf($wnd.Math.random() * 2) : 0),
+        (((b.i - b.g) & 1) == 1 ? Cast_round_int($wnd.Math.random() * 2) : 0),
       (((b.j + b.f) / 2) | 0) +
-        (((b.f - b.j) & 1) == 1 ? $qf($wnd.Math.random() * 2) : 0),
+        (((b.f - b.j) & 1) == 1 ? Cast_round_int($wnd.Math.random() * 2) : 0),
     ),
     11,
   );
@@ -74118,7 +74175,7 @@ function bch(a, b, c) {
   if (c < 1) {
     return;
   }
-  b == (Fjg(), Dungeon.hero) && r9f((g9f(), f9f), 2, Dii);
+  b == (Fjg(), Dungeon.hero) && r9f((g9f(), Camera_main), 2, Dii);
   T0h(a.a, b);
   b.B2((Pgh(), Ngh)[b.K] && !b.G ? c * 2 : c, (erh(), drh));
   zeg(xyh(b.M), (ZUg(), YUg), 0, 3);
@@ -74135,10 +74192,10 @@ function bch(a, b, c) {
       ((h = fQh(f.a)),
       h > 0
         ? hSh(f, Zpf(WXf, E9h, 1, fQh(f.a), 5, 1))[
-            h > 0 ? $qf($wnd.Math.random() * h) : 0
+            h > 0 ? Cast_round_int($wnd.Math.random() * h) : 0
           ]
         : null),
-      ((c / 2) | 0) + $qf($wnd.Math.random() * (c - ((c / 2) | 0))),
+      ((c / 2) | 0) + Cast_round_int($wnd.Math.random() * (c - ((c / 2) | 0))),
     );
 }
 function rTe() {
@@ -74785,7 +74842,7 @@ function PixelDungeon_$create(a) {
   c = (olg(), nlg);
   !c.a && (c.a = td(ac, ZIj));
   mg(c.a, eEj, false) != b && undefined;
-  PixelDungeon_fullscreen((!c.a && (c.a = td(ac, ZIj)), mg(c.a, WIj, true)));
+  PixelDungeon.fullscreen((!c.a && (c.a = td(ac, ZIj)), mg(c.a, WIj, true)));
   Kdg((Jdg(), Idg), plg(nlg, Lnj, false));
   feg((eeg(), deg), plg(nlg, Mnj, true));
   geg(
@@ -74863,28 +74920,28 @@ function xo(a, b, c) {
   if (h > 0) {
     o -= h;
     if (o < 0) {
-      b.o = $qf(b.o + o);
-      b.q = $qf(b.q - o);
+      b.o = Cast_round_int(b.o + o);
+      b.q = Cast_round_int(b.q - o);
       o = 0;
     }
     p -= h;
     if (p > k) {
-      b.o = $qf(b.o - (p - k));
+      b.o = Cast_round_int(b.o - (p - k));
       p = k;
     }
   }
   if (i > 0) {
     q -= i;
     if (q < 0) {
-      b.b = $qf(b.b + q);
+      b.b = Cast_round_int(b.b + q);
       b.b < 0 && (b.b = 0);
       q = 0;
     }
     r -= i;
     if (r > j) {
       d = r - j;
-      b.b = $qf(b.b - d);
-      b.r = $qf(b.r + d);
+      b.b = Cast_round_int(b.b - d);
+      b.r = Cast_round_int(b.r + d);
       r = j;
     }
   }
@@ -74903,37 +74960,37 @@ function M$g(a, b) {
   this.a = a;
   EHg.call(this);
   h = new JJh(b);
-  nfg(h, 0, 0, 120, 0);
-  _ag(this, h);
+  Component_$setRect(h, 0, 0, 120, 0);
+  Group_$add(this, h);
   g = Fth(yJh(q8i, aqf(Vpf(WXf, 1), E9h, 1, 5, [!b.g ? b.w : b.g.U7(b.w)])), 8);
   g.b = 116;
-  H8f(g);
+  BitmapTextMultiline_$measure(g);
   g.gb = 2;
   g.hb = h.D + h.A + 2;
-  _ag(this, g);
+  Group_$add(this, g);
   f = g.hb + g.$ * g.db.b;
   if (b.j != (Ych(), Xch)) {
     e = new b_g(this, b);
-    nfg(e, 2, f + 2, 116, 20);
-    _ag(this, e);
+    Component_$setRect(e, 2, f + 2, 116, 20);
+    Group_$add(this, e);
     f = e.D + e.A;
   }
   if (b.j != Vch) {
     c = new d_g(this, b);
-    nfg(c, 2, f + 2, 116, 20);
-    _ag(this, c);
+    Component_$setRect(c, 2, f + 2, 116, 20);
+    Group_$add(this, c);
     f = c.D + c.A;
   }
   d = new f_g(this);
-  nfg(d, 2, f + 2, 116, 20);
-  _ag(this, d);
-  DHg(this, 120, $qf(d.D + d.A) + 2);
+  Component_$setRect(d, 2, f + 2, 116, 20);
+  Group_$add(this, d);
+  DHg(this, 120, Cast_round_int(d.D + d.A) + 2);
 }
 function Mxh(a, b) {
   var c;
   Z9f.call(this, aHj);
   do {
-    c = $qf($wnd.Math.random() * 3);
+    c = Cast_round_int($wnd.Math.random() * 3);
   } while (c == Lxh);
   switch (c) {
     case 0:
@@ -74990,24 +75047,24 @@ function _Kh(a) {
   c = new HJh();
   DJh(c, $xg(a));
   EJh(c, xJh(a.I));
-  nfg(c, 0, 0, 116, 0);
-  _ag(this, c);
+  Component_$setRect(c, 0, 0, 116, 0);
+  Group_$add(this, c);
   b = Fth(Baj, 6);
   b.b = 116;
-  H8f(b);
+  BitmapTextMultiline_$measure(b);
   b.hb = c.D + c.A + 2;
-  _ag(this, b);
+  Group_$add(this, b);
   this.a = new iLh(this);
-  nfg(this.a, 17, b.hb + b.$ * b.db.b + 10, 36, 36);
-  _ag(this, this.a);
+  Component_$setRect(this.a, 17, b.hb + b.$ * b.db.b + 10, 36, 36);
+  Group_$add(this, this.a);
   this.b = new kLh(this);
-  nfg(this.b, lfg(this.a) + 10, this.a.D, 36, 36);
-  _ag(this, this.b);
+  Component_$setRect(this.b, lfg(this.a) + 10, this.a.D, 36, 36);
+  Group_$add(this, this.b);
   this.d = new mLh(this);
   P$g(this.d, false);
-  nfg(this.d, 0, hfg(this.a) + 10, 116, 20);
-  _ag(this, this.d);
-  DHg(this, 116, $qf(hfg(this.d)));
+  Component_$setRect(this.d, 0, hfg(this.a) + 10, 116, 20);
+  Group_$add(this, this.d);
+  DHg(this, 116, Cast_round_int(hfg(this.d)));
 }
 function b5c() {
   var a;
@@ -75209,8 +75266,8 @@ function us(a) {
   a.o = 0;
   a.r -= a.q;
   a.q = Ms(a.s);
-  a.t = $qf(Ms(a.w));
-  a.v = $qf(Rs(a.w));
+  a.t = Cast_round_int(Ms(a.w));
+  a.v = Cast_round_int(Rs(a.w));
   a.w.d || (a.v -= a.t);
   a.L.a || ns(a);
   a.K.a || ms(a);
@@ -75619,10 +75676,10 @@ function FAg(a) {
       continue;
     }
     if (ang(a, b, true)) {
-      b.B2(14 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 7) / 2), a);
+      b.B2(14 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 7) / 2), a);
       if ((Fjg(), Dungeon.visible)[d]) {
         Ayh(b.M);
-        zeg(eNg(d), (OTg(), MTg), 0, 1 + $qf($wnd.Math.random() * 2));
+        zeg(eNg(d), (OTg(), MTg), 0, 1 + Cast_round_int($wnd.Math.random() * 2));
       }
       if (b.A <= 0 && b == Dungeon.hero) {
         Dungeon_fail(
@@ -75725,7 +75782,7 @@ function uYg(a, b) {
       break;
     case 8:
       x7f(a.c, 0);
-      _ag(a.c.mb, new Yeg(a.c, 1, wii));
+      Group_$add(a.c.mb, new Yeg(a.c, 1, wii));
   }
   if (a.d != (XYg(), UYg)) {
     a.d = RYg;
@@ -75954,7 +76011,7 @@ function u_b(a, b, c, d, e, f, g, h, i) {
         : !!u.d && w_b(u.d, b, v, w + j - a.s / 2, a.Hb, p + a.s);
       if (null.Teb > 0) {
         n = null.Teb ? a.r.b : a.r.e;
-        r = w + j + $qf($wnd.Math.round((p - n.OC()) / 2));
+        r = w + j + Cast_round_int($wnd.Math.round((p - n.OC()) / 2));
         n.Jf(b, o, r, n.PC(), n.OC());
       }
     } else if (j < k) {
@@ -76304,7 +76361,7 @@ function grh(a, b) {
   if (b) {
     b.B2($wnd.Math.max(1, VTh((b.A / 3) | 0, ((2 * b.A) / 3) | 0)), drh);
     if (b == (Fjg(), Dungeon.hero)) {
-      r9f((g9f(), f9f), 2, Dii);
+      r9f((g9f(), Camera_main), 2, Dii);
       if (b.A > 0) {
         ssg(b.d, false);
       } else {
@@ -76321,12 +76378,12 @@ function grh(a, b) {
     c = Zpf(erf, $9h, 23, 2, 15, 1);
     c[0] = a - 32;
     c[1] = a + 32;
-    _ag(b.M.mb, new zPg(c, 2, null));
+    Group_$add(b.M.mb, new zPg(c, 2, null));
     c[0] = a - 1;
     c[1] = a + 1;
-    _ag(b.M.mb, new zPg(c, 2, null));
+    Group_$add(b.M.mb, new zPg(c, 2, null));
   }
-  zeg(eNg(a), (ZUg(), YUg), 0, 3 + $qf($wnd.Math.random() * 2));
+  zeg(eNg(a), (ZUg(), YUg), 0, 3 + Cast_round_int($wnd.Math.random() * 2));
 }
 function o4c() {
   if (twc) return twc;
@@ -76549,10 +76606,10 @@ function zPg(a, b, c) {
     d.gb = this.d[f] - d.ab.a;
     d.hb = this.e[f] - d.ab.b;
     vTh(d.ab, 0, h);
-    _ag(this, d);
+    Group_$add(this, d);
     d = this.a[f] = new Y9f(i);
     vTh(d.ab, 0, h);
-    _ag(this, d);
+    Group_$add(this, d);
   }
   this.g = Dii;
   ieg((eeg(), deg), kIj, 1, 1);
@@ -76564,8 +76621,8 @@ function cPh(a, b) {
   g = YOh(this, a, false);
   if (a.A == 1) {
     d = new jPh(this, yJh(ybj, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(a.h4())])), a);
-    nfg(d, 0, g + 2, 120, 16);
-    _ag(this, d);
+    Component_$setRect(d, 0, g + 2, 120, 16);
+    Group_$add(this, d);
     g = d.D + d.A;
   } else {
     h = a.h4();
@@ -76574,17 +76631,17 @@ function cPh(a, b) {
       yJh(zbj, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh((h / a.A) | 0)])),
       a,
     );
-    nfg(e, 0, g + 2, 120, 16);
-    _ag(this, e);
+    Component_$setRect(e, 0, g + 2, 120, 16);
+    Group_$add(this, e);
     f = new nPh(this, yJh(Abj, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(h)])), a);
-    nfg(f, 0, e.D + e.A + 2, 120, 16);
-    _ag(this, f);
+    Component_$setRect(f, 0, e.D + e.A + 2, 120, 16);
+    Group_$add(this, f);
     g = f.D + f.A;
   }
   c = new pPh(this);
-  nfg(c, 0, g + 2, 120, 16);
-  _ag(this, c);
-  DHg(this, 120, $qf(c.D + c.A));
+  Component_$setRect(c, 0, g + 2, 120, 16);
+  Group_$add(this, c);
+  DHg(this, 120, Cast_round_int(c.D + c.A));
 }
 function eSe() {
   if (Jsd) return Jsd;
@@ -76660,7 +76717,7 @@ function hih(a) {
     ++g;
   }
   for (c = 0; c < g; c++) {
-    switch ($qf($wnd.Math.random() * 20)) {
+    switch (Cast_round_int($wnd.Math.random() * 20)) {
       case 0:
         h = (XYg(), VYg);
         break;
@@ -76694,7 +76751,7 @@ function hih(a) {
 function Swh(a, b) {
   var c, d;
   if (Owh == b) {
-    _ag(a, new $Lh(b));
+    Group_$add(a, new $Lh(b));
     return;
   }
   !!Owh && uxh(ZPh(Pwh, Owh), false);
@@ -76711,14 +76768,14 @@ function Swh(a, b) {
       );
       a.b.nb = true;
       Zwh(a.b, faj, false);
-      d = ((g9f(), f9f).p - 2) / 2 - a.c;
-      nfg(a.a, a.c, a.d, d, 24);
-      nfg(a.b, lfg(a.a) + 2, a.d, d, 24);
+      d = ((g9f(), Camera_main).p - 2) / 2 - a.c;
+      Component_$setRect(a.a, a.c, a.d, d, 24);
+      Component_$setRect(a.b, lfg(a.a) + 2, a.d, d, 24);
     } else {
       a.a.nb = false;
       a.b.nb = true;
       Zwh(a.b, null, false);
-      nfg(a.b, a.c, a.d, (g9f(), f9f).p - a.c * 2, 24);
+      Component_$setRect(a.b, a.c, a.d, (g9f(), Camera_main).p - a.c * 2, 24);
     }
   } else {
     a.f.nb = true;
@@ -76803,9 +76860,9 @@ function nrh(a, b) {
   }
   !!b && (Ojf(), (Kjf[b.K] = b));
   g = 1;
-  if ($qf($wnd.Math.random() * 2) == 0) {
+  if (Cast_round_int($wnd.Math.random() * 2) == 0) {
     ++g;
-    $qf($wnd.Math.random() * 2) == 0 && ++g;
+    Cast_round_int($wnd.Math.random() * 2) == 0 && ++g;
   }
   c = new a1h();
   for (d = 0; d < (Pgh(), zgh).length; d++) {
@@ -76815,7 +76872,7 @@ function nrh(a, b) {
   }
   k = new a1h();
   while (g > 0 && c.a.length > 0) {
-    e = $qf($wnd.Math.random() * c.a.length);
+    e = Cast_round_int($wnd.Math.random() * c.a.length);
     krh.K = (V8h(e, c.a.length), c.a[e]).a;
     ekf(krh);
     T0h(k, X0h(c, e));
@@ -76842,10 +76899,10 @@ function ap(a, b, c, d, e) {
   m = b.k;
   n = b.n;
   if (a.f) {
-    c = $qf($wnd.Math.round(c));
-    d = $qf($wnd.Math.round(d));
-    p = $qf($wnd.Math.round(p));
-    f = $qf($wnd.Math.round(f));
+    c = Cast_round_int($wnd.Math.round(c));
+    d = Cast_round_int($wnd.Math.round(d));
+    p = Cast_round_int($wnd.Math.round(p));
+    f = Cast_round_int($wnd.Math.round(f));
   }
   q = c + p;
   r = d + f;
@@ -76879,10 +76936,10 @@ function qp(a, b) {
   var c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, A;
   n =
     ((c =
-      ($qf(255 * b.a) << 24) |
-      ($qf(255 * b.b) << 16) |
-      ($qf(255 * b.c) << 8) |
-      $qf(255 * b.d)),
+      (Cast_round_int(255 * b.a) << 24) |
+      (Cast_round_int(255 * b.b) << 16) |
+      (Cast_round_int(255 * b.c) << 8) |
+      Cast_round_int(255 * b.d)),
     knf(),
     (jnf[0] = c & Obi),
     undefined,
@@ -76946,7 +77003,7 @@ function bZg(a) {
       d.a.length > 0
         ? ((k = d.a.length),
           k > 0
-            ? y8h(d.a, d.a.length)[k > 0 ? $qf($wnd.Math.random() * k) : 0]
+            ? y8h(d.a, d.a.length)[k > 0 ? Cast_round_int($wnd.Math.random() * k) : 0]
             : null).a
         : -1;
   }
@@ -76958,7 +77015,7 @@ function bZg(a) {
     Kuh(b);
     Vjf(new SQg(b, a, i), -1);
     x7f(b.M, 0);
-    _ag(b.M.mb, new Yeg(b.M, 1, Bii));
+    Group_$add(b.M.mb, new Yeg(b.M, 1, Bii));
     ieg(deg, HIj, 1, 1);
   }
 }
@@ -78048,15 +78105,15 @@ function YE(a) {
       a.a && e && a.n == vF ? lC(a.C) : (e = false);
     }
     if (e) {
-      a.j = $qf(a.j + c);
+      a.j = Cast_round_int(a.j + c);
       d = a.i + a.k * FM(a.o, a.B);
       if (d > 0) {
         d = Sai / d;
         if (a.j >= d) {
-          f = $qf(a.j / d);
+          f = Cast_round_int(a.j / d);
           f = $wnd.Math.min(f, a.w - a.C.i.c);
-          a.j = $qf(a.j - f * d);
-          a.j = $qf(a.j % d);
+          a.j = Cast_round_int(a.j - f * d);
+          a.j = Cast_round_int(a.j % d);
           SE(a, f);
         }
       }
@@ -78727,23 +78784,23 @@ function P7c() {
 }
 function GHg(a, b, c) {
   nbg.call(this);
-  this.n = new hJh(this, yth.p, yth.a);
-  this.n.kb = yth;
-  _ag(this, this.n);
+  this.n = new hJh(this, PixelScene_uiCamera.p, PixelScene_uiCamera.a);
+  this.n.kb = PixelScene_uiCamera;
+  Group_$add(this, this.n);
   this.o = c;
   this.r = a;
   this.p = b;
   this.q = new bRg();
   this.q.T = 0.5;
-  this.q.kb = yth.nb ? yth : (g9f(), f9f);
-  _ag(this, this.q);
+  this.q.kb = PixelScene_uiCamera.nb ? PixelScene_uiCamera : (g9f(), Camera_main);
+  Group_$add(this, this.q);
   c.gb = -c.e;
   c.hb = -c.g;
   c.i0(a - c.gb + c.f, b - c.hb + c.d);
-  _ag(this, c);
-  this.kb = new v9f(0, 0, $qf(c.fb), $qf(c.$), nth);
-  this.kb.q = ($qf(tag - this.kb.p * this.kb.s) / 2) | 0;
-  this.kb.r = ($qf(pag - this.kb.a * this.kb.s) / 2) | 0;
+  Group_$add(this, c);
+  this.kb = new v9f(0, 0, Cast_round_int(c.fb), Cast_round_int(c.$), PixelScene_defaultZoom);
+  this.kb.q = (Cast_round_int(Game_width - this.kb.p * this.kb.s) / 2) | 0;
+  this.kb.r = (Cast_round_int(Game_height - this.kb.a * this.kb.s) / 2) | 0;
   vTh(this.kb.e, c.gb, c.hb);
   w9f(this.kb);
   aRg(this.q, this.kb.q / this.kb.s, this.kb.r / this.kb.s, c.fb * c.db.a, c.$);
@@ -78934,7 +78991,7 @@ function SIg(a) {
     Ojf();
     Kjf[c.K] = c;
     KIg = true;
-    switch ($qf($wnd.Math.random() * 3)) {
+    switch (Cast_round_int($wnd.Math.random() * 3)) {
       case 0:
         LIg = (YIg(), XIg);
         IIg = 8;
@@ -79161,14 +79218,14 @@ function jdc(a) {
   e = a.length;
   b = new Snc(e + 16);
   for (d = 0; d < e; ) {
-    c = nYh(a, d++);
+    c = String_$charAt(a, d++);
     if (c != 92) {
       b.b == b.a.length && Hnc(b, b.b + 1);
       b.a[b.b++] = c;
       continue;
     }
     if (d == e) break;
-    c = nYh(a, d++);
+    c = String_$charAt(a, d++);
     if (c == 117) {
       Bnc(b, iWh(CVh(a.substr(d, d + 4 - d), 16, cbi, v9h)));
       d += 4;
@@ -79272,7 +79329,7 @@ function zjf(a, b, c, d, e) {
       if (xjf(k, l, i, d)) break q;
     }
   }
-  kjf(a, lWh(32), new gUh(0, 0, l / p, o));
+  kjf(a, Character_valueOf(32), new gUh(0, 0, l / p, o));
   for (h = 0; h < j; h++) {
     f = (b9h(h, e.length), e.charCodeAt(h));
     if (f == 32) {
@@ -79291,12 +79348,12 @@ function zjf(a, b, c, d, e) {
           }
         }
       } while (!g);
-      kjf(a, lWh(f), new gUh(l / p, 0, m / p, o));
+      kjf(a, Character_valueOf(f), new gUh(l / p, 0, m / p, o));
       l = m + 1;
     }
   }
   cQh((Uk(), Tk), rXh(k.n));
-  a.c = a.b = mjf(a, ZPh(a.f, lWh((b9h(0, e.length), e.charCodeAt(0)))));
+  a.c = a.b = mjf(a, ZPh(a.f, Character_valueOf((b9h(0, e.length), e.charCodeAt(0)))));
 }
 function YMe() {
   if (Bnd) return Bnd;
@@ -80266,7 +80323,7 @@ function A5c() {
 function gvg(a, b) {
   var c, d, e, f, g, h, i, j;
   if (a.L) {
-    r9f((g9f(), f9f), 1, 1);
+    r9f((g9f(), Camera_main), 1, 1);
     return false;
   }
   i = -1;
@@ -81115,7 +81172,7 @@ function KCg(a, b) {
     if (c.a.length > 0) {
       k = ((l = c.a.length),
       l > 0
-        ? y8h(c.a, c.a.length)[l > 0 ? $qf($wnd.Math.random() * l) : 0]
+        ? y8h(c.a, c.a.length)[l > 0 ? Cast_round_int($wnd.Math.random() * l) : 0]
         : null).a;
       Vjf(new SQg(e, e.K, k), -1);
       e.K = k;
@@ -81153,28 +81210,28 @@ function jOh() {
       (e7h(), b7h),
     ),
   );
-  nfg(d, 0, 0, 112, 0);
-  _ag(this, d);
+  Component_$setRect(d, 0, 0, 112, 0);
+  Group_$add(this, d);
   c = d.D + d.A;
   if (Dungeon.challenges > 0) {
     a = new lOh();
-    nfg(a, 0, c + 4, O7f(a.g) + 4 + 2, a.g.D_() + 4 + 2);
-    _ag(this, a);
+    Component_$setRect(a, 0, c + 4, O7f(a.g) + 4 + 2, a.g.D_() + 4 + 2);
+    Group_$add(this, a);
     c = a.D + a.A;
   }
   c += 8;
   c = iOh(this, Laj, "" + Dungeon.hero.a, c);
   c = iOh(this, a_i, "" + Dungeon.hero.B, c);
   c += 4;
-  c = iOh(this, bbj, "" + $qf(gmg), c);
+  c = iOh(this, bbj, "" + Cast_round_int(Statistics_duration), c);
   c += 4;
-  c = iOh(this, Naj, "" + fmg, c);
-  c = iOh(this, cbj, "" + hmg, c);
-  c = iOh(this, Maj, "" + jmg, c);
+  c = iOh(this, Naj, "" + Statistics_deepestFloor, c);
+  c = iOh(this, cbj, "" + Statistics_enemiesSlain, c);
+  c = iOh(this, Maj, "" + Statistics_goldCollected, c);
   c += 4;
-  c = iOh(this, dbj, "" + img, c);
-  c = iOh(this, ebj, "" + mmg, c);
-  iOh(this, fbj, "" + dmg, c);
+  c = iOh(this, dbj, "" + Statistics_foodEaten, c);
+  c = iOh(this, ebj, "" + Statistics_potionsCooked, c);
+  iOh(this, fbj, "" + Statistics_ankhsUsed, c);
 }
 function LCh() {
   var a;
@@ -81435,7 +81492,7 @@ function lFg(a) {
   a.a = 5;
   for (c = 0; c < 4; c++) {
     do {
-      e = $qf($wnd.Math.random() * oei);
+      e = Cast_round_int($wnd.Math.random() * oei);
     } while (!(Pgh(), Dgh)[e] || !Hgh[e]);
     if ((Fjg(), Dungeon.level).w[e] == 23) {
       Ghh(e, 27);
@@ -81446,7 +81503,7 @@ function lFg(a) {
     }
   }
   do {
-    d = $qf($wnd.Math.random() * oei);
+    d = Cast_round_int($wnd.Math.random() * oei);
   } while (
     !(Pgh(), Dgh)[d] ||
     !Hgh[d] ||
@@ -81768,7 +81825,7 @@ function HMh(a) {
   this.b = a;
   nbg.call(this);
   d = (Fjg(), Dungeon.hero);
-  e = Gth(
+  e = PixelScene_createText(
     KYh(
       yJh(
         Oaj,
@@ -81781,24 +81838,24 @@ function HMh(a) {
     ),
     9,
   );
-  C7f(e, 1, 1, ILj);
-  p8f(e);
-  _ag(this, e);
+  Visual_$hardlight(e, 1, 1, ILj);
+  BitmapText_$measure(e);
+  Group_$add(this, e);
   b = new LMh(this);
   b.n = (mWg(), RVg);
-  nfg(b, 0, e.hb + e.$ * e.db.b, O7f(b.g) + 4 + 2, b.g.D_() + 4 + 2);
-  _ag(this, b);
+  Component_$setRect(b, 0, e.hb + e.$ * e.db.b, O7f(b.g) + 4 + 2, b.g.D_() + 4 + 2);
+  Group_$add(this, b);
   c = new NMh(this);
   c.n = UVg;
-  nfg(c, b.C + b.B + 1, b.D, O7f(c.g) + 4 + 2, c.g.D_() + 4 + 2);
-  _ag(this, c);
+  Component_$setRect(c, b.C + b.B + 1, b.D, O7f(c.g) + 4 + 2, c.g.D_() + 4 + 2);
+  Group_$add(this, c);
   this.a = b.D + b.A + 5;
   GMh(this, Laj, "" + (d.v ? d.a - 2 : d.a));
   GMh(this, a_i, d.A + "/" + d.B);
   GMh(this, Kaj, d.i + "/" + (5 + d.o * 5));
   this.a += 5;
-  GMh(this, Maj, "" + jmg);
-  GMh(this, Naj, "" + fmg);
+  GMh(this, Maj, "" + Statistics_goldCollected);
+  GMh(this, Naj, "" + Statistics_deepestFloor);
   this.a += 5;
 }
 function aQ(a, b, c, d, e) {
@@ -81848,7 +81905,7 @@ function _ng(a) {
   if (c) {
     b = 0;
     Rqf(a, 50)
-      ? (b = Txg(a) * (1 + $qf($wnd.Math.random() * 3)))
+      ? (b = Txg(a) * (1 + Cast_round_int($wnd.Math.random() * 3)))
       : Rqf(a, 141) && (b = 5 + a.o * 5);
     if (b > 0) {
       d = c.e - b;
@@ -82076,24 +82133,24 @@ function EKg() {
 }
 function gKh(a, b, c, d) {
   var e, f, g, h, i, j, k, l, m;
-  VJh.call(this);
+  WndTabbed.call(this);
   this.c = b;
   this.d = c;
   this.i = d;
   cKh = c;
   bKh = a;
-  this.e = tag > pag ? 6 : 4;
+  this.e = Game_width > Game_height ? 6 : 4;
   this.f = ((24 / this.e) | 0) + (24 % this.e > 0 ? 1 : 0);
   j = 28 * this.e + (this.e - 1);
   i = 28 * this.f + (this.f - 1);
-  m = Gth(d != null ? d : xJh(a.w), 9);
-  C7f(m, 1, 1, ILj);
-  p8f(m);
-  m.gb = ($qf(j - m.fb * m.db.a) / 2) | 0;
-  m.hb = ($qf(12 - m.$ * m.db.b) / 2) | 0;
-  _ag(this, m);
+  m = PixelScene_createText(d != null ? d : xJh(a.w), 9);
+  Visual_$hardlight(m, 1, 1, ILj);
+  BitmapText_$measure(m);
+  m.gb = (Cast_round_int(j - m.fb * m.db.a) / 2) | 0;
+  m.hb = (Cast_round_int(12 - m.$ * m.db.b) / 2) | 0;
+  Group_$add(this, m);
   fKh(this, a);
-  TJh(this, j, i + 12);
+  WndTabbed_$resize(this, j, i + 12);
   k = (Fjg(), Dungeon.hero).d;
   h = aqf(Vpf(_Mf, 1), Ybj, 184, 0, [
     k.b,
@@ -82106,7 +82163,7 @@ function gKh(a, b, c, d) {
     e = h[f];
     if (e) {
       l = new vKh(this, e);
-      ofg(l, 25, 20);
+      Component_$setSize(l, 25, 20);
       SJh(this, l);
       qKh(l, e == a);
       l.b.T = l.e ? 1 : wii;
@@ -82335,9 +82392,9 @@ function Dungeon_newLevel() {
   Dungeon.level = null;
   Wjf();
   ++Dungeon.depth;
-  if (Dungeon.depth > fmg) {
-    fmg = Dungeon.depth;
-    nmg ? (emg = true) : (emg = false);
+  if (Dungeon.depth > Statistics_deepestFloor) {
+    Statistics_deepestFloor = Dungeon.depth;
+    Statistics_qualifiedForNoKilling ? (Statistics_completedWithNoKilling = true) : (Statistics_completedWithNoKilling = false);
   }
   $1h(Dungeon.visible);
   switch (Dungeon.depth) {
@@ -82393,10 +82450,10 @@ function Dungeon_newLevel() {
       break;
     default:
       a = new Zjh();
-      --fmg;
+      --Statistics_deepestFloor;
   }
   a.j0();
-  nmg = !Hjg(Dungeon.depth);
+  Statistics_qualifiedForNoKilling = !Hjg(Dungeon.depth);
   return a;
 }
 function Tw(a, b, c) {
@@ -82889,15 +82946,15 @@ function RMh(a) {
     j = new Z9f(Dungeon.level.k9());
     U9f(j, V4f(j.O, 0, 0, 16, 16));
     kbg(i, i.c);
-    _ag(i, (i.c = j));
+    Group_$add(i, (i.c = j));
   } else {
     DJh(i, jkg(h));
   }
   EJh(i, Dungeon.level.f9(h));
-  nfg(i, 0, 0, 120, 0);
-  _ag(this, i);
+  Component_$setRect(i, 0, 0, 120, 0);
+  Group_$add(this, i);
   f = Fth(null, 6);
-  _ag(this, f);
+  Group_$add(this, f);
   d = new eZh(Dungeon.level.e9(h));
   for (
     c = ((g = new $_h(Dungeon.level.o).a.Ocb().Pd()), new d0h(g));
@@ -82910,12 +82967,12 @@ function RMh(a) {
       aZh(d, b.TZ());
     }
   }
-  q8f(f, d.a.length > 0 ? d.a : Saj);
+  BitmapText_$text(f, d.a.length > 0 ? d.a : Saj);
   f.b = 120;
-  H8f(f);
+  BitmapTextMultiline_$measure(f);
   f.gb = i.C;
   f.hb = i.D + i.A + 2;
-  DHg(this, 120, $qf(f.hb + f.$ * f.db.b));
+  DHg(this, 120, Cast_round_int(f.hb + f.$ * f.db.b));
 }
 function t5c() {
   if (yxc) return yxc;
@@ -83326,33 +83383,33 @@ function _Mh(a, b) {
   DJh(g, new UNg(b.Y3(), b.W3()));
   EJh(g, xJh(b.Nb()));
   b.b4() && b.v && CJh(g, b.s / b.d4(b.u));
-  nfg(g, 0, 0, 120, 0);
-  _ag(this, g);
+  Component_$setRect(g, 0, 0, 120, 0);
+  Group_$add(this, g);
   b.v && (b.u < 0 ? D7f(g.d, waj) : b.u > 0 && BJh(g, b.s <= 0 ? qaj : xaj));
   f = Fth(b.Z3(), 6);
   f.b = 120;
-  H8f(f);
+  BitmapTextMultiline_$measure(f);
   f.gb = g.C;
   f.hb = g.D + g.A + 2;
-  _ag(this, f);
+  Group_$add(this, f);
   i = f.hb + f.$ * f.db.b + 2;
   h = 0;
   if ((Fjg(), Dungeon.hero).A > 0 && !!a) {
     for (d = new G1h(b.D3(Dungeon.hero)); d.a < d.c.a.length; ) {
       c = F1h(d);
       e = new aNh(this, c, b, c, a);
-      ofg(e, $wnd.Math.max(36, O7f(e.g) + 4), 16);
+      Component_$setSize(e, $wnd.Math.max(36, O7f(e.g) + 4), 16);
       if (h + e.B > 120) {
         h = 0;
         i += 18;
       }
-      mfg(e, h, i);
-      _ag(this, e);
+      Component_$setPos(e, h, i);
+      Group_$add(this, e);
       c == b.r && D7f(e.g, zaj);
       h += e.B + 2;
     }
   }
-  DHg(this, 120, $qf(i + (h > 0 ? 16 : 0)));
+  DHg(this, 120, Cast_round_int(i + (h > 0 ? 16 : 0)));
 }
 function Qf(a, b) {
   var c, d, e, f, g, h;
@@ -83368,7 +83425,7 @@ function Qf(a, b) {
     h = Knf($doc) - b.d;
     f = Jnf($doc) - b.e;
     e = b.g ? $wnd.devicePixelRatio || 1 : 1;
-    Lf(this, $qf(e * h), $qf(e * f));
+    Lf(this, Cast_round_int(e * h), Cast_round_int(e * f));
   }
   c = { premultipliedAlpha: false };
   c.antialias = false;
@@ -84891,33 +84948,33 @@ function B2c() {
   ]);
   return Guc;
 }
-function zth(a) {
+function PixelScene_$create(a) {
   var b, c, d;
   C6f(qag.b, (a.w = new Tcg(a)));
   zuh();
   yuh = null;
-  if (tag > pag) {
+  if (Game_width > Game_height) {
     c = 224;
     b = 160;
   } else {
     c = 128;
     b = 224;
   }
-  nth = $qf($wnd.Math.ceil(nag * 2.5));
-  while ((tag / nth < c || pag / nth < b) && nth > 1) {
-    --nth;
+  PixelScene_defaultZoom = Cast_round_int($wnd.Math.ceil(nag * 2.5));
+  while ((Game_width / PixelScene_defaultZoom < c || Game_height / PixelScene_defaultZoom < b) && PixelScene_defaultZoom > 1) {
+    --PixelScene_defaultZoom;
   }
   if (plg((olg(), nlg), Knj, true)) {
-    while (tag / (nth + 1) >= c && pag / (nth + 1) >= b) {
-      ++nth;
+    while (Game_width / (PixelScene_defaultZoom + 1) >= c && Game_height / (PixelScene_defaultZoom + 1) >= b) {
+      ++PixelScene_defaultZoom;
     }
   }
   vth = 1;
-  uth = nth * 2;
-  G9f(new Fwh(nth));
-  d = nth;
-  yth = z9f(d);
-  w9f(yth);
+  uth = PixelScene_defaultZoom * 2;
+  G9f(new Fwh(PixelScene_defaultZoom));
+  d = PixelScene_defaultZoom;
+  PixelScene_uiCamera = z9f(d);
+  w9f(PixelScene_uiCamera);
   if (!qth) {
     qth = Ejf((yPh(), CPh(LQi, NHj)), 0, LGj);
     qth.b = 6;
@@ -85032,7 +85089,7 @@ function Yug(a, b) {
       switch (e.d.f) {
         case 5:
           ieg((eeg(), deg), qIj, 1, 1);
-          r9f((g9f(), f9f), 1, 0.5);
+          r9f((g9f(), Camera_main), 1, 0.5);
           break;
         case 6:
           break;
@@ -86227,17 +86284,17 @@ function xYg(b) {
   if (d >= 3) {
     zeg(fNg(b.b), jRg(7, false), 0, 6);
     ieg((eeg(), deg), BIj, 1, 1);
-    if ((d > 0 ? $qf($wnd.Math.random() * d) : 0) == 0) {
+    if ((d > 0 ? Cast_round_int($wnd.Math.random() * d) : 0) == 0) {
       zeg(eNg(b.b), jRg(102, false), 0, 3);
       pYg(b);
-      ++mmg;
+      ++Statistics_potionsCooked;
       Sgg();
       return IXg((XXg(), RXg));
     } else {
       i = NSh(b.a, $Th(c));
       h = i.a;
       pYg(b);
-      ++mmg;
+      ++Statistics_potionsCooked;
       Sgg();
       if (!h) {
         return IXg((XXg(), RXg));
@@ -86632,9 +86689,9 @@ function GBh() {
 }
 function tLh(a) {
   var b, c, d, e, f, g, h, i, j;
-  q8f(a.c, yJh(Gaj, aqf(Vpf(WXf, 1), E9h, 1, 5, [sLh ? Eaj : Faj])));
+  BitmapText_$text(a.c, yJh(Gaj, aqf(Vpf(WXf, 1), E9h, 1, 5, [sLh ? Eaj : Faj])));
   a.c.G_();
-  a.c.gb = Bth(yth, (a.r - O7f(a.c)) / 2);
+  a.c.gb = PixelScene_align(PixelScene_uiCamera, (a.r - O7f(a.c)) / 2);
   a.a.a = Zpf(WXf, E9h, 1, 0, 5, 1);
   b = a.b.b;
   cbg(b);
@@ -86649,8 +86706,8 @@ function tLh(a) {
   ) {
     e = ((c = g.a.Sd()), c.Aeb());
     d = new ILh(a, e);
-    nfg(d, 0, j, a.r, 18);
-    _ag(b, d);
+    Component_$setRect(d, 0, j, a.r, 18);
+    Group_$add(b, d);
     T0h(a.a, d);
     j += d.A;
   }
@@ -86665,13 +86722,13 @@ function tLh(a) {
   ) {
     e = ((c = f.a.Sd()), c.Aeb());
     d = new ILh(a, e);
-    nfg(d, 0, j, a.r, 18);
-    _ag(b, d);
+    Component_$setRect(d, 0, j, a.r, 18);
+    Group_$add(b, d);
     T0h(a.a, d);
     j += d.A;
   }
-  ofg(b, a.r, j);
-  ofg(a.b, a.b.B, a.b.A);
+  Component_$setSize(b, a.r, j);
+  Component_$setSize(a.b, a.b.B, a.b.A);
 }
 function d6c() {
   if (iyc) return iyc;
@@ -86756,7 +86813,7 @@ function d6c() {
 function qtg(a) {
   var b, c, d;
   if (a.u > 0 && a.s > 0) {
-    d = $qf(a.d4(a.u) * Fhi);
+    d = Cast_round_int(a.d4(a.u) * Fhi);
     a.s-- >= d &&
       d > a.s &&
       a.v &&
@@ -86777,12 +86834,12 @@ function qtg(a) {
         c = Dungeon.hero.M;
         b = qTh(new yTh(c.gb + c.fb / 2, c.hb + c.$ / 2), 0, -16);
         Rqf(a, 132)
-          ? _ag(c.mb, (pNg(), new qNg(b, oNg)))
+          ? Group_$add(c.mb, (pNg(), new qNg(b, oNg)))
           : Rqf(a, 153)
-            ? _ag(c.mb, (pNg(), new qNg(b, lNg)))
+            ? Group_$add(c.mb, (pNg(), new qNg(b, lNg)))
             : Rqf(a, 130)
-              ? _ag(c.mb, (pNg(), new qNg(b, mNg)))
-              : Rqf(a, 112) && _ag(c.mb, (pNg(), new qNg(b, nNg)));
+              ? Group_$add(c.mb, (pNg(), new qNg(b, mNg)))
+              : Rqf(a, 112) && Group_$add(c.mb, (pNg(), new qNg(b, nNg)));
         ieg((eeg(), deg), IIj, 1, 1);
       }
     }
@@ -88825,10 +88882,10 @@ function mq(a, b, c) {
     if (!e) return -1;
     qbc(
       gq,
-      ($qf(255 * e.a) << 24) |
-        ($qf(255 * e.b) << 16) |
-        ($qf(255 * e.c) << 8) |
-        $qf(255 * e.d),
+      (Cast_round_int(255 * e.a) << 24) |
+        (Cast_round_int(255 * e.b) << 16) |
+        (Cast_round_int(255 * e.c) << 8) |
+        Cast_round_int(255 * e.d),
     );
     return f - b;
   }
@@ -89800,16 +89857,16 @@ function xGh(a, b) {
     a.ib = true;
     a.f.nb = a.g.nb = a.i.nb = a.e.nb = true;
     SNg(a.f, b.Y3(), b.W3());
-    q8f(a.g, b.l4());
+    BitmapText_$text(a.g, b.l4());
     c = Rqf(b, 153);
     d = Rqf(b, 132);
     if (c || d) {
       if (b.v || (d && !Rqf(b, 126))) {
         f = c ? b.c : b.f;
-        q8f(a.i, yJh(":%d", aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(f)])));
+        BitmapText_$text(a.i, yJh(":%d", aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(f)])));
         f > Pug((Fjg(), Dungeon.hero)) ? D7f(a.i, waj) : J7f(a.i);
       } else {
-        q8f(
+        BitmapText_$text(
           a.i,
           yJh(
             "%d?",
@@ -89820,15 +89877,15 @@ function xGh(a, b) {
       }
       a.i.G_();
     } else {
-      q8f(a.i, null);
+      BitmapText_$text(a.i, null);
     }
     e = b.v ? b.u : 0;
     if (e != 0 || (b.p && b.q)) {
-      q8f(a.e, b.v ? yJh("%+d", aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(e)])) : "");
+      BitmapText_$text(a.e, b.v ? yJh("%+d", aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(e)])) : "");
       a.e.G_();
       D7f(a.e, e > 0 ? (b.s <= 0 ? qaj : xaj) : waj);
     } else {
-      q8f(a.e, null);
+      BitmapText_$text(a.e, null);
     }
     a.UC();
   }
@@ -90677,14 +90734,14 @@ function zYb(a, b) {
     b >=
     ((a.d.c / 2) | 0) +
       (a.T.length != 0 &&
-      (nYh(a.T, a.T.length - 1) == 10 || nYh(a.T, a.T.length - 1) == 13)
+      (String_$charAt(a.T, a.T.length - 1) == 10 || String_$charAt(a.T, a.T.length - 1) == 13)
         ? 1
         : 0)
   ) {
     c =
       ((a.d.c / 2) | 0) +
       (a.T.length != 0 &&
-      (nYh(a.T, a.T.length - 1) == 10 || nYh(a.T, a.T.length - 1) == 13)
+      (String_$charAt(a.T, a.T.length - 1) == 10 || String_$charAt(a.T, a.T.length - 1) == 13)
         ? 1
         : 0) -
       1;
@@ -90692,7 +90749,7 @@ function zYb(a, b) {
     (b >
       ((a.d.c / 2) | 0) +
         (a.T.length != 0 &&
-        (nYh(a.T, a.T.length - 1) == 10 || nYh(a.T, a.T.length - 1) == 13)
+        (String_$charAt(a.T, a.T.length - 1) == 10 || String_$charAt(a.T, a.T.length - 1) == 13)
           ? 1
           : 0) ||
       c == a.a) &&
@@ -91845,41 +91902,41 @@ function AOh(a) {
   EHg.call(this);
   if (a) {
     this.b = new FOh(this);
-    _ag(this, nfg(this.b, 0, 0, 20, 20));
+    Group_$add(this, Component_$setRect(this.b, 0, 0, 20, 20));
     this.a = new HOh(this);
-    _ag(this, nfg(this.a, 92, 0, 20, 20));
-    _ag(
+    Group_$add(this, Component_$setRect(this.a, 92, 0, 20, 20));
+    Group_$add(
       this,
-      nfg(new JOh(this), lfg(this.b), 0, 112 - this.a.B - this.b.B, 20),
+      Component_$setRect(new JOh(this), lfg(this.b), 0, 112 - this.a.B - this.b.B, 20),
     );
     yOh(this);
   } else {
     e = new LOh();
-    nfg(e, 0, 0, 112, 20);
+    Component_$setRect(e, 0, 0, 112, 20);
     GEh(e, plg((olg(), nlg), Knj, true));
-    _ag(this, e);
+    Group_$add(this, e);
   }
   c = new NOh();
-  nfg(c, 0, 22, 112, 20);
+  Component_$setRect(c, 0, 22, 112, 20);
   GEh(c, plg((olg(), nlg), Lnj, false));
-  _ag(this, c);
+  Group_$add(this, c);
   f = new POh();
-  nfg(f, 0, c.D + c.A + 2, 112, 20);
+  Component_$setRect(f, 0, c.D + c.A + 2, 112, 20);
   GEh(f, plg(nlg, Mnj, true));
-  _ag(this, f);
+  Group_$add(this, f);
   g = f;
   if (a) {
     d = new ROh();
-    nfg(d, 0, g.D + g.A + 2, 112, 20);
+    Component_$setRect(d, 0, g.D + g.A + 2, 112, 20);
     GEh(d, (uIh(), tIh.d.nb));
-    _ag(this, d);
+    Group_$add(this, d);
     g = d;
   }
   b = new TOh();
-  nfg(b, 0, g.D + g.A + 2, 112, 20);
-  _ag(this, b);
+  Component_$setRect(b, 0, g.D + g.A + 2, 112, 20);
+  Group_$add(this, b);
   g = b;
-  DHg(this, 112, $qf(g.D + g.A));
+  DHg(this, 112, Cast_round_int(g.D + g.A));
 }
 function s0c() {
   if (xsc) return xsc;
@@ -92393,7 +92450,7 @@ function mwg(a) {
     f =
       ((o = g.a.length),
       o > 0
-        ? y8h(g.a, g.a.length)[o > 0 ? $qf($wnd.Math.random() * o) : 0]
+        ? y8h(g.a, g.a.length)[o > 0 ? Cast_round_int($wnd.Math.random() * o) : 0]
         : null);
     MNg(Dungeon.level.V8(f, b.a).c, n);
     Y0h(g, f);
@@ -92576,7 +92633,7 @@ function V7c() {
 function cah(a) {
   var b, c, d, e, f, g, h;
   zuh();
-  _ag(yuh, new Cwh(-14531465, true));
+  Group_$add(yuh, new Cwh(-14531465, true));
   zeg(xyh(Usg.M), (HVg(), GVg), iLj, 30);
   Ojf();
   b = wmg((Fjg(), Dungeon.hero), QHf);
@@ -95059,12 +95116,12 @@ function OOg(a, b) {
   f[3] = 0;
   for (e = 0; e < a; e++) {
     c = (e * Ibj * 2) / a;
-    f[0] = (p_(), (K_(), J_)[$qf((c + Fgi) * Egi) & cdi] * b);
-    f[1] = J_[$qf(c * Egi) & cdi] * b;
+    f[0] = (p_(), (K_(), J_)[Cast_round_int((c + Fgi) * Egi) & cdi] * b);
+    f[1] = J_[Cast_round_int(c * Egi) & cdi] * b;
     c$h(this.j, f);
     c += Jbj / a / 2;
-    f[0] = J_[$qf((c + Fgi) * Egi) & cdi] * b;
-    f[1] = J_[$qf(c * Egi) & cdi] * b;
+    f[0] = J_[Cast_round_int((c + Fgi) * Egi) & cdi] * b;
+    f[1] = J_[Cast_round_int(c * Egi) & cdi] * b;
     c$h(this.j, f);
     this.d.veb(0);
     this.d.veb(((1 + e * 2) << 16) >> 16);
@@ -98079,8 +98136,8 @@ function Ov(a, b, c, d, e, f, g, h, i, j, k) {
     q *= j;
   }
   if (k != 0) {
-    m = (p_(), (K_(), J_)[$qf((k + 90) * bdi) & cdi]);
-    s = J_[$qf(k * bdi) & cdi];
+    m = (p_(), (K_(), J_)[Cast_round_int((k + 90) * bdi) & cdi]);
+    s = J_[Cast_round_int(k * bdi) & cdi];
     F = m * n - s * p;
     J = s * n + m * p;
     G = m * n - s * q;
@@ -98355,7 +98412,7 @@ function Ygh(a, b, c) {
   }
   if (a.w[c] == 42 && !Rqf(b, 147)) {
     do {
-      e = c + zgh[$qf($wnd.Math.random() * 8)];
+      e = c + zgh[Cast_round_int($wnd.Math.random() * 8)];
     } while (a.w[e] != 14);
     c = e;
   }
@@ -98374,7 +98431,7 @@ function Ygh(a, b, c) {
     }
   } else if (d.d == (XYg(), TYg) || d.d == PYg) {
     do {
-      e = c + zgh[$qf($wnd.Math.random() * 8)];
+      e = c + zgh[Cast_round_int($wnd.Math.random() * 8)];
     } while (!Hgh[e] && !Bgh[e]);
     return a.V8(b, e);
   }
@@ -98556,23 +98613,23 @@ function bFh(a, b) {
   }
   b =
     Pqf(
-      nYh(
+      String_$charAt(
         String.fromCharCode((b9h(0, b.length), b.charCodeAt(0))).toUpperCase(),
         0,
       ),
     ) +
     b.substr(1) +
-    (xYh(".,;?! ]", OYh(nYh(b, b.length - 1))) < 0 ? "." : "");
+    (xYh(".,;?! ]", OYh(String_$charAt(b, b.length - 1))) < 0 ? "." : "");
   if (!!a.b && c == a.a && a.b.c < 3) {
     e = a.b.k;
-    q8f(a.b, e.length == 0 ? b : e + " " + b);
-    H8f(a.b);
+    BitmapText_$text(a.b, e.length == 0 ? b : e + " " + b);
+    BitmapTextMultiline_$measure(a.b);
     U0h($Eh, $Eh.a.length - 1).b = a.b.k;
   } else {
     a.b = Fth(b, 6);
     D7f(a.b, c);
     a.a = c;
-    _ag(a, a.b);
+    Group_$add(a, a.b);
     T0h($Eh, new kFh(b, c));
   }
   if (a.F > 0) {
@@ -99888,7 +99945,7 @@ function Wgh(a) {
       ++Dungeon.scrollsOfEnchantment;
     }
     if (Dungeon.depth > 1) {
-      switch ($qf($wnd.Math.random() * 10)) {
+      switch (Cast_round_int($wnd.Math.random() * 10)) {
         case 0:
           Hjg(Dungeon.depth + 1) || (a.t = (tlh(), plh));
           break;
@@ -100199,7 +100256,7 @@ function RWb(a) {
   a.Y = $wnd.Math.max(0, d - 1);
   if ((a.U & 8) == 0) {
     a.W = r - g[a.Y] - a.u + q;
-    (a.U & 1) != 0 && (a.W = $qf($wnd.Math.round(a.W * 0.5)));
+    (a.U & 1) != 0 && (a.W = Cast_round_int($wnd.Math.round(a.W * 0.5)));
   } else a.W = q + a.O;
   if (a.w) {
     n = $wnd.Math.min(a.n, a.P);
@@ -101150,7 +101207,7 @@ function TKg(a, b) {
     Ojf();
     Kjf[d.K] = d;
     LKg = true;
-    switch ($qf($wnd.Math.random() * 3)) {
+    switch (Cast_round_int($wnd.Math.random() * 3)) {
       case 0:
         MKg = (ZKg(), VKg);
         break;
@@ -101163,14 +101220,14 @@ function TKg(a, b) {
         for (c = 0; c < oei; c++) {
           if ((Pgh(), Ngh)[c]) {
             if (++e > 64) {
-              MKg = $qf($wnd.Math.random() * 2) == 0 ? VKg : WKg;
+              MKg = Cast_round_int($wnd.Math.random() * 2) == 0 ? VKg : WKg;
               break;
             }
           }
         }
     }
     KKg = false;
-    switch ($qf($wnd.Math.random() * 5)) {
+    switch (Cast_round_int($wnd.Math.random() * 5)) {
       case 0:
         NKg = new zbh();
         break;
@@ -101187,7 +101244,7 @@ function TKg(a, b) {
         NKg = new rch();
     }
     Dah(Aah(NKg));
-    switch ($qf($wnd.Math.random() * 5)) {
+    switch (Cast_round_int($wnd.Math.random() * 5)) {
       case 0:
         OKg = new vbh();
         break;
@@ -101322,17 +101379,17 @@ function Dungeon_saveGame(b) {
     QQh(d, ZZi, Dungeon.hero);
     PQh(d, VDj, Dungeon.gold);
     PQh(d, $Ui, Dungeon.depth);
-    for (g = Dbc(rcc(Qbc(ujg))), h = 0, i = g.length; h < i; ++h) {
+    for (g = Dbc(rcc(Qbc(Dungeon.droppedItems))), h = 0, i = g.length; h < i; ++h) {
       f = g[h];
-      UQh(d, yJh(SIj, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(f)])), Obc(ujg, f));
+      UQh(d, yJh(SIj, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(f)])), Obc(Dungeon.droppedItems, f));
     }
     PQh(d, TIj, Dungeon.potionOfStrength);
     PQh(d, UIj, Dungeon.scrollsOfUpgrade);
     PQh(d, TDj, Dungeon.scrollsOfEnchantment);
     VQh(d, UDj, Dungeon.dewVial);
     e = 0;
-    m = Zpf(erf, $9h, 23, fQh(rjg.a), 15, 1);
-    for (l = ((n = new Q_h(rjg.a).a.Ocb().Pd()), new W_h(n)); l.a.Rd(); ) {
+    m = Zpf(erf, $9h, 23, fQh(Dungeon.chapters.a), 15, 1);
+    for (l = ((n = new Q_h(Dungeon.chapters.a).a.Ocb().Pd()), new W_h(n)); l.a.Rd(); ) {
       k = ((j = l.a.Sd()), j.Aeb());
       m[e++] = k.a;
     }
@@ -101357,7 +101414,7 @@ function Dungeon_saveGame(b) {
     zZg(B6g, d);
     c = new Bundle();
     jgg();
-    sgg(c, hgg);
+    Badges_store(c, Badges_local);
     RQh(d, voj, c);
     Game_$writeFile(qag, b, ARh(d));
   } catch (a) {
@@ -105876,8 +105933,8 @@ function oFb(a) {
   }
   a.j += a.i + a.e;
   if (a.o) {
-    a.k = $qf($wnd.Math.round(a.k));
-    a.j = $qf($wnd.Math.round(a.j));
+    a.k = Cast_round_int($wnd.Math.round(a.k));
+    a.j = Cast_round_int($wnd.Math.round(a.j));
   }
 }
 function p1b(a) {
@@ -105950,8 +106007,8 @@ function p1b(a) {
   }
   a.o += a.i + a.j;
   if (a.q) {
-    a.o = $qf($wnd.Math.round(a.o));
-    a.n = $qf($wnd.Math.round(a.n));
+    a.o = Cast_round_int($wnd.Math.round(a.o));
+    a.n = Cast_round_int($wnd.Math.round(a.n));
   }
 }
 function f1c() {
@@ -108525,25 +108582,25 @@ function Aqh() {
   b = new a1h();
   switch ((Fjg(), Dungeon.depth)) {
     case 6:
-      T0h(b, itg($qf($wnd.Math.random() * 2) == 0 ? new Reh() : new $eh()));
+      T0h(b, itg(Cast_round_int($wnd.Math.random() * 2) == 0 ? new Reh() : new $eh()));
       T0h(b, itg(new v0g()));
       T0h(b, new K2g());
       T0h(b, new C$g());
       break;
     case 11:
-      T0h(b, itg($qf($wnd.Math.random() * 2) == 0 ? new afh() : new Peh()));
+      T0h(b, itg(Cast_round_int($wnd.Math.random() * 2) == 0 ? new afh() : new Peh()));
       T0h(b, itg(new C0g()));
       T0h(b, new G2g());
       T0h(b, new C$g());
       break;
     case 16:
-      T0h(b, itg($qf($wnd.Math.random() * 2) == 0 ? new Neh() : new Feh()));
+      T0h(b, itg(Cast_round_int($wnd.Math.random() * 2) == 0 ? new Neh() : new Feh()));
       T0h(b, itg(new Q0g()));
       T0h(b, new O2g());
       T0h(b, new C$g());
       break;
     case 21:
-      switch ($qf($wnd.Math.random() * 3)) {
+      switch (Cast_round_int($wnd.Math.random() * 3)) {
         case 0:
           T0h(b, itg(new Jeh()));
           break;
@@ -119330,125 +119387,6 @@ function fTe() {
   Ktd.e = NGf;
   return Ktd;
 }
-function CTe() {
-  if (fud) return fud;
-  fud = new Wkf(Xgj, 497, Vpf(fHf, 1), null, null);
-  fud.o = true;
-  fud.t = false;
-  fud.k = true;
-  fud.u = aqf(Vpf(aDf, 1), yRi, 6, 0, [
-    new xpc(
-      ZRi,
-      Vpf(fHf, 1),
-      t$f,
-      aqf(Vpf(bDf, 1), E9h, 7, 0, [H6e()]),
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      5930,
-    ),
-    new xpc(
-      $Ri,
-      Vpf(fHf, 1),
-      BXf,
-      Uid,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      5931,
-    ),
-    new xpc(
-      _Ri,
-      Vpf(fHf, 1),
-      erf,
-      Uid,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      5932,
-    ),
-    new xpc(
-      aSi,
-      Vpf(fHf, 1),
-      cYf,
-      Uid,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      5933,
-    ),
-    new xpc(
-      aSi,
-      Vpf(fHf, 1),
-      cYf,
-      aqf(Vpf(bDf, 1), E9h, 7, 0, [b6e()]),
-      false,
-      false,
-      true,
-      false,
-      true,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      5934,
-    ),
-    new xpc(
-      bSi,
-      Vpf(fHf, 1),
-      s$f,
-      Uid,
-      false,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      false,
-      true,
-      false,
-      5935,
-    ),
-  ]);
-  fud.e = fHf;
-  return fud;
-}
 function zTe() {
   if (cud) return cud;
   cud = new Wkf(hkj, 494, Vpf(cHf, 1), null, null);
@@ -121028,8 +120966,8 @@ function A$(a, b, c) {
     S8(m, Kac(h, h.c - 2), Kac(h, h.c - 1));
     for (k = 0; k < h.c; k += 2) {
       S8(d, Kac(h, k), Kac(h, k + 1));
-      n = $qf(LXh((e.a - f.a) * (m.b - f.b) - (e.b - f.b) * (m.a - f.a))) > 0;
-      if ($qf(LXh((e.a - f.a) * (d.b - f.b) - (e.b - f.b) * (d.a - f.a))) > 0) {
+      n = Cast_round_int(LXh((e.a - f.a) * (m.b - f.b) - (e.b - f.b) * (m.a - f.a))) > 0;
+      if (Cast_round_int(LXh((e.a - f.a) * (d.b - f.b) - (e.b - f.b) * (d.a - f.a))) > 0) {
         if (!n) {
           x$(m, d, e, f, j);
           if (g.c < 2 || Kac(g, g.c - 2) != j.a || Kac(g, g.c - 1) != j.b) {
@@ -122994,8 +122932,8 @@ function aOe() {
 function $O(a, b, c, d, e, f, g, h, i, j, k, l, m, n) {
   var o, p, q, r, s, t, u, v, w, A, B, C, D, F, G, H;
   VO(a, (iP(), gP), fP);
-  o = (p_(), (K_(), J_)[$qf((j + 90) * bdi) & cdi]);
-  t = J_[$qf(j * bdi) & cdi];
+  o = (p_(), (K_(), J_)[Cast_round_int((j + 90) * bdi) & cdi]);
+  t = J_[Cast_round_int(j * bdi) & cdi];
   p = -d;
   r = -e;
   q = f - d;
@@ -124906,8 +124844,8 @@ function zgg() {
       a = (Kig(), xhg);
   }
   if (a) {
-    X5h(hgg, a);
-    lgg(a);
+    X5h(Badges_local, a);
+    Badges_displayBadge(a);
     if (a == (Kig(), ghg)) {
       switch (Dungeon.hero.j.f) {
         case 0:
@@ -124922,17 +124860,17 @@ function zgg() {
         case 3:
           a = ihg;
       }
-      X5h(hgg, a);
+      X5h(Badges_local, a);
       if (!Y5h(fgg, a)) {
         X5h(fgg, a);
-        igg = true;
+        Badges_saveNeeded = true;
       }
       if (Y5h(fgg, lhg) && Y5h(fgg, jhg) && Y5h(fgg, khg) && Y5h(fgg, ihg)) {
         a = hhg;
         if (!Y5h(fgg, a)) {
-          lgg(a);
+          Badges_displayBadge(a);
           X5h(fgg, a);
-          igg = true;
+          Badges_saveNeeded = true;
         }
       }
     } else if (a == nhg) {
@@ -124964,10 +124902,10 @@ function zgg() {
         default:
           return;
       }
-      X5h(hgg, a);
+      X5h(Badges_local, a);
       if (!Y5h(fgg, a)) {
         X5h(fgg, a);
-        igg = true;
+        Badges_saveNeeded = true;
       }
       if (
         Y5h(fgg, thg) &&
@@ -124981,9 +124919,9 @@ function zgg() {
       ) {
         a = ohg;
         if (!Y5h(fgg, a)) {
-          lgg(a);
+          Badges_displayBadge(a);
           X5h(fgg, a);
-          igg = true;
+          Badges_saveNeeded = true;
         }
       }
     }
@@ -126361,10 +126299,10 @@ function q1b(a) {
     t
       ? Kgb(
           c,
-          $qf($wnd.Math.round(A)),
-          $qf($wnd.Math.round(B)),
-          $qf($wnd.Math.round(v)),
-          $qf($wnd.Math.round(j)),
+          Cast_round_int($wnd.Math.round(A)),
+          Cast_round_int($wnd.Math.round(B)),
+          Cast_round_int($wnd.Math.round(v)),
+          Cast_round_int($wnd.Math.round(j)),
         )
       : Kgb(c, A, B, v, j);
     !!m && m.ZC();
@@ -128160,10 +128098,10 @@ function pFb(a) {
     p
       ? Kgb(
           c,
-          $qf($wnd.Math.round(A)),
-          $qf($wnd.Math.round(C)),
-          $qf($wnd.Math.round(v)),
-          $qf($wnd.Math.round(g)),
+          Cast_round_int($wnd.Math.round(A)),
+          Cast_round_int($wnd.Math.round(C)),
+          Cast_round_int($wnd.Math.round(v)),
+          Cast_round_int($wnd.Math.round(g)),
         )
       : Kgb(c, A, C, v, g);
     A += v + u;
@@ -132246,7 +132184,7 @@ function vmg(a, b) {
     if (b == Dungeon.hero) {
       ivg(Dungeon.hero);
       f > ((b.B / 4) | 0) &&
-        r9f((g9f(), f9f), FRh(1, (f / ((b.B / 4) | 0)) | 0, 5), Dii);
+        r9f((g9f(), Camera_main), FRh(1, (f / ((b.B / 4) | 0)) | 0, 5), Dii);
     }
     vyh(b.M, z7f(a.M), f);
     Ayh(b.M);
@@ -133394,8 +133332,8 @@ function Ds(a, b, c, d) {
     q = (b.r + b.s * Ps(a.db, k)) * c;
     if ((p & 2) != 0) {
       g = b.a + b.c * Ps(a.g, k);
-      r = q * (p_(), (K_(), J_)[$qf((g + 90) * bdi) & cdi]);
-      s = q * J_[$qf(g * bdi) & cdi];
+      r = q * (p_(), (K_(), J_)[Cast_round_int((g + 90) * bdi) & cdi]);
+      s = q * J_[Cast_round_int(g * bdi) & cdi];
       if ((p & 4) != 0) {
         n = b.k + b.n * Ps(a.S, k);
         a.e && (n += g);
@@ -133427,7 +133365,7 @@ function Ds(a, b, c, d) {
     Qt(b, h[0], h[1], h[2], b.p + b.q * Ps(a.bb, k));
   }
   if ((p & 128) != 0) {
-    i = $wnd.Math.min($qf(k * a._.i), a._.i - 1);
+    i = $wnd.Math.min(Cast_round_int(k * a._.i), a._.i - 1);
     if (b.f != i) {
       o = r6b(a._, i);
       m = b.N;
@@ -135809,7 +135747,7 @@ function E2c() {
 function Dungeon_loadGame(a, b) {
   Fjg();
   var c, d, e, f, g, h, i, j, k, l, m, n;
-  g = ((f = yRh(zag(qag, a))), f);
+  g = ((f = yRh(Game_$readFile(qag, a))), f);
   Dungeon.challenges = Qdc(g.a, Pnj, 0);
   Dungeon.level = null;
   Dungeon.depth = -1;
@@ -135827,12 +135765,12 @@ function Dungeon_loadGame(a, b) {
   Dungeon.scrollsOfEnchantment = Qdc(g.a, TDj, 0);
   Dungeon.dewVial = Odc(g.a, UDj, false);
   if (b) {
-    rjg = new $5h();
+    Dungeon.chapters = new $5h();
     m = MQh(g, WDj);
     if (m != null) {
       for (k = 0, l = m.length; k < l; ++k) {
         j = m[k];
-        X5h(rjg, rXh(j));
+        X5h(Dungeon.chapters, rXh(j));
       }
     }
     n = new $Qh(Ndc(g.a, VIj) ? Ndc(g.a, VIj) : new gec((igc(), ggc)));
@@ -135851,7 +135789,7 @@ function Dungeon_loadGame(a, b) {
     cnh(g);
   }
   e = new $Qh(Ndc(g.a, voj) ? Ndc(g.a, voj) : new gec((igc(), ggc)));
-  !e.a ? (jgg(), eQh(hgg.a), pgg()) : (jgg(), jgg(), (hgg = qgg(e)));
+  !e.a ? (jgg(), eQh(Badges_local.a), Badges_loadGlobal()) : (jgg(), jgg(), (Badges_local = Badges_restore(e)));
   xHh(g);
   Sdc(g.a, W3i, "");
   Dungeon.hero = null;
@@ -135863,8 +135801,8 @@ function Dungeon_loadGame(a, b) {
   Dungeon.depth = Qdc(g.a, $Ui, 0);
   qmg(g);
   Fkg(g);
-  ujg = new xUh();
-  for (i = 2; i <= fmg + 1; i++) {
+  Dungeon.droppedItems = new xUh();
+  for (i = 2; i <= Statistics_deepestFloor + 1; i++) {
     h = new a1h();
     for (
       d = new G1h(KQh(g, yJh(SIj, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(i)]))));
@@ -135874,7 +135812,7 @@ function Dungeon_loadGame(a, b) {
       c = F1h(d);
       T0h(h, c);
     }
-    h.a.length == 0 || Tbc(ujg, i, h);
+    h.a.length == 0 || Tbc(Dungeon.droppedItems, i, h);
   }
 }
 function T9c() {
@@ -138298,7 +138236,7 @@ function BMg(a, b) {
   d = new iRg();
   hRg(d, 0, c.a, c.b, 101);
   d.kb = a.kb ? a.kb : a.mb ? a.mb.c_() : null;
-  _ag(a.mb, d);
+  Group_$add(a.mb, d);
 }
 
 function $_c() {
@@ -141905,7 +141843,7 @@ function vnc(a, b) {
     b = M$f(b);
   }
   if (z$f(b, Aqi) >= 0) {
-    G$f(b, Gqi) && Cnc(a, qnc[$qf((U$f(b) % 1.0e19) / 1000000000000000000)]);
+    G$f(b, Gqi) && Cnc(a, qnc[Cast_round_int((U$f(b) % 1.0e19) / 1000000000000000000)]);
     G$f(b, Hqi) && Cnc(a, qnc[V$f(B$f(K$f(b, Gqi), Hqi))]);
     G$f(b, Iqi) && Cnc(a, qnc[V$f(B$f(K$f(b, Hqi), Iqi))]);
     G$f(b, Jqi) && Cnc(a, qnc[V$f(B$f(K$f(b, Iqi), Jqi))]);
@@ -146911,7 +146849,7 @@ function sOe() {
   return Xod;
 }
 
-function onModuleLoad(a) {
+function onModuleLoad(app) {
   var b, c, d, e, f, g, h, i, j;
   nd =
     ((g = navigator.userAgent.toLowerCase()),
@@ -146925,26 +146863,26 @@ function onModuleLoad(a) {
       isLinux: g.indexOf("linux") != -1,
       isWindows: g.indexOf(vai) != -1,
     });
-  a.j = new PixelDungeon(new gMg(new wLg()));
-  a.c = new GwtApplicationConfiguration();
-  c = Lnf($doc, "embed-" + $moduleName);
-  if (Jd(a.c)) {
-    f = a.c.i;
-    d = a.c.b;
-    if (a.c.g) {
+  app.j = new PixelDungeonORIGINAL(new gMg(new wLg()));
+  app.c = new GwtApplicationConfiguration();
+  c = $doc.getElementById("embed-html");
+  if (Jd(app.c)) {
+    f = app.c.i;
+    d = app.c.b;
+    if (app.c.g) {
       b = $wnd.devicePixelRatio || 1;
-      f = $qf(f / b);
-      d = $qf(d / b);
+      f = Cast_round_int(f / b);
+      d = Cast_round_int(d / b);
     }
   } else {
-    f = Knf($doc) - a.c.d;
-    d = Jnf($doc) - a.c.e;
+    f = Knf($doc) - app.c.d;
+    d = Jnf($doc) - app.c.e;
     Inf($doc);
     $doc.body.style.margin = "0";
-    h0f(new Id(a));
+    h0f(new Id(app));
   }
   if (!c) {
-    e = new m2f();
+    e = new VerticalPanel();
     (X_f(), e.j).style[qai] = "" + f + wai;
     e.j.style[xai] = "" + d + wai;
     k2f(e, (v1f(), r1f));
@@ -146952,18 +146890,18 @@ function onModuleLoad(a) {
     Z0f((Q1f(), U1f()), e);
     mlf(U1f(), "" + f + wai);
     llf(U1f(), "" + d + wai);
-    a.q = e;
+    app.q = e;
   } else {
-    e = new m2f();
+    e = new VerticalPanel();
     (X_f(), e.j).style[qai] = "" + f + wai;
     e.j.style[xai] = "" + d + wai;
     k2f(e, (v1f(), r1f));
     l2f(e, (z1f(), x1f));
     nnf(c, e.j);
-    a.q = e;
+    app.q = e;
   }
-  h = qd(a);
-  a.p = new qh(
+  h = qd(app);
+  app.p = new Preloader(
     ((i = $doc.location.href),
     (j = i.indexOf("#")),
     j != -1 && (i = i.substring(0, j)),
@@ -146973,7 +146911,7 @@ function onModuleLoad(a) {
     j != -1 && (i = i.substring(0, j)),
     i.length > 0 ? i + "/" : "") + "assets/",
   );
-  nh(a.p, new Bd(a, h));
+  Preloader_$preload(app.p, new GwtApplication(app, h));
 }
 
 function p6c() {
@@ -149582,36 +149520,36 @@ function pPe() {
   ]);
   return Upd;
 }
-function mgg(a) {
+function Badges_filtered(a) {
   jgg();
   var b, c, d, e, f, g;
-  d = new HashSet(a ? fgg : hgg);
+  d = new HashSet(a ? fgg : Badges_local);
   e = ((g = new Q_h(d.a).a.Ocb().Pd()), new W_h(g));
   while (e.a.Rd()) {
     b = ((c = e.a.Sd()), c.Aeb());
     ((!a && b.c) || b.b == -1) && e.a.Td();
   }
-  ogg(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [(Kig(), fig), gig, hig, iig]));
-  ogg(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Nhg, Ohg, Phg, Qhg]));
-  ogg(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [ghg, mhg, nhg, xhg]));
-  ogg(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Xhg, Yhg, Zhg, $hg]));
-  ogg(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [yig, zig, Aig, Big]));
-  ogg(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Fhg, Ghg, Hhg, Ihg]));
-  ogg(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Thg, Uhg, Vhg, Whg]));
-  ogg(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [mig, nig, oig, pig]));
-  ogg(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [hhg, ohg]));
-  ogg(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Ahg, Jig]));
-  ogg(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Bhg, Jig]));
-  ogg(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Dhg, Jig]));
-  ogg(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Ehg, Jig]));
-  ogg(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [_gg, $gg]));
-  ogg(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [bhg, $gg]));
-  ogg(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [ahg, $gg]));
-  ogg(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [chg, $gg]));
-  ogg(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Dig, Eig]));
-  ogg(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Dig, Shg]));
-  ogg(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Dig, yhg]));
-  ogg(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Jhg, Khg, Lhg, Mhg]));
+  Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [(Kig(), fig), gig, hig, iig]));
+  Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Nhg, Ohg, Phg, Qhg]));
+  Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [ghg, mhg, nhg, xhg]));
+  Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Xhg, Yhg, Zhg, $hg]));
+  Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [yig, zig, Aig, Big]));
+  Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Fhg, Ghg, Hhg, Ihg]));
+  Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Thg, Uhg, Vhg, Whg]));
+  Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [mig, nig, oig, pig]));
+  Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [hhg, ohg]));
+  Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Ahg, Jig]));
+  Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Bhg, Jig]));
+  Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Dhg, Jig]));
+  Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Ehg, Jig]));
+  Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [_gg, $gg]));
+  Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [bhg, $gg]));
+  Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [ahg, $gg]));
+  Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [chg, $gg]));
+  Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Dig, Eig]));
+  Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Dig, Shg]));
+  Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Dig, yhg]));
+  Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Jhg, Khg, Lhg, Mhg]));
   f = new c1h(d);
   y2h();
   j2h(f.a, f.a.length, null);
@@ -149627,7 +149565,7 @@ function gih(a) {
         a.n.a.length > 0 &&
         m.i - m.g > 3 &&
         m.f - m.j > 3 &&
-        (q * q + 2 > 0 ? $qf($wnd.Math.random() * (q * q + 2)) : 0) == 0
+        (q * q + 2 > 0 ? Cast_round_int($wnd.Math.random() * (q * q + 2)) : 0) == 0
       ) {
         if (Jgh) {
           m.e = Wnh;
@@ -149647,8 +149585,8 @@ function gih(a) {
           m.e = U0h(
             a.n,
             $wnd.Math.min(
-              f > 0 ? $qf($wnd.Math.random() * f) : 0,
-              f > 0 ? $qf($wnd.Math.random() * f) : 0,
+              f > 0 ? Cast_round_int($wnd.Math.random() * f) : 0,
+              f > 0 ? Cast_round_int($wnd.Math.random() * f) : 0,
             ),
           );
           m.e == foh && (Ogh = true);
@@ -149656,7 +149594,7 @@ function gih(a) {
         gnh(m.e);
         Y0h(a.n, m.e);
         ++q;
-      } else if ($qf($wnd.Math.random() * 2) == 0) {
+      } else if (Cast_round_int($wnd.Math.random() * 2) == 0) {
         h = new $5h();
         for (g = ((l = new Q_h(m.c.a).a.Ocb().Pd()), new W_h(l)); g.a.Rd(); ) {
           f = ((d = g.a.Sd()), d.Aeb());
@@ -149671,7 +149609,7 @@ function gih(a) {
             ((p = fQh(h.a)),
             p > 0
               ? hSh(h, Zpf(WXf, E9h, 1, fQh(h.a), 5, 1))[
-                  p > 0 ? $qf($wnd.Math.random() * p) : 0
+                  p > 0 ? Cast_round_int($wnd.Math.random() * p) : 0
                 ]
               : null),
           );
@@ -149684,7 +149622,7 @@ function gih(a) {
     if (m.e == (goh(), Unh)) {
       b = fQh(m.a);
       if (b == 0);
-      else if ((b * b > 0 ? $qf($wnd.Math.random() * (b * b)) : 0) == 0) {
+      else if ((b * b > 0 ? Cast_round_int($wnd.Math.random() * (b * b)) : 0) == 0) {
         m.e = $nh;
         ++c;
       } else {
@@ -151948,7 +151886,7 @@ function Eqh(a, b) {
     (Fjg(),
     !Hjg(Dungeon.depth) &&
     !Hjg(Dungeon.depth + 1) &&
-    $qf($wnd.Math.random() * 3) == 0
+    Cast_round_int($wnd.Math.random() * 3) == 0
       ? 0
       : 63),
   );
@@ -151966,9 +151904,9 @@ function Eqh(a, b) {
       a,
       new knh(
         (((b.g + b.i) / 2) | 0) +
-          (((b.i - b.g) & 1) == 1 ? $qf($wnd.Math.random() * 2) : 0),
+          (((b.i - b.g) & 1) == 1 ? Cast_round_int($wnd.Math.random() * 2) : 0),
         (((b.j + b.f) / 2) | 0) +
-          (((b.f - b.j) & 1) == 1 ? $qf($wnd.Math.random() * 2) : 0),
+          (((b.f - b.j) & 1) == 1 ? Cast_round_int($wnd.Math.random() * 2) : 0),
       ).b,
       $wnd.Math.min(c.c, d.c),
       1,
@@ -151984,9 +151922,9 @@ function Eqh(a, b) {
       $wnd.Math.min(c.b, d.b),
       new knh(
         (((b.g + b.i) / 2) | 0) +
-          (((b.i - b.g) & 1) == 1 ? $qf($wnd.Math.random() * 2) : 0),
+          (((b.i - b.g) & 1) == 1 ? Cast_round_int($wnd.Math.random() * 2) : 0),
         (((b.j + b.f) / 2) | 0) +
-          (((b.f - b.j) & 1) == 1 ? $qf($wnd.Math.random() * 2) : 0),
+          (((b.f - b.j) & 1) == 1 ? Cast_round_int($wnd.Math.random() * 2) : 0),
       ).c,
       $wnd.Math.abs(c.b - d.b) + 1,
       1,
@@ -152406,10 +152344,10 @@ function pq(a, b, c, d, e, f, g, h, i, j) {
   i && (g = $wnd.Math.max(g, m.C * 3));
   H = i || j != null;
   k =
-    ($qf(255 * f.a) << 24) |
-    ($qf(255 * f.b) << 16) |
-    ($qf(255 * f.c) << 8) |
-    $qf(255 * f.d);
+    (Cast_round_int(255 * f.a) << 24) |
+    (Cast_round_int(255 * f.b) << 16) |
+    (Cast_round_int(255 * f.c) << 8) |
+    Cast_round_int(255 * f.d);
   A = k;
   rbc(a.a, 0, k);
   v = m.q;
@@ -159247,212 +159185,6 @@ function zQe() {
   ]);
   return crd;
 }
-function K4c() {
-  if (Pwc) return Pwc;
-  Pwc = new Wkf(
-    aAi,
-    382,
-    WRf,
-    URf,
-    new HashSet(new n2h(aqf(Vpf(BXf, 1), Mmi, 12, 0, [URf, mGf, cGf, bGf]))),
-  );
-  Pwc.t = false;
-  Pwc.k = false;
-  Pwc.i = aqf(Vpf(RCf, 1), E9h, 8, 0, [
-    new Dpc(
-      "DEFAULT_COLOR",
-      WRf,
-      erf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      _qi,
-      _qi,
-      null,
-    ),
-    new Dpc(
-      f_i,
-      WRf,
-      cYf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      cki,
-      cki,
-      null,
-    ),
-    new Dpc(
-      "TXT_TOTAL",
-      WRf,
-      cYf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      Mbi,
-      Mbi,
-      null,
-    ),
-    new Dpc(
-      "TXT_NO_GAMES",
-      WRf,
-      cYf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      hki,
-      hki,
-      null,
-    ),
-    new Dpc(
-      "TXT_NO_INFO",
-      WRf,
-      cYf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      jki,
-      jki,
-      null,
-    ),
-    new Dpc(
-      "ROW_HEIGHT_L",
-      WRf,
-      drf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      Fki,
-      Fki,
-      null,
-    ),
-    new Dpc(
-      "ROW_HEIGHT_P",
-      WRf,
-      drf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      Cki,
-      Cki,
-      null,
-    ),
-    new Dpc(
-      "MAX_ROW_WIDTH",
-      WRf,
-      drf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      Aki,
-      Aki,
-      null,
-    ),
-    new Dpc(
-      S_i,
-      WRf,
-      drf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      Zki,
-      Zki,
-      null,
-    ),
-    new Dpc(
-      "archs",
-      WRf,
-      GTf,
-      false,
-      false,
-      true,
-      false,
-      false,
-      false,
-      false,
-      Xki,
-      Xki,
-      null,
-    ),
-  ]);
-  Pwc.u = aqf(Vpf(aDf, 1), yRi, 6, 0, [
-    new xpc(
-      cZi,
-      WRf,
-      s$f,
-      Hpc,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      aKi,
-    ),
-    new xpc(
-      b_i,
-      WRf,
-      s$f,
-      Hpc,
-      false,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      false,
-      true,
-      false,
-      cOi,
-    ),
-  ]);
-  Pwc.f = aqf(Vpf(QCf, 1), yRi, 9, 0, [
-    new zpc(T_i, WRf, WRf, Hpc, false, true, false, MPi),
-  ]);
-  return Pwc;
-}
 function CUe() {
   if (fvd) return fvd;
   fvd = new Wkf(
@@ -159854,7 +159586,7 @@ function S7c() {
   ]);
   Xzc.f = aqf(Vpf(QCf, 1), yRi, 9, 0, [
     new zpc(
-      z3i,
+      "WndRanking",
       cWf,
       cWf,
       aqf(Vpf(bDf, 1), E9h, 7, 0, [Icd()]),
@@ -171389,231 +171121,6 @@ function nad() {
   ]);
   return sCc;
 }
-function BTe() {
-  var a;
-  if (eud) return eud;
-  eud = new Wkf(
-    Omj,
-    496,
-    eHf,
-    WXf,
-    ((a = new HashSet(new n2h(aqf(Vpf(BXf, 1), Mmi, 12, 0, [HWf])))),
-    new HashSet(new n2h(aqf(Vpf(BXf, 1), Mmi, 12, 0, [HWf]))),
-    a),
-  );
-  eud.t = true;
-  eud.k = false;
-  eud.r = true;
-  eud.i = aqf(Vpf(RCf, 1), E9h, 8, 0, [
-    new Dpc(
-      "REASON",
-      eHf,
-      cYf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      2580,
-      2580,
-      null,
-    ),
-    new Dpc(
-      "WIN",
-      eHf,
-      cYf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      2581,
-      2581,
-      null,
-    ),
-    new Dpc(
-      "SCORE",
-      eHf,
-      cYf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      2582,
-      2582,
-      null,
-    ),
-    new Dpc(
-      "TIER",
-      eHf,
-      cYf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      2583,
-      2583,
-      null,
-    ),
-    new Dpc(
-      "GAME",
-      eHf,
-      cYf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      2584,
-      2584,
-      null,
-    ),
-    new Dpc(
-      iSi,
-      eHf,
-      cYf,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      2585,
-      2585,
-      null,
-    ),
-    new Dpc(
-      vai,
-      eHf,
-      t$f,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      2586,
-      2586,
-      null,
-    ),
-    new Dpc(
-      "heroClass",
-      eHf,
-      vIf,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      2587,
-      2587,
-      null,
-    ),
-    new Dpc(
-      "armorTier",
-      eHf,
-      erf,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      2588,
-      2588,
-      null,
-    ),
-    new Dpc(
-      gEj,
-      eHf,
-      erf,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      2589,
-      2589,
-      null,
-    ),
-    new Dpc(
-      P6i,
-      eHf,
-      cYf,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      2590,
-      2590,
-      null,
-    ),
-  ]);
-  eud.u = aqf(Vpf(aDf, 1), yRi, 6, 0, [
-    new xpc(
-      kSi,
-      eHf,
-      s$f,
-      aqf(Vpf(bDf, 1), E9h, 7, 0, [iLe()]),
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      5927,
-    ),
-    new xpc(
-      jSi,
-      eHf,
-      s$f,
-      aqf(Vpf(bDf, 1), E9h, 7, 0, [iLe()]),
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      5928,
-    ),
-  ]);
-  eud.f = aqf(Vpf(QCf, 1), yRi, 9, 0, [
-    new zpc(X_i, eHf, eHf, Uid, false, true, false, 5929),
-  ]);
-  return eud;
-}
 function u9c() {
   if (zBc) return zBc;
   zBc = new Wkf(bxi, 610, RZf, null, null);
@@ -172387,21 +171894,6 @@ function L4c() {
       null,
     ),
     new Dpc(
-      "rec",
-      VRf,
-      eHf,
-      false,
-      false,
-      true,
-      false,
-      false,
-      false,
-      false,
-      dli,
-      dli,
-      null,
-    ),
-    new Dpc(
       U_i,
       VRf,
       XSf,
@@ -172531,18 +172023,6 @@ function L4c() {
       true,
       false,
       oOi,
-    ),
-  ]);
-  Qwc.f = aqf(Vpf(QCf, 1), yRi, 9, 0, [
-    new zpc(
-      X_i,
-      VRf,
-      VRf,
-      aqf(Vpf(bDf, 1), E9h, 7, 0, [yfd(), Ndd(), Kfd()]),
-      false,
-      true,
-      false,
-      RPi,
     ),
   ]);
   return Qwc;
@@ -175397,7 +174877,7 @@ function FV(a, b, c, d, e) {
           break;
         case 0:
           Z = l.a;
-          l.c + 3 >= Z.length && (Z = Bbc(l, $wnd.Math.max(8, $qf(l.c * Uhi))));
+          l.c + 3 >= Z.length && (Z = Bbc(l, $wnd.Math.max(8, Cast_round_int(l.c * Uhi))));
           Z[l.c] = w;
           Z[l.c + 1] = A;
           Z[l.c + 2] = A;
@@ -179402,7 +178882,7 @@ function G6g(a, b) {
   if (!!b.d.d && !!b.d.e) {
     c = b.d.d;
     d = b.d.e;
-    _ag(
+    Group_$add(
       qag.g,
       new p7g(
         a,
@@ -191614,7 +191094,7 @@ function hs(a, b) {
   A = a.cb;
   a.L.a && ns(a);
   a.K.a && ms(a);
-  i.e = i.j = a.G + $qf(a.H * Ps(a.L, j));
+  i.e = i.j = a.G + Cast_round_int(a.H * Ps(a.L, j));
   if (a.db.j) {
     i.r = Ms(a.db);
     i.s = Rs(a.db);
@@ -191627,8 +191107,8 @@ function hs(a, b) {
   if ((A & 2) == 0) {
     c = i.a + i.c * Ps(a.g, 0);
     i.a = c;
-    i.b = (p_(), (K_(), J_)[$qf((c + 90) * bdi) & cdi]);
-    i.d = J_[$qf(c * bdi) & cdi];
+    i.b = (p_(), (K_(), J_)[Cast_round_int((c + 90) * bdi) & cdi]);
+    i.d = J_[Cast_round_int(c * bdi) & cdi];
   }
   v = t.Rg();
   u = t.Ng();
@@ -191700,8 +191180,8 @@ function hs(a, b) {
           default:
             s = (p_(), o_.st() * 360);
         }
-        e = (p_(), (K_(), J_)[$qf((s + 90) * bdi) & cdi]);
-        r = J_[$qf(s * bdi) & cdi];
+        e = (p_(), (K_(), J_)[Cast_round_int((s + 90) * bdi) & cdi]);
+        r = J_[Cast_round_int(s * bdi) & cdi];
         C += e * n;
         D += (r * n) / q;
         if ((A & 2) == 0) {
@@ -191735,7 +191215,7 @@ function hs(a, b) {
     }
   }
   Pt(i, C - v / 2, D - u / 2, v, u);
-  h = $qf(a.I + a.J * Ps(a.K, j));
+  h = Cast_round_int(a.I + a.J * Ps(a.K, j));
   if (h > 0) {
     h >= i.e && (h = i.e - 1);
     Ds(a, i, h / Sai, h);
@@ -201488,329 +200968,6 @@ function DRe() {
   ]);
   return gsd;
 }
-function ATe() {
-  if (dud) return dud;
-  dud = new Wkf(
-    hmj,
-    495,
-    fHf,
-    GXf,
-    new HashSet(new n2h(aqf(Vpf(BXf, 1), Mmi, 12, 0, [GXf, DXf, mXf]))),
-  );
-  dud.p = true;
-  dud.t = false;
-  dud.k = false;
-  dud.i = aqf(Vpf(RCf, 1), E9h, 8, 0, [
-    new Dpc(
-      ZBj,
-      fHf,
-      fHf,
-      true,
-      false,
-      false,
-      false,
-      true,
-      true,
-      false,
-      2567,
-      2567,
-      null,
-    ),
-    new Dpc(
-      "TABLE_SIZE",
-      fHf,
-      erf,
-      true,
-      false,
-      false,
-      false,
-      true,
-      true,
-      false,
-      2568,
-      2568,
-      null,
-    ),
-    new Dpc(
-      "RANKINGS_FILE",
-      fHf,
-      cYf,
-      true,
-      false,
-      false,
-      false,
-      true,
-      true,
-      false,
-      2569,
-      2569,
-      null,
-    ),
-    new Dpc(
-      "DETAILS_FILE",
-      fHf,
-      cYf,
-      true,
-      false,
-      false,
-      false,
-      true,
-      true,
-      false,
-      2570,
-      2570,
-      null,
-    ),
-    new Dpc(
-      _Dj,
-      fHf,
-      YYf,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      2571,
-      2571,
-      aqf(Vpf(BXf, 1), Mmi, 12, 0, [eHf]),
-    ),
-    new Dpc(
-      "lastRecord",
-      fHf,
-      erf,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      2572,
-      2572,
-      null,
-    ),
-    new Dpc(
-      "totalNumber",
-      fHf,
-      erf,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      2573,
-      2573,
-      null,
-    ),
-    new Dpc(
-      "wonNumber",
-      fHf,
-      erf,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      2574,
-      2574,
-      null,
-    ),
-    new Dpc(
-      "RECORDS",
-      fHf,
-      cYf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      2575,
-      2575,
-      null,
-    ),
-    new Dpc(
-      "LATEST",
-      fHf,
-      cYf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      2576,
-      2576,
-      null,
-    ),
-    new Dpc(
-      "TOTAL",
-      fHf,
-      cYf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      2577,
-      2577,
-      null,
-    ),
-    new Dpc(
-      "WON",
-      fHf,
-      cYf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      2578,
-      2578,
-      null,
-    ),
-    new Dpc(
-      "scoreComparator",
-      fHf,
-      uZf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      2579,
-      2579,
-      aqf(Vpf(BXf, 1), Mmi, 12, 0, [eHf]),
-    ),
-  ]);
-  dud.u = aqf(Vpf(aDf, 1), yRi, 6, 0, [
-    new xpc(
-      "submit",
-      fHf,
-      s$f,
-      aqf(Vpf(bDf, 1), E9h, 7, 0, [Vhf()]),
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      5921,
-    ),
-    new xpc(
-      gEj,
-      fHf,
-      erf,
-      aqf(Vpf(bDf, 1), E9h, 7, 0, [Vhf()]),
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      5922,
-    ),
-    new xpc(
-      dTi,
-      fHf,
-      s$f,
-      Uid,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      5923,
-    ),
-    new xpc(
-      gbi,
-      fHf,
-      s$f,
-      Uid,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      5924,
-    ),
-    new xpc(
-      bni,
-      fHf,
-      Vpf(fHf, 1),
-      Uid,
-      false,
-      false,
-      true,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      5925,
-    ),
-    new xpc(
-      YRi,
-      fHf,
-      fHf,
-      aqf(Vpf(bDf, 1), E9h, 7, 0, [LJe()]),
-      false,
-      false,
-      true,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      5926,
-    ),
-  ]);
-  dud.g = Zpf(WXf, E9h, 1, 1, 5, 1);
-  dud.g[0] = (Jlg(), rankings);
-  return dud;
-}
 function HSe() {
   var a;
   if (ktd) return ktd;
@@ -203893,7 +203050,7 @@ function CWe() {
   ]);
   return fxd;
 }
-function PixelDungeon(a) {
+function PixelDungeonORIGINAL(a) {
   Hag.call(this, sSf, a);
   sag = a.d;
   HQh();
@@ -229505,7 +228662,7 @@ function ZRb(b, c, d, e) {
       if (!Rqf(a, 131)) throw w$f(a);
     }
     if (c == t$f || c == wXf) return (wVh(), tYh(bbi, r) ? true : false);
-    if (c == brf || c == zXf) return lWh((b9h(0, r.length), r.charCodeAt(0)));
+    if (c == brf || c == zXf) return Character_valueOf((b9h(0, r.length), r.charCodeAt(0)));
     if ($oc(GXf, c)) {
       j = c.e && c.e();
       for (m = 0, n = j.length; m < n; m++) {
@@ -230983,26 +230140,26 @@ function hRg(a, b, c, d, e) {
   a.c = e;
   switch (e) {
     case 101:
-      U9f(a, ljf(fRg, rXh(2)));
+      U9f(a, TextureFilm_$get(fRg, rXh(2)));
       break;
     case 102:
     case 103:
     case 104:
     case 110:
-      U9f(a, ljf(fRg, rXh(1)));
+      U9f(a, TextureFilm_$get(fRg, rXh(1)));
       break;
     case 105:
-      U9f(a, ljf(fRg, rXh(6)));
+      U9f(a, TextureFilm_$get(fRg, rXh(6)));
       break;
     case 106:
     case 107:
     case 108:
     case 111:
     case 109:
-      U9f(a, ljf(fRg, rXh(13)));
+      U9f(a, TextureFilm_$get(fRg, rXh(13)));
       break;
     default:
-      U9f(a, ljf(fRg, rXh(e)));
+      U9f(a, TextureFilm_$get(fRg, rXh(e)));
   }
   a.gb = c - a.ab.a;
   a.hb = d - a.ab.b;
@@ -231050,7 +230207,7 @@ function hRg(a, b, c, d, e) {
     case 103:
       vTh(
         a.eb,
-        $qf($wnd.Math.random() * 2) == 0
+        Cast_round_int($wnd.Math.random() * 2) == 0
           ? -128 + $wnd.Math.random() * 64
           : 64 + $wnd.Math.random() * 64,
         0,
@@ -231115,7 +230272,7 @@ function hRg(a, b, c, d, e) {
       a.b = 1.5;
       break;
     case 11:
-      vTh(a.eb, -10 + $qf($wnd.Math.random() * 20), -40);
+      vTh(a.eb, -10 + Cast_round_int($wnd.Math.random() * 20), -40);
       a.V = -45 + $wnd.Math.random() * 90;
       a.b = 1;
       break;
@@ -231138,25 +230295,25 @@ function hRg(a, b, c, d, e) {
       a.b = 0.5;
       break;
     case 107:
-      C7f(a, 0.3137254901960784, 1, 0.3764705882352941);
+      Visual_$hardlight(a, 0.3137254901960784, 1, 0.3764705882352941);
       a.V = 30;
       a.U = $wnd.Math.random() * 360;
       a.b = 1 + $wnd.Math.random() * 2;
       break;
     case 108:
-      C7f(a, 1, 1, 0.4);
+      Visual_$hardlight(a, 1, 1, 0.4);
       a.V = -30;
       a.U = $wnd.Math.random() * 360;
       a.b = 1 + $wnd.Math.random() * 2;
       break;
     case 111:
-      D7f(a, $qf($wnd.Math.random() * qji) | 128);
+      D7f(a, Cast_round_int($wnd.Math.random() * qji) | 128);
       a.V = -20 + $wnd.Math.random() * 40;
       a.U = $wnd.Math.random() * 360;
       a.b = 1 + $wnd.Math.random() * 2;
       break;
     case 109:
-      C7f(a, 1, 1, 0.4);
+      Visual_$hardlight(a, 1, 1, 0.4);
       a.U = $wnd.Math.random() * 360;
       sTh(a.eb, $wnd.Math.random() * Jbj, 16 + $wnd.Math.random() * 32);
       a.b = 0.5;
@@ -242114,8 +241271,8 @@ function vo(b, c, d) {
       wo(b, 32, T);
     }
     if (T.o == 0) {
-      T.o = $qf(b.u + T.p + b.v);
-      T.q = $qf(-b.u);
+      T.o = Cast_round_int(b.u + T.p + b.v);
+      T.q = Cast_round_int(-b.u);
     }
     b.C = T.p;
     Z = null;
@@ -347136,7 +346293,7 @@ function zKc(a, b, c) {
     case $Li:
       return new Jph();
     case _Li:
-      return $qf($wnd.Math.random() * 6) == 0
+      return Cast_round_int($wnd.Math.random() * 6) == 0
         ? SWg(new TWg())
         : IXg(cUh(aqf(Vpf(dMf, 1), aMi, 117, 0, [(XXg(), NXg), WXg])));
     case bMi:
@@ -347467,7 +346624,7 @@ function zKc(a, b, c) {
     case ROi:
       return ZNc(c[0], HVh(c[1]));
     case SOi:
-      return (zuh(), _ag(yuh.d, c[0]), undefined, null);
+      return (zuh(), Group_$add(yuh.d, c[0]), undefined, null);
     case TOi:
       return (zuh(), !!yuh && Buh(yuh, c[0]), undefined, null);
     case UOi:
@@ -347511,7 +346668,7 @@ function zKc(a, b, c) {
     case kPi:
       return (zuh(), gvh(xuh), lHh(), undefined, null);
     case lPi:
-      return ($uh(c[0]), null);
+      return (GameScene_examineCell(c[0]), null);
     case mPi:
       return new Iuh();
     case nPi:
@@ -347560,9 +346717,9 @@ function zKc(a, b, c) {
     case FPi:
       return mOc(b, IVh(c[0]), xVh(c[1]));
     case GPi:
-      return (Kth(c[0]), null);
+      return (PixelScene_showBadge(c[0]), null);
     case HPi:
-      return new Ath();
+      return new PixelScene();
     case IPi:
       return new Cwh(IVh(c[0]), xVh(c[1]));
     case JPi:
@@ -347570,15 +346727,13 @@ function zKc(a, b, c) {
       return (b.A_(), null);
     case LPi:
       return new Fwh(HVh(c[0]));
-    case MPi:
-      return new RankingsScene();
     case NPi:
     case OPi:
     case PPi:
     case QPi:
       return (b.T1(), null);
     case RPi:
-      return new Kwh(IVh(c[0]), xVh(c[1]), c[2]);
+      return new RankingsScene$Record(IVh(c[0]), xVh(c[1]), c[2]);
     case SPi:
       return (b.Kab(c[0]), null);
     case TPi:
@@ -348184,7 +347339,7 @@ function IReflectionCache2Generated_$invoke2(a, b, c) {
     case 2363:
       return lGh(c[0]);
     case 2364:
-      return kGh(c[0]);
+      return Icons_get(c[0]);
     case 2365:
       return nGh();
     case 2366:
@@ -348468,7 +347623,7 @@ function IReflectionCache2Generated_$invoke2(a, b, c) {
     case 2564:
       return (b.lcb(), null);
     case 2566:
-      return new uLh();
+      return new WndCatalogus();
     case 2569:
       return (wVh(), TPc(b, HVh(c[0]), HVh(c[1])) ? true : false);
     case 2571:
@@ -348560,7 +347715,7 @@ function IReflectionCache2Generated_$invoke2(a, b, c) {
     case 2622:
       return (b.zcb(), null);
     case 2623:
-      return new MNh(c[0]);
+      return new WndRanking(c[0]);
     case 2629:
       return (b.Acb(c[0]), null);
     case 2630:
@@ -348598,7 +347753,7 @@ function IReflectionCache2Generated_$invoke2(a, b, c) {
     case 2651:
       return mQc(b, IVh(c[0]), IVh(c[1]));
     case 2655:
-      return new VJh();
+      return new WndTabbed();
     case 2658:
       return nQc(b, xVh(c[0]));
     case 2660:
@@ -348606,7 +347761,7 @@ function IReflectionCache2Generated_$invoke2(a, b, c) {
     case 2662:
       return new Tvh(c[0], c[1], c[2]);
     case 2663:
-      return new Uvh(c[0], c[1]);
+      return new WndTitledMessage(c[0], c[1]);
     case 2665:
       return new NWh(qQc(b, c[0], xVh(c[1])));
     case 2666:
@@ -348893,7 +348048,7 @@ function IReflectionCache2Generated_$invoke2(a, b, c) {
     case 2805:
       return ZTh(c[0]);
     case 2806:
-      return rXh($qf($wnd.Math.random() * c[0].Qd()));
+      return rXh(Cast_round_int($wnd.Math.random() * c[0].Qd()));
     case 2807:
       return nRc(Oqf(c[0]));
     case 2808:
@@ -349436,9 +348591,9 @@ function IReflectionCacheGenerated_$invoke5(a, b, c) {
     case 5456:
       return (b.l0(), null);
     case 5457:
-      return (Yag(qag.i), undefined, null);
+      return (Game_switchScene(qag.i), undefined, null);
     case 5458:
-      return (Yag(c[0]), null);
+      return (Game_switchScene(c[0]), null);
     case 5459:
       return (b.s0(), null);
     case 5460:
@@ -349888,17 +349043,17 @@ function IReflectionCacheGenerated_$invoke5(a, b, c) {
     case 5739:
       return new egg();
     case 5740:
-      return (jgg(), eQh(hgg.a), pgg(), undefined, null);
+      return (jgg(), eQh(Badges_local.a), Badges_loadGlobal(), undefined, null);
     case 5741:
-      return qgg(c[0]);
+      return Badges_restore(c[0]);
     case 5742:
-      return (sgg(c[0], c[1]), null);
+      return (Badges_store(c[0], c[1]), null);
     case 5743:
-      return (jgg(), (hgg = qgg(c[0])), undefined, null);
+      return (jgg(), (Badges_local = Badges_restore(c[0])), undefined, null);
     case 5744:
-      return (jgg(), sgg(c[0], hgg), undefined, null);
+      return (jgg(), Badges_store(c[0], Badges_local), undefined, null);
     case 5745:
-      return (pgg(), null);
+      return (Badges_loadGlobal(), null);
     case 5746:
       return (Badges_saveGlobal(), null);
     case 5747:
@@ -349918,7 +349073,7 @@ function IReflectionCacheGenerated_$invoke5(a, b, c) {
     case 5754:
       return (Kgg(c[0]), null);
     case 5755:
-      return (vgg(), null);
+      return (Badges_validateAllPotionsIdentified(), null);
     case 5756:
       return (xgg(), null);
     case 5757:
@@ -349926,9 +349081,9 @@ function IReflectionCacheGenerated_$invoke5(a, b, c) {
     case 5758:
       return (ygg(), null);
     case 5759:
-      return (tgg(c[0]), null);
+      return (Badges_validateAllBagsBought(c[0]), null);
     case 5760:
-      return (ugg(), null);
+      return (Badges_validateAllItemsIdentified(), null);
     case 5761:
       return (Bgg(), null);
     case 5762:
@@ -349967,29 +349122,27 @@ function IReflectionCacheGenerated_$invoke5(a, b, c) {
       return (
         jgg(),
         X5h(fgg, (Kig(), Cig)),
-        (igg = true),
-        Kth(Cig),
+        (Badges_saveNeeded = true),
+        PixelScene_showBadge(Cig),
         undefined,
         null
       );
-    case 5779:
-      return (Badges_validateGamesPlayed(), null);
     case 5780:
-      return (jgg(), lgg((Kig(), Shg)), undefined, null);
+      return (jgg(), Badges_displayBadge((Kig(), Shg)), undefined, null);
     case 5781:
-      return (jgg(), lgg((Kig(), yhg)), undefined, null);
+      return (jgg(), Badges_displayBadge((Kig(), yhg)), undefined, null);
     case 5782:
-      return (lgg(c[0]), null);
+      return (Badges_displayBadge(c[0]), null);
     case 5783:
-      return (wVh(), ngg(c[0]) ? true : false);
+      return (wVh(), Badges_isUnlocked(c[0]) ? true : false);
     case 5784:
-      return (jgg(), pgg(), Z5h(fgg, c[0]), (igg = true), undefined, null);
+      return (jgg(), Badges_loadGlobal(), Z5h(fgg, c[0]), (Badges_saveNeeded = true), undefined, null);
     case 5785:
       return lme(xVh(c[0]));
     case 5786:
-      return (ogg(c[0], c[1]), null);
+      return (Badges_leaveBest(c[0], c[1]), null);
     case 5787:
-      return new kgg();
+      return new Badges();
     case 5788:
       return Pig();
     case 5789:
@@ -350221,7 +349374,7 @@ function IReflectionCacheGenerated_$invoke5(a, b, c) {
     case 5881:
       return Eme(xVh(c[0]));
     case 5882:
-      return (wVh(), tag > pag ? true : false);
+      return (wVh(), Game_width > Game_height ? true : false);
     case 5883:
       return Fme(xVh(c[0]));
     case 5884:
@@ -350263,11 +349416,11 @@ function IReflectionCacheGenerated_$invoke5(a, b, c) {
     case 5902:
       return (wVh(), plg((olg(), nlg), Qnj, true) ? true : false);
     case 5903:
-      return ((wth = true), (qag.i = c[0]), (qag.e = true), undefined, null);
+      return ((PixelScene_noFade = true), (qag.i = c[0]), (qag.e = true), undefined, null);
     case 5904:
       return (sd(ac, "PD", c[0].DW(), c[0]), undefined, null);
     case 5905:
-      return new PixelDungeon(c[0]);
+      return new PixelDungeonORIGINAL(c[0]);
     case 5906:
       return b.m2();
     case 5907:
@@ -350294,16 +349447,10 @@ function IReflectionCacheGenerated_$invoke5(a, b, c) {
       return (b.r2(), null);
     case 5924:
       return (b.q2(), null);
-    case 5925:
-      return (Jlg(), aqf(Vpf(fHf, 1), Snj, 655, 0, [rankings]));
-    case 5926:
-      return (Jlg(), Pb((Zlg(), Ylg), c[0]));
-    case 5929:
-      return new $lg();
     case 5936:
       return new bmg();
     case 5937:
-      return (pmg(), null);
+      return (Statistics_reset(), null);
     case 5938:
       return (rmg(c[0]), null);
     case 5939:
@@ -351851,9 +350998,6 @@ function qVd(a) {
     case 2110428267:
       if (sYh(a, Wgj)) return AQe();
       break;
-    case -1645331377:
-      if (sYh(a, Xgj)) return CTe();
-      break;
     case -391011056:
       if (sYh(a, Ygj)) return qVe();
       break;
@@ -352700,9 +351844,6 @@ function qVd(a) {
     case 1772196570:
       if (sYh(a, gmj)) return FVe();
       break;
-    case -877688787:
-      if (sYh(a, hmj)) return ATe();
-      break;
     case 1471176755:
       if (sYh(a, imj)) return jTe();
       break;
@@ -352798,9 +351939,6 @@ function qVd(a) {
       break;
     case -1917110775:
       if (sYh(a, Nmj)) return aNe();
-      break;
-    case 1994807634:
-      if (sYh(a, Omj)) return BTe();
       break;
     case 128744473:
       if (sYh(a, Pmj)) return AUe();
@@ -354395,9 +353533,6 @@ function yKc(a) {
       break;
     case -1274945771:
       if (sYh(a, _zi)) return K5c();
-      break;
-    case 2066643000:
-      if (sYh(a, aAi)) return K4c();
       break;
     case -2098191897:
       if (sYh(a, bAi)) return D0c();
@@ -357480,7 +356615,7 @@ function sVd(a, b, c) {
     case 2527:
       return T3d(b, IVh(c[0]));
     case 2528:
-      return lWh(b.pA());
+      return Character_valueOf(b.pA());
     case 2529:
       return U3d(b, c[0].a);
     case 2530:
@@ -360222,7 +359357,7 @@ function IReflectionCacheGenerated_$invoke4(a, b, c) {
     case 4883:
       return gYh(b.eX());
     case 4884:
-      return lWh(b.YW());
+      return Character_valueOf(b.YW());
     case 4885:
       return b.hX();
     case 4886:
@@ -360286,11 +359421,11 @@ function IReflectionCacheGenerated_$invoke4(a, b, c) {
     case 4919:
       return gYh(bje(b, IVh(c[0])));
     case 4920:
-      return lWh(cje(b, c[0], c[1].a));
+      return Character_valueOf(cje(b, c[0], c[1].a));
     case 4921:
-      return lWh(b.sX(c[0]));
+      return Character_valueOf(b.sX(c[0]));
     case 4922:
-      return lWh(dje(b, IVh(c[0])));
+      return Character_valueOf(dje(b, IVh(c[0])));
     case 4923:
       return b.qY();
     case 4924:
@@ -361780,7 +360915,7 @@ function rVd(a, b, c) {
     case uJi:
       return rXh(
         (r$(),
-        $qf(
+        Cast_round_int(
           LXh(
             (c[1].a - c[0].a) * (c[2].b - c[0].b) -
               (c[1].b - c[0].b) * (c[2].a - c[0].a),
@@ -366040,7 +365175,6 @@ var NRi = "add",
   Q_i = "Enchanting",
   R_i = "updateMatrix",
   S_i = "GAP",
-  T_i = "RankingsScene",
   U_i = "shield",
   V_i = "position",
   W_i = "createChildren",
@@ -366236,7 +365370,6 @@ var NRi = "add",
   w3i = "getKey",
   x3i = "WndMessage",
   y3i = "WndOptions",
-  z3i = "WndRanking",
   A3i = "causeOfDeath",
   B3i = "WndResurrect",
   C3i = "WndSadGhost",
@@ -367016,7 +366149,6 @@ var NRi = "add",
   Ugj = "com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup",
   Vgj = "com.badlogic.gdx.Net.HttpRequest",
   Wgj = "com.badlogic.gdx.scenes.scene2d.utils.FocusListener.FocusEvent.Type",
-  Xgj = "com.watabou.pixeldungeon.Rankings[]",
   Ygj = "com.watabou.pixeldungeon.actors.mobs.FetidRat",
   Zgj = "com.badlogic.gdx.scenes.scene2d.ui.Table.Debug[]",
   $gj = "com.badlogic.gdx.math.Quaternion[]",
@@ -367326,7 +366458,6 @@ var NRi = "add",
   emj = "com.watabou.pixeldungeon.actors.hero.Hero.Doom",
   fmj = "com.watabou.pixeldungeon.actors.buffs.Disguise",
   gmj = "com.watabou.pixeldungeon.actors.mobs.Monk",
-  hmj = "com.watabou.pixeldungeon.Rankings",
   imj = "com.badlogic.gdx.graphics.g3d.model.NodeKeyframe",
   jmj = "com.badlogic.gdx.graphics.g3d.particles.values.EllipseSpawnShapeValue",
   kmj = "com.badlogic.gdx.maps.MapObject",
@@ -367364,7 +366495,6 @@ var NRi = "add",
   Lmj = "com.badlogic.gdx.scenes.scene2d.ui.Window.WindowStyle",
   Mmj = "com.badlogic.gdx.graphics.g3d.particles.ParticleEffect",
   Nmj = "com.badlogic.gdx.math.Interpolation.Swing",
-  Omj = "com.watabou.pixeldungeon.Rankings.Record",
   Pmj = "com.watabou.pixeldungeon.actors.buffs.Regeneration",
   Qmj = "com.watabou.noosa.audio.Sample",
   Rmj = "com.badlogic.gdx.graphics.g2d.Sprite",
@@ -369114,8 +368244,8 @@ _.rc = function gd(a) {
     this.d[0] = 0;
     this.e[0] = 0;
     if (Yc(this.b)) {
-      this.p[0] = $qf(this.p[0] + Rc(a));
-      this.q[0] = $qf(this.q[0] + Sc(a));
+      this.p[0] = Cast_round_int(this.p[0] + Rc(a));
+      this.q[0] = Cast_round_int(this.q[0] + Sc(a));
     } else {
       this.p[0] = Tc(a, this.b);
       this.q[0] = Vc(a, this.b);
@@ -369125,10 +368255,10 @@ _.rc = function gd(a) {
   }
   if (sYh(a.type, bai)) {
     if (Yc(this.b)) {
-      this.d[0] = $qf(Rc(a));
-      this.e[0] = $qf(Sc(a));
-      this.p[0] = $qf(this.p[0] + Rc(a));
-      this.q[0] = $qf(this.q[0] + Sc(a));
+      this.d[0] = Cast_round_int(Rc(a));
+      this.e[0] = Cast_round_int(Sc(a));
+      this.p[0] = Cast_round_int(this.p[0] + Rc(a));
+      this.q[0] = Cast_round_int(this.q[0] + Sc(a));
     } else {
       this.d[0] = Tc(a, this.b) - this.p[0];
       this.e[0] = Vc(a, this.b) - this.q[0];
@@ -369143,10 +368273,10 @@ _.rc = function gd(a) {
     Gcc(this.j, Qc(znf(a)));
     this.r[0] = this.j.i > 0;
     if (Yc(this.b)) {
-      this.d[0] = $qf(Rc(a));
-      this.e[0] = $qf(Sc(a));
-      this.p[0] = $qf(this.p[0] + Rc(a));
-      this.q[0] = $qf(this.q[0] + Sc(a));
+      this.d[0] = Cast_round_int(Rc(a));
+      this.e[0] = Cast_round_int(Sc(a));
+      this.p[0] = Cast_round_int(this.p[0] + Rc(a));
+      this.q[0] = Cast_round_int(this.q[0] + Sc(a));
     } else {
       this.d[0] = Tc(a, this.b) - this.p[0];
       this.e[0] = Vc(a, this.b) - this.q[0];
@@ -369158,7 +368288,7 @@ _.rc = function gd(a) {
     !!this.n && vLg(this.n, ((g = 0), Qc(znf(a)), g));
   }
   if (sYh(a.type, ed())) {
-    !!this.n && I6f(this.n, $qf(fd(a)));
+    !!this.n && I6f(this.n, Cast_round_int(DefaultGwtInput_getMouseWheelVelocity(a)));
     this.c = (jZh(), L$f(D$f(Date.now()), mai));
     a.preventDefault();
   }
@@ -369298,7 +368428,7 @@ _.vc = function zd(a) {
       b = Y7b(c);
       b.Pb();
     }
-    yag(this.j);
+    Game_$pause(this.j);
   }
 };
 _.f = 0;
@@ -369309,7 +368439,7 @@ var nd;
 var Mrf = Class_createForClass(X9h, yai, 973, WXf);
 var jsf = xWh(Aai, "Preloader/PreloaderCallback");
 
-Runtime_defineClass(Bai, 1, {}, Bd);
+Runtime_defineClass(Bai, 1, {}, GwtApplication);
 var Hrf = Class_createForClass(X9h, "GwtApplication/1", Bai, WXf);
 Runtime_defineClass(Cai, 1, {}, Dd);
 _.wc = function Ed(a) {
@@ -369659,7 +368789,7 @@ _.Nc = function lh() {
 };
 _.a = 0;
 var esf = Class_createForClass(Aai, "Blob/1", ubi, iXf);
-Runtime_defineClass(wbi, 1, {}, qh);
+Runtime_defineClass(wbi, 1, {}, Preloader);
 var lsf = Class_createForClass(Aai, "Preloader", wbi, WXf);
 Runtime_defineClass(xbi, 1, {}, sh);
 _.Kc = function vh(a) {
@@ -369793,14 +368923,14 @@ _.Kb = function Dj(a) {
   if (a == null || usf != Cb(a)) return false;
   b = a;
   return (
-    (($qf(255 * this.a) << 24) |
-      ($qf(255 * this.b) << 16) |
-      ($qf(255 * this.c) << 8) |
-      $qf(255 * this.d)) ==
-    (($qf(255 * b.a) << 24) |
-      ($qf(255 * b.b) << 16) |
-      ($qf(255 * b.c) << 8) |
-      $qf(255 * b.d))
+    ((Cast_round_int(255 * this.a) << 24) |
+      (Cast_round_int(255 * this.b) << 16) |
+      (Cast_round_int(255 * this.c) << 8) |
+      Cast_round_int(255 * this.d)) ==
+    ((Cast_round_int(255 * b.a) << 24) |
+      (Cast_round_int(255 * b.b) << 16) |
+      (Cast_round_int(255 * b.c) << 8) |
+      Cast_round_int(255 * b.d))
   );
 };
 _.Yc = function Ej(a, b, c) {
@@ -369899,20 +369029,20 @@ _.ld = function Uj(a) {
 };
 _.md = function Vj() {
   return (
-    ($qf(255 * this.a) << 24) |
-    ($qf(255 * this.b) << 16) |
-    ($qf(255 * this.c) << 8) |
-    $qf(255 * this.d)
+    (Cast_round_int(255 * this.a) << 24) |
+    (Cast_round_int(255 * this.b) << 16) |
+    (Cast_round_int(255 * this.c) << 8) |
+    Cast_round_int(255 * this.d)
   );
 };
 _.Nb = function Wj() {
   var a, b;
   b =
     ((a =
-      (($qf(255 * this.d) << 24) |
-        ($qf(255 * this.c) << 16) |
-        ($qf(255 * this.b) << 8) |
-        $qf(255 * this.a)) >>>
+      ((Cast_round_int(255 * this.d) << 24) |
+        (Cast_round_int(255 * this.c) << 16) |
+        (Cast_round_int(255 * this.b) << 8) |
+        Cast_round_int(255 * this.a)) >>>
       0),
     a.toString(16));
   while (b.length < 8) b = "0" + b;
@@ -370497,10 +369627,10 @@ _.Xe = function Dp(a, b) {
   kp(
     this,
     ((e =
-      ($qf(255 * d.a) << 24) |
-      ($qf(255 * d.b) << 16) |
-      ($qf(255 * d.c) << 8) |
-      $qf(255 * d.d)),
+      (Cast_round_int(255 * d.a) << 24) |
+      (Cast_round_int(255 * d.b) << 16) |
+      (Cast_round_int(255 * d.c) << 8) |
+      Cast_round_int(255 * d.d)),
     knf(),
     (jnf[0] = e & Obi),
     undefined,
@@ -370511,10 +369641,10 @@ _.Xe = function Dp(a, b) {
   kp(
     this,
     ((c =
-      ($qf(255 * d.a) << 24) |
-      ($qf(255 * d.b) << 16) |
-      ($qf(255 * d.c) << 8) |
-      $qf(255 * d.d)),
+      (Cast_round_int(255 * d.a) << 24) |
+      (Cast_round_int(255 * d.b) << 16) |
+      (Cast_round_int(255 * d.c) << 8) |
+      Cast_round_int(255 * d.d)),
     (jnf[0] = c & Obi),
     undefined,
     inf[0]),
@@ -370575,7 +369705,7 @@ _.ff = function Op(a, b) {
 };
 _.gf = function Pp(a) {
   var b, c, d, e, f, g, h, i, j, k;
-  b = $qf(254 * a) << 24;
+  b = Cast_round_int(254 * a) << 24;
   i = 0;
   h = 0;
   for (e = 0, f = this.j.length; e < f; e++) {
@@ -370606,10 +369736,10 @@ _.hf = function Sp(a) {
 _.jf = function Tp(a, b, c, d) {
   var e;
   e =
-    ($qf(255 * d) << 24) |
-    ($qf(255 * c) << 16) |
-    ($qf(255 * b) << 8) |
-    $qf(255 * a);
+    (Cast_round_int(255 * d) << 24) |
+    (Cast_round_int(255 * c) << 16) |
+    (Cast_round_int(255 * b) << 8) |
+    Cast_round_int(255 * a);
   kp(this, (knf(), (jnf[0] = e & Obi), undefined, inf[0]));
 };
 _.kf = function Up(a, b, c) {
@@ -370620,10 +369750,10 @@ _.lf = function Vp(a) {
   kp(
     this,
     ((b =
-      ($qf(255 * a.a) << 24) |
-      ($qf(255 * a.b) << 16) |
-      ($qf(255 * a.c) << 8) |
-      $qf(255 * a.d)),
+      (Cast_round_int(255 * a.a) << 24) |
+      (Cast_round_int(255 * a.b) << 16) |
+      (Cast_round_int(255 * a.c) << 8) |
+      Cast_round_int(255 * a.d)),
     knf(),
     (jnf[0] = b & Obi),
     inf[0]),
@@ -370634,10 +369764,10 @@ _.mf = function Wp(a, b, c) {
   lp(
     this,
     ((d =
-      ($qf(255 * a.a) << 24) |
-      ($qf(255 * a.b) << 16) |
-      ($qf(255 * a.c) << 8) |
-      $qf(255 * a.d)),
+      (Cast_round_int(255 * a.a) << 24) |
+      (Cast_round_int(255 * a.b) << 16) |
+      (Cast_round_int(255 * a.c) << 8) |
+      Cast_round_int(255 * a.d)),
     knf(),
     (jnf[0] = d & Obi),
     undefined,
@@ -371002,10 +370132,10 @@ _.ng = function ht() {
   return this.R;
 };
 _.og = function it() {
-  return $qf($wnd.Math.round(this.T * this.S.a.rd()));
+  return Cast_round_int($wnd.Math.round(this.T * this.S.a.rd()));
 };
 _.pg = function jt() {
-  return $qf($wnd.Math.round(this.V * this.S.a.pd()));
+  return Cast_round_int($wnd.Math.round(this.V * this.S.a.pd()));
 };
 _.Uf = function kt() {
   return this.S;
@@ -371059,8 +370189,8 @@ _.Bg = function wt(a, b, c, d, e) {
   this.S = a.S;
   Ys(
     this,
-    $qf($wnd.Math.round(a.T * a.S.a.rd())) + b,
-    $qf($wnd.Math.round(a.V * a.S.a.pd())) + c,
+    Cast_round_int($wnd.Math.round(a.T * a.S.a.rd())) + b,
+    Cast_round_int($wnd.Math.round(a.V * a.S.a.pd())) + c,
     d,
     e,
   );
@@ -371086,19 +370216,19 @@ _.Gg = function Bt(a) {
 };
 _.Hg = function Ct(a) {
   this.T = a;
-  this.R = $qf($wnd.Math.round($wnd.Math.abs(this.U - a) * this.S.a.rd()));
+  this.R = Cast_round_int($wnd.Math.round($wnd.Math.abs(this.U - a) * this.S.a.rd()));
 };
 _.Ig = function Dt(a) {
   this.U = a;
-  this.R = $qf($wnd.Math.round($wnd.Math.abs(a - this.T) * this.S.a.rd()));
+  this.R = Cast_round_int($wnd.Math.round($wnd.Math.abs(a - this.T) * this.S.a.rd()));
 };
 _.Jg = function Et(a) {
   this.V = a;
-  this.Q = $qf($wnd.Math.round($wnd.Math.abs(this.W - a) * this.S.a.pd()));
+  this.Q = Cast_round_int($wnd.Math.round($wnd.Math.abs(this.W - a) * this.S.a.pd()));
 };
 _.Kg = function Ft(a) {
   this.W = a;
-  this.Q = $qf($wnd.Math.round($wnd.Math.abs(a - this.V) * this.S.a.pd()));
+  this.Q = Cast_round_int($wnd.Math.round($wnd.Math.abs(a - this.V) * this.S.a.pd()));
 };
 _.Lg = function Gt(a, b) {
   return Zs(this, a, b);
@@ -371286,25 +370416,25 @@ _.fh = function Tu(a, b) {
 };
 _.Hg = function Uu(a) {
   this.T = a;
-  this.R = $qf($wnd.Math.round($wnd.Math.abs(this.U - a) * this.S.a.rd()));
+  this.R = Cast_round_int($wnd.Math.round($wnd.Math.abs(this.U - a) * this.S.a.rd()));
   this.M[3] = a;
   this.M[8] = a;
 };
 _.Ig = function Vu(a) {
   this.U = a;
-  this.R = $qf($wnd.Math.round($wnd.Math.abs(a - this.T) * this.S.a.rd()));
+  this.R = Cast_round_int($wnd.Math.round($wnd.Math.abs(a - this.T) * this.S.a.rd()));
   this.M[13] = a;
   this.M[18] = a;
 };
 _.Jg = function Wu(a) {
   this.V = a;
-  this.Q = $qf($wnd.Math.round($wnd.Math.abs(this.W - a) * this.S.a.pd()));
+  this.Q = Cast_round_int($wnd.Math.round($wnd.Math.abs(this.W - a) * this.S.a.pd()));
   this.M[9] = a;
   this.M[14] = a;
 };
 _.Kg = function Xu(a) {
   this.W = a;
-  this.Q = $qf($wnd.Math.round($wnd.Math.abs(a - this.V) * this.S.a.pd()));
+  this.Q = Cast_round_int($wnd.Math.round($wnd.Math.abs(a - this.V) * this.S.a.pd()));
   this.M[4] = a;
   this.M[19] = a;
 };
@@ -371460,8 +370590,8 @@ _.ph = function gw(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) {
     v *= i;
   }
   if (j != 0) {
-    r = (p_(), (K_(), J_)[$qf((j + 90) * bdi) & cdi]);
-    A = J_[$qf(j * bdi) & cdi];
+    r = (p_(), (K_(), J_)[Cast_round_int((j + 90) * bdi) & cdi]);
+    A = J_[Cast_round_int(j * bdi) & cdi];
     K = r * s - A * u;
     O = A * s + r * u;
     L = r * s - A * v;
@@ -371664,8 +370794,8 @@ _.wh = function nw(a, b, c, d, e, f, g, h, i, j, k) {
     q *= i;
   }
   if (j != 0) {
-    m = (p_(), (K_(), J_)[$qf((j + 90) * bdi) & cdi]);
-    s = J_[$qf(j * bdi) & cdi];
+    m = (p_(), (K_(), J_)[Cast_round_int((j + 90) * bdi) & cdi]);
+    s = J_[Cast_round_int(j * bdi) & cdi];
     J = m * n - s * p;
     N = s * n + m * p;
     K = m * n - s * q;
@@ -371939,8 +371069,8 @@ _.Th = function Ww(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) {
     u *= i;
   }
   if (j != 0) {
-    q = (p_(), (K_(), J_)[$qf((j + 90) * bdi) & cdi]);
-    A = J_[$qf(j * bdi) & cdi];
+    q = (p_(), (K_(), J_)[Cast_round_int((j + 90) * bdi) & cdi]);
+    A = J_[Cast_round_int(j * bdi) & cdi];
     J = q * r - A * t;
     N = A * r + q * t;
     K = q * r - A * u;
@@ -372218,8 +371348,8 @@ _._h = function cx(a, b, c, d, e, f, g, h, i, j) {
     o *= i;
   }
   if (j != 0) {
-    k = (p_(), (K_(), J_)[$qf((j + 90) * bdi) & cdi]);
-    p = J_[$qf(j * bdi) & cdi];
+    k = (p_(), (K_(), J_)[Cast_round_int((j + 90) * bdi) & cdi]);
+    p = J_[Cast_round_int(j * bdi) & cdi];
     w = k * l - p * n;
     D = p * l + k * n;
     A = k * l - p * o;
@@ -372451,10 +371581,10 @@ _.qe = function ux(a) {
   rj(this.b, a);
   this.c =
     ((b =
-      ($qf(255 * a.a) << 24) |
-      ($qf(255 * a.b) << 16) |
-      ($qf(255 * a.c) << 8) |
-      $qf(255 * a.d)),
+      (Cast_round_int(255 * a.a) << 24) |
+      (Cast_round_int(255 * a.b) << 16) |
+      (Cast_round_int(255 * a.c) << 8) |
+      Cast_round_int(255 * a.d)),
     knf(),
     (jnf[0] = b & Obi),
     undefined,
@@ -373981,8 +373111,8 @@ _.ri = function bG() {
     for (e = 0, i = 0; e < this.C.i.c; ++e, i += this.i.f) {
       n = this.b.a[e] * this.C.b;
       if (n != 0) {
-        b = (p_(), (K_(), J_)[$qf((n + 90) * bdi) & cdi]);
-        o = J_[$qf(n * bdi) & cdi];
+        b = (p_(), (K_(), J_)[Cast_round_int((n + 90) * bdi) & cdi]);
+        o = J_[Cast_round_int(n * bdi) & cdi];
         c = this.i.a[i];
         d = this.i.a[i + 1];
         g = c * b - d * o;
@@ -374259,10 +373389,10 @@ _.ri = function ZG() {
     l = this.f.a[i] + this.f.a[i + 1] * FM(this.g, g);
     h = this.c.a[a + 2] + this.c.a[a + 3] * FM(this.d, g);
     m = this.c.a[a] + this.c.a[a + 1] * FM(this.e, g);
-    d = (p_(), (K_(), J_)[$qf((m + 90) * bdi) & cdi]);
-    k = J_[$qf(m * bdi) & cdi];
-    c = J_[$qf((h + 90) * bdi) & cdi];
-    j = J_[$qf(h * bdi) & cdi];
+    d = (p_(), (K_(), J_)[Cast_round_int((m + 90) * bdi) & cdi]);
+    k = J_[Cast_round_int(m * bdi) & cdi];
+    c = J_[Cast_round_int((h + 90) * bdi) & cdi];
+    j = J_[Cast_round_int(h * bdi) & cdi];
     Ibb(Gbb(Kbb(gG, d * j, c, k * j)), l);
     if (!this.i) {
       Q0(this.C.n, dG, true);
@@ -374336,10 +373466,10 @@ _.ri = function jH() {
     l = this.f.a[i] + this.f.a[i + 1] * FM(this.g, g);
     h = this.c.a[a + 2] + this.c.a[a + 3] * FM(this.d, g);
     m = this.c.a[a] + this.c.a[a + 1] * FM(this.e, g);
-    d = (p_(), (K_(), J_)[$qf((m + 90) * bdi) & cdi]);
-    k = J_[$qf(m * bdi) & cdi];
-    c = J_[$qf((h + 90) * bdi) & cdi];
-    j = J_[$qf(h * bdi) & cdi];
+    d = (p_(), (K_(), J_)[Cast_round_int((m + 90) * bdi) & cdi]);
+    k = J_[Cast_round_int(m * bdi) & cdi];
+    c = J_[Cast_round_int((h + 90) * bdi) & cdi];
+    j = J_[Cast_round_int(h * bdi) & cdi];
     Kbb(gG, d * j, c, k * j);
     Ibb(gG, l * agi);
     this.b.a[e] += gG.a;
@@ -374377,10 +373507,10 @@ _.ri = function pH() {
     m = this.f.a[j] + this.f.a[j + 1] * FM(this.g, g);
     h = this.c.a[a + 2] + this.c.a[a + 3] * FM(this.d, g);
     n = this.c.a[a] + this.c.a[a + 1] * FM(this.e, g);
-    d = (p_(), (K_(), J_)[$qf((n + 90) * bdi) & cdi]);
-    l = J_[$qf(n * bdi) & cdi];
-    c = J_[$qf((h + 90) * bdi) & cdi];
-    k = J_[$qf(h * bdi) & cdi];
+    d = (p_(), (K_(), J_)[Cast_round_int((n + 90) * bdi) & cdi]);
+    l = J_[Cast_round_int(n * bdi) & cdi];
+    c = J_[Cast_round_int((h + 90) * bdi) & cdi];
+    k = J_[Cast_round_int(h * bdi) & cdi];
     Kbb(gG, d * k, c, l * k);
     Kbb(eG, this.b.a[i], this.b.a[i + 1], this.b.a[i + 2]);
     if (!this.i) {
@@ -374747,7 +373877,7 @@ _.ri = function RI() {
     b < a;
     b += this.c.f, c += this.a.f
   ) {
-    d = r6b(this.d, $qf(this.a.a[c] * (this.d.i - 1)));
+    d = r6b(this.d, Cast_round_int(this.a.a[c] * (this.d.i - 1)));
     this.c.a[b] = d.c;
     this.c.a[b + 1] = d.e;
     this.c.a[b + 2] = d.d;
@@ -375260,9 +374390,9 @@ _.al = function eL(a, b) {
       : g && (j = o_.ut(2) == 0 ? 0 : 180);
   Kbb(
     a,
-    h * (K_(), J_)[$qf((j + 90) * bdi) & cdi],
+    h * (K_(), J_)[Cast_round_int((j + 90) * bdi) & cdi],
     k,
-    i * J_[$qf(j * bdi) & cdi],
+    i * J_[Cast_round_int(j * bdi) & cdi],
   );
 };
 var pvf = Class_createForClass(tgi, Bgi, 612, zvf);
@@ -375302,25 +374432,25 @@ _.al = function oL(a, b) {
       Kbb(
         a,
         0,
-        (d / 2) * (K_(), J_)[$qf(j * Egi) & cdi],
-        (c / 2) * J_[$qf((j + Fgi) * Egi) & cdi],
+        (d / 2) * (K_(), J_)[Cast_round_int(j * Egi) & cdi],
+        (c / 2) * J_[Cast_round_int((j + Fgi) * Egi) & cdi],
       );
       return;
     }
     if (d == 0) {
       Kbb(
         a,
-        (k / 2) * (K_(), J_)[$qf((j + Fgi) * Egi) & cdi],
+        (k / 2) * (K_(), J_)[Cast_round_int((j + Fgi) * Egi) & cdi],
         0,
-        (c / 2) * J_[$qf(j * Egi) & cdi],
+        (c / 2) * J_[Cast_round_int(j * Egi) & cdi],
       );
       return;
     }
     if (c == 0) {
       Kbb(
         a,
-        (k / 2) * (K_(), J_)[$qf((j + Fgi) * Egi) & cdi],
-        (d / 2) * J_[$qf(j * Egi) & cdi],
+        (k / 2) * (K_(), J_)[Cast_round_int((j + Fgi) * Egi) & cdi],
+        (d / 2) * J_[Cast_round_int(j * Egi) & cdi],
         0,
       );
       return;
@@ -375337,8 +374467,8 @@ _.al = function oL(a, b) {
   f = $wnd.Math.sqrt(1 - l * l);
   Kbb(
     a,
-    g * f * (K_(), J_)[$qf((j + Fgi) * Egi) & cdi],
-    h * f * J_[$qf(j * Egi) & cdi],
+    g * f * (K_(), J_)[Cast_round_int((j + Fgi) * Egi) & cdi],
+    h * f * J_[Cast_round_int(j * Egi) & cdi],
     i * l,
   );
 };
@@ -376463,8 +375593,8 @@ _.Um = function aS(a) {
 _.Vm = function bS(a) {
   var b, c, d, e, f, g, h, i;
   if (a == 0) return this;
-  b = (p_(), (K_(), J_)[$qf((a + 90) * bdi) & cdi]);
-  c = J_[$qf(a * bdi) & cdi];
+  b = (p_(), (K_(), J_)[Cast_round_int((a + 90) * bdi) & cdi]);
+  c = J_[Cast_round_int(a * bdi) & cdi];
   d = b * this.a - c * this.d;
   e = b * this.b - c * this.e;
   f = b * this.c - c * this.f;
@@ -376482,8 +375612,8 @@ _.Vm = function bS(a) {
 _.Wm = function cS(a) {
   var b, c, d, e, f, g, h, i;
   if (a == 0) return this;
-  b = (p_(), (K_(), J_)[$qf((a + Fgi) * Egi) & cdi]);
-  c = J_[$qf(a * Egi) & cdi];
+  b = (p_(), (K_(), J_)[Cast_round_int((a + Fgi) * Egi) & cdi]);
+  c = J_[Cast_round_int(a * Egi) & cdi];
   d = b * this.a - c * this.d;
   e = b * this.b - c * this.e;
   f = b * this.c - c * this.f;
@@ -376519,8 +375649,8 @@ _.an = function iS(a) {
 _.bn = function jS(a) {
   var b, c, d, e, f, g;
   if (a == 0) return this;
-  b = (p_(), (K_(), J_)[$qf((a + 90) * bdi) & cdi]);
-  c = J_[$qf(a * bdi) & cdi];
+  b = (p_(), (K_(), J_)[Cast_round_int((a + 90) * bdi) & cdi]);
+  c = J_[Cast_round_int(a * bdi) & cdi];
   d = this.a * b + this.b * c;
   e = this.a * -c + this.b * b;
   f = this.d * b + this.e * c;
@@ -376534,8 +375664,8 @@ _.bn = function jS(a) {
 _.cn = function kS(a) {
   var b, c, d, e, f, g;
   if (a == 0) return this;
-  b = (p_(), (K_(), J_)[$qf((a + Fgi) * Egi) & cdi]);
-  c = J_[$qf(a * Egi) & cdi];
+  b = (p_(), (K_(), J_)[Cast_round_int((a + Fgi) * Egi) & cdi]);
+  c = J_[Cast_round_int(a * Egi) & cdi];
   d = this.a * b + this.b * c;
   e = this.a * -c + this.b * b;
   f = this.d * b + this.e * c;
@@ -376588,8 +375718,8 @@ _.jn = function qS(a, b) {
 };
 _.kn = function rS(a) {
   var b, c;
-  b = (p_(), (K_(), J_)[$qf((a + 90) * bdi) & cdi]);
-  c = J_[$qf(a * bdi) & cdi];
+  b = (p_(), (K_(), J_)[Cast_round_int((a + 90) * bdi) & cdi]);
+  c = J_[Cast_round_int(a * bdi) & cdi];
   this.a = b;
   this.b = -c;
   this.c = 0;
@@ -376609,8 +375739,8 @@ _.ln = function sS(a, b) {
 };
 _.mn = function tS(a) {
   var b, c;
-  b = (p_(), (K_(), J_)[$qf((a + Fgi) * Egi) & cdi]);
-  c = J_[$qf(a * Egi) & cdi];
+  b = (p_(), (K_(), J_)[Cast_round_int((a + Fgi) * Egi) & cdi]);
+  c = J_[Cast_round_int(a * Egi) & cdi];
   this.a = b;
   this.b = -c;
   this.c = 0;
@@ -376730,7 +375860,7 @@ _.In = function bT(a, b) {
 _.Jn = function cT(a, b, c) {
   return aT(
     a,
-    this.a ? b : b + $qf(this.c * 0.5),
+    this.a ? b : b + Cast_round_int(this.c * 0.5),
     c,
     this.b,
     this.c,
@@ -376756,7 +375886,7 @@ _.Qn = function jT(a, b) {
 _.Rn = function kT(a, b, c) {
   return ZS(
     a,
-    this.a ? b : b + $qf(this.c * 0.5),
+    this.a ? b : b + Cast_round_int(this.c * 0.5),
     c,
     this.b,
     this.c,
@@ -377566,12 +376696,12 @@ _.Ip = function LY(a) {
 var Ewf = Class_createForClass(Dhi, "Interpolation/1", hii, axf);
 Runtime_defineClass(iii, 124, gii, MY);
 _.Ip = function NY(a) {
-  return (p_(), 1 - (K_(), J_)[$qf((a * Fgi + Fgi) * Egi) & cdi]);
+  return (p_(), 1 - (K_(), J_)[Cast_round_int((a * Fgi + Fgi) * Egi) & cdi]);
 };
 var zwf = Class_createForClass(Dhi, "Interpolation/10", iii, axf);
 Runtime_defineClass(jii, 124, gii, OY);
 _.Ip = function PY(a) {
-  return (p_(), (K_(), J_)[$qf(a * Fgi * Egi) & cdi]);
+  return (p_(), (K_(), J_)[Cast_round_int(a * Fgi * Egi) & cdi]);
 };
 var Awf = Class_createForClass(Dhi, "Interpolation/11", jii, axf);
 Runtime_defineClass(kii, 124, gii, QY);
@@ -377642,7 +376772,7 @@ _.Ip = function iZ(a) {
 var Lwf = Class_createForClass(Dhi, "Interpolation/8", uii, axf);
 Runtime_defineClass(vii, 124, gii, jZ);
 _.Ip = function kZ(a) {
-  return (p_(), (1 - (K_(), J_)[$qf((a * Dgi + Fgi) * Egi) & cdi]) / 2);
+  return (p_(), (1 - (K_(), J_)[Cast_round_int((a * Dgi + Fgi) * Egi) & cdi]) / 2);
 };
 var Mwf = Class_createForClass(Dhi, "Interpolation/9", vii, axf);
 Runtime_defineClass(278, 124, { 124: 1, 278: 1 }, mZ, nZ);
@@ -378045,8 +377175,8 @@ _.gq = function o0(a, b) {
   return O_(
     this,
     a,
-    (p_(), (K_(), J_)[$qf((b + 90) * bdi) & cdi]),
-    J_[$qf(b * bdi) & cdi],
+    (p_(), (K_(), J_)[Cast_round_int((b + 90) * bdi) & cdi]),
+    J_[Cast_round_int(b * bdi) & cdi],
   );
 };
 _.hq = function p0(a, b, c) {
@@ -379106,8 +378236,8 @@ _.fs = function Y4() {
   m = this.k;
   k = l != 1 || m != 1;
   j = this.i;
-  a = (p_(), (K_(), J_)[$qf((j + 90) * bdi) & cdi]);
-  n = J_[$qf(j * bdi) & cdi];
+  a = (p_(), (K_(), J_)[Cast_round_int((j + 90) * bdi) & cdi]);
+  n = J_[Cast_round_int(j * bdi) & cdi];
   for (b = 0, d = c.length; b < d; b += 2) {
     p = c[b] - f;
     q = c[b + 1] - g;
@@ -379568,19 +378698,19 @@ _.st = function _6() {
   return X6(this, 24) * pji;
 };
 _.tt = function a7() {
-  return $qf(X6(this, 32));
+  return Cast_round_int(X6(this, 32));
 };
 _.ut = function b7(a) {
   var b, c;
   Q8h(a > 0);
   if ((a & -a) == a) {
-    return $qf(a * X6(this, 31) * 4.6566128730773926e-10);
+    return Cast_round_int(a * X6(this, 31) * 4.6566128730773926e-10);
   }
   do {
     b = X6(this, 31);
     c = b % a;
   } while (b - c + (a - 1) < 0);
-  return $qf(c);
+  return Cast_round_int(c);
 };
 _.c = 0;
 _.d = 0;
@@ -379693,7 +378823,7 @@ _.Bt = function J7(b) {
     e != -1 &&
     f != -1 &&
     (b9h(0, b.length), b.charCodeAt(0) == 91) &&
-    nYh(b, b.length - 1) == 93
+    String_$charAt(b, b.length - 1) == 93
   ) {
     try {
       h = XWh(b.substr(1, d - 1));
@@ -379946,7 +379076,7 @@ _.Du = function Qab() {
   var a;
   return (
     (a = (p_(), o_.st() * Cgi)),
-    S8(this, (K_(), J_)[$qf((a + Fgi) * Egi) & cdi], J_[$qf(a * Egi) & cdi])
+    S8(this, (K_(), J_)[Cast_round_int((a + Fgi) * Egi) & cdi], J_[Cast_round_int(a * Egi) & cdi])
   );
 };
 _.Eu = function Sab() {
@@ -380051,7 +379181,7 @@ _.av = function D9(b) {
   if (
     c != -1 &&
     (b9h(0, b.length), b.charCodeAt(0) == 40) &&
-    nYh(b, b.length - 1) == 41
+    String_$charAt(b, b.length - 1) == 41
   ) {
     try {
       d = XWh(b.substr(1, c - 1));
@@ -380221,7 +379351,7 @@ _.Kv = function Pab() {
   var a;
   return (
     (a = (p_(), o_.st() * Cgi)),
-    S8(this, (K_(), J_)[$qf((a + Fgi) * Egi) & cdi], J_[$qf(a * Egi) & cdi])
+    S8(this, (K_(), J_)[Cast_round_int((a + Fgi) * Egi) & cdi], J_[Cast_round_int(a * Egi) & cdi])
   );
 };
 _.Lv = function Rab() {
@@ -380411,7 +379541,7 @@ _.cw = function vcb(b) {
     c != -1 &&
     d != -1 &&
     (b9h(0, b.length), b.charCodeAt(0) == 40) &&
-    nYh(b, b.length - 1) == 41
+    String_$charAt(b, b.length - 1) == 41
   ) {
     try {
       e = XWh(b.substr(1, c - 1));
@@ -382550,7 +381680,7 @@ _.Hj = function Tpb(a) {
     ? (this.c = this.b)
     : a == 1
       ? (this.c = this.a)
-      : (this.c = $qf(this.b + (this.a - this.b) * a));
+      : (this.c = Cast_round_int(this.b + (this.a - this.b) * a));
 };
 _.a = 0;
 _.b = 0;
@@ -385068,10 +384198,10 @@ _.UC = function PCb() {
   n = h;
   (this.c & 2) != 0 ? (n += a - c) : (this.c & 4) == 0 && (n += (a - c) / 2);
   if (this.u) {
-    m = $qf($wnd.Math.round(m));
-    n = $qf($wnd.Math.round(n));
-    l = $qf($wnd.Math.round(l));
-    c = $qf($wnd.Math.round(c));
+    m = Cast_round_int($wnd.Math.round(m));
+    n = Cast_round_int($wnd.Math.round(n));
+    l = Cast_round_int($wnd.Math.round(l));
+    c = Cast_round_int($wnd.Math.round(c));
   }
   Kgb(this.b, m, n, l, c);
   Rqf(this.b, 69) && this.b.ZC();
@@ -385487,8 +384617,8 @@ _.yJ = function SEb(a) {
   yEb(this, a, Unb(Gnb(0, 0, null), Inb(xii, (HY(), eY))));
   Ogb(
     this,
-    $qf($wnd.Math.round((a.C.j - this.Hb) / 2)),
-    $qf($wnd.Math.round((a.C.i - this.ub) / 2)),
+    Cast_round_int($wnd.Math.round((a.C.j - this.Hb) / 2)),
+    Cast_round_int($wnd.Math.round((a.C.i - this.ub) / 2)),
   );
   return this;
 };
@@ -385727,10 +384857,10 @@ _.UC = function QFb() {
     l
       ? Kgb(
           b,
-          $qf($wnd.Math.round(q)),
-          $qf($wnd.Math.round(r)),
-          $qf($wnd.Math.round(p)),
-          $qf($wnd.Math.round(e)),
+          Cast_round_int($wnd.Math.round(q)),
+          Cast_round_int($wnd.Math.round(r)),
+          Cast_round_int($wnd.Math.round(p)),
+          Cast_round_int($wnd.Math.round(e)),
         )
       : Kgb(b, q, r, p, e);
     q += p + n;
@@ -386006,13 +385136,13 @@ _.UC = function bHb() {
   (this.a & 8) != 0
     ? (this.e = 0)
     : (this.a & 16) != 0
-      ? (this.e = $qf(e - this.d))
-      : (this.e = $qf(e / 2 - this.d / 2));
+      ? (this.e = Cast_round_int(e - this.d))
+      : (this.e = Cast_round_int(e / 2 - this.d / 2));
   (this.a & 2) != 0
-    ? (this.f = $qf(a - this.c))
+    ? (this.f = Cast_round_int(a - this.c))
     : (this.a & 4) != 0
       ? (this.f = 0)
-      : (this.f = $qf(a / 2 - this.c / 2));
+      : (this.f = Cast_round_int(a / 2 - this.c / 2));
 };
 _.xK = function cHb(a) {
   this.a = a;
@@ -386590,7 +385720,7 @@ _.PA = function PJb(a, b) {
   e = (jZh(), D$f(Date.now()));
   F$f(e, this.c) && (this.a = "");
   this.c = x$f(e, 300);
-  this.a += Pqf(nYh(String.fromCharCode(b).toLowerCase(), 0));
+  this.a += Pqf(String_$charAt(String.fromCharCode(b).toLowerCase(), 0));
   for (c = 0, d = this.b.e.i; c < d; c++) {
     if (FYh(this.b.uL(r6b(this.b.e, c)).toLowerCase(), this.a)) {
       fJb(this.b, c);
@@ -386745,7 +385875,7 @@ _.Xe = function BKb(a, b) {
         C + (B - o.PC()) * 0.5,
         D + this.q + r,
         o.PC(),
-        w - (this.s ? $qf($wnd.Math.round(c - r)) : c - r),
+        w - (this.s ? Cast_round_int($wnd.Math.round(c - r)) : c - r),
       );
     if (k) {
       A = k.PC();
@@ -386760,9 +385890,9 @@ _.Xe = function BKb(a, b) {
         a,
         e,
         C,
-        $qf($wnd.Math.round(D + (m - e.OC()) * 0.5)),
+        Cast_round_int($wnd.Math.round(D + (m - e.OC()) * 0.5)),
         B,
-        $qf($wnd.Math.round(e.OC())),
+        Cast_round_int($wnd.Math.round(e.OC())),
       );
       g = e.Mf();
       h = e.Tf();
@@ -386780,7 +385910,7 @@ _.Xe = function BKb(a, b) {
         o,
         C + this.q + t,
         D + (m - o.OC()) * 0.5,
-        w - (this.s ? $qf($wnd.Math.round(d - t)) : d - t),
+        w - (this.s ? Cast_round_int($wnd.Math.round(d - t)) : d - t),
         o.OC(),
       );
     if (k) {
@@ -386853,7 +385983,7 @@ _.QL = function UKb() {
   return this.w;
 };
 _.RL = function VKb(a) {
-  return $qf($wnd.Math.round(a / this.t)) * this.t;
+  return Cast_round_int($wnd.Math.round(a / this.t)) * this.t;
 };
 _.SL = function WKb(a) {
   this.g = a;
@@ -387188,11 +386318,11 @@ _.UC = function UMb() {
         this.$ || (this.G.d += j);
       }
       this._
-        ? (this.F.c = $wnd.Math.max(f.PC(), $qf((this.G.c * this.fb.c) / m)))
+        ? (this.F.c = $wnd.Math.max(f.PC(), Cast_round_int((this.G.c * this.fb.c) / m)))
         : (this.F.c = f.PC());
       this.F.c > m && (this.F.c = 0);
       this.F.b = f.OC();
-      this.F.d = this.G.d + $qf((this.G.c - this.F.c) * tLb(this));
+      this.F.d = this.G.d + Cast_round_int((this.G.c - this.F.c) * tLb(this));
       this.F.e = this.G.e;
     } else {
       u7(this.G, 0, 0, 0, 0);
@@ -387210,11 +386340,11 @@ _.UC = function UMb() {
       }
       this.Y.c = k.PC();
       this._
-        ? (this.Y.b = $wnd.Math.max(k.OC(), $qf((this.Z.b * this.fb.b) / l)))
+        ? (this.Y.b = $wnd.Math.max(k.OC(), Cast_round_int((this.Z.b * this.fb.b) / l)))
         : (this.Y.b = k.OC());
       this.Y.b > l && (this.Y.b = 0);
       this.Y.d = this.$ ? n - d - k.PC() : c;
-      this.Y.e = this.Z.e + $qf((this.Z.b - this.Y.b) * (1 - uLb(this)));
+      this.Y.e = this.Z.e + Cast_round_int((this.Z.b - this.Y.b) * (1 - uLb(this)));
     } else {
       u7(this.Z, 0, 0, 0, 0);
       u7(this.Y, 0, 0, 0, 0);
@@ -387559,9 +386689,9 @@ _.Xe = function wOb(a, b) {
       j -= c.Mf() + c.Tf();
       g -= c.Lf() + c.Vf();
       k += c.Mf();
-      l += $qf(g / 2 + c.Lf() + e.b.e / 2);
+      l += Cast_round_int(g / 2 + c.Lf() + e.b.e / 2);
     } else {
-      l += $qf(g / 2 + e.b.e / 2);
+      l += Cast_round_int(g / 2 + e.b.e / 2);
     }
     xn(e, f.d, f.c, f.b, f.a * b);
     i = g_f(h);
@@ -389043,7 +388173,7 @@ _.iR = function pXb() {
 _.jR = function qXb(a, b) {
   var c;
   return (
-    (c = nYh(this.T, a + b)),
+    (c = String_$charAt(this.T, a + b)),
     _Vh == null && (_Vh = new RegExp(Hni, "i")),
     _Vh.test(String.fromCharCode(c))
   );
@@ -389199,7 +388329,7 @@ _.FR = function RXb(a, b) {
   } else {
     e = e + d / 2;
   }
-  a.d && (e = $qf(e));
+  a.d && (e = Cast_round_int(e));
   return e;
 };
 _.GR = function SXb() {
@@ -389374,7 +388504,7 @@ _.gR = function HYb() {
     g = (alc(), dlc(Tsf));
     f = g.c.i == 0 ? g.Pc() : x6b(g.c);
     for (c = 0; c < this.T.length; c++) {
-      d = nYh(this.T, c);
+      d = String_$charAt(this.T, c);
       if (d == 13 || d == 10) {
         qbc(this.d, h);
         qbc(this.d, c);
@@ -389382,7 +388512,7 @@ _.gR = function HYb() {
       } else {
         e =
           ((j = wYb(this, c)),
-          (a = nYh(this.T, c)),
+          (a = String_$charAt(this.T, c)),
           _Vh == null && (_Vh = new RegExp(Hni, "i")),
           _Vh.test(String.fromCharCode(a)) &&
           (j < 0 ||
@@ -389414,7 +388544,7 @@ _.jR = function IYb(a, b) {
   var c, d;
   return (
     (c = wYb(this, a + b)),
-    (d = nYh(this.T, a + b)),
+    (d = String_$charAt(this.T, a + b)),
     _Vh == null && (_Vh = new RegExp(Hni, "i")),
     _Vh.test(String.fromCharCode(d)) &&
       (c < 0 ||
@@ -389502,7 +388632,7 @@ _.QC = function TYb() {
   if (this.g <= 0) {
     return YWb(this);
   } else {
-    a = (p_(), Vii - $qf(Vii - this.S.g.b.p * this.g));
+    a = (p_(), Vii - Cast_round_int(Vii - this.S.g.b.p * this.g));
     !!this.S.a &&
       (a = $wnd.Math.max(a + this.S.a.Lf() + this.S.a.Vf(), this.S.a.OC()));
     return a;
@@ -389512,7 +388642,7 @@ _.FR = function UYb(a, b) {
   var c;
   c = this.ub;
   !!b && (c = c - b.Vf());
-  a.d && (c = $qf(c));
+  a.d && (c = Cast_round_int(c));
   return c;
 };
 _.GR = function VYb() {
@@ -389568,8 +388698,8 @@ _.mS = function YYb(a) {
 _.nS = function ZYb() {
   return (
     this.T.length != 0 &&
-    (nYh(this.T, this.T.length - 1) == 10 ||
-      nYh(this.T, this.T.length - 1) == 13)
+    (String_$charAt(this.T, this.T.length - 1) == 10 ||
+      String_$charAt(this.T, this.T.length - 1) == 13)
   );
 };
 _.oS = function $Yb(a) {
@@ -389595,7 +388725,7 @@ _.uz = function cZb() {
   c = this.S.g;
   b = this.S.a;
   a = this.ub - (!b ? 0 : b.Lf() + b.Vf());
-  this.e = $qf($wnd.Math.floor(a / c.b.p));
+  this.e = Cast_round_int($wnd.Math.floor(a / c.b.p));
 };
 _.qS = function dZb() {
   BYb(this);
@@ -389744,7 +388874,7 @@ _.wS = function CZb(a, b) {
   }
   a = $wnd.Math.max(0, a);
   !!c && (b -= c.Vf());
-  this.a.a = $qf($wnd.Math.floor((e - b) / d.b.p)) + this.a.b;
+  this.a.a = Cast_round_int($wnd.Math.floor((e - b) / d.b.p)) + this.a.b;
   this.a.a = $wnd.Math.max(0, $wnd.Math.min(this.a.a, yYb(this.a) - 1));
   iZb(this, a);
   BYb(this.a);
@@ -390529,10 +389659,10 @@ _.UC = function W1b() {
     m
       ? Kgb(
           b,
-          $qf($wnd.Math.round(q)),
-          $qf($wnd.Math.round(r)),
-          $qf($wnd.Math.round(p)),
-          $qf($wnd.Math.round(f)),
+          Cast_round_int($wnd.Math.round(q)),
+          Cast_round_int($wnd.Math.round(r)),
+          Cast_round_int($wnd.Math.round(p)),
+          Cast_round_int($wnd.Math.round(f)),
         )
       : Kgb(b, q, r, p, f);
     !!i && i.ZC();
@@ -390714,10 +389844,10 @@ _.UA = function x2b(a, b, c, d) {
   }
   Kgb(
     this.e,
-    $qf($wnd.Math.round(m)),
-    $qf($wnd.Math.round(n)),
-    $qf($wnd.Math.round(l)),
-    $qf($wnd.Math.round(h)),
+    Cast_round_int($wnd.Math.round(m)),
+    Cast_round_int($wnd.Math.round(n)),
+    Cast_round_int($wnd.Math.round(l)),
+    Cast_round_int($wnd.Math.round(h)),
   );
 };
 _.VA = function y2b(a, b, c, d, e) {
@@ -391256,10 +390386,10 @@ _.Jf = function B5b(a, b, c, d, e) {
   h = Kt(this.a);
   g =
     ((f =
-      ($qf(255 * h.a) << 24) |
-      ($qf(255 * h.b) << 16) |
-      ($qf(255 * h.c) << 8) |
-      $qf(255 * h.d)),
+      (Cast_round_int(255 * h.a) << 24) |
+      (Cast_round_int(255 * h.b) << 16) |
+      (Cast_round_int(255 * h.c) << 8) |
+      Cast_round_int(255 * h.d)),
     knf(),
     (jnf[0] = f & Obi),
     undefined,
@@ -391276,10 +390406,10 @@ _.Kf = function C5b(a, b, c, d, e, f, g, h, i, j) {
   m = Kt(this.a);
   l =
     ((k =
-      ($qf(255 * m.a) << 24) |
-      ($qf(255 * m.b) << 16) |
-      ($qf(255 * m.c) << 8) |
-      $qf(255 * m.d)),
+      (Cast_round_int(255 * m.a) << 24) |
+      (Cast_round_int(255 * m.b) << 16) |
+      (Cast_round_int(255 * m.c) << 8) |
+      Cast_round_int(255 * m.d)),
     knf(),
     (jnf[0] = k & Obi),
     undefined,
@@ -391354,8 +390484,8 @@ _.Jf = function W5b(a, b, c, d, e) {
   l = this.c;
   n = l.R * this.b;
   m = l.Q * this.b;
-  f = $qf(d / n);
-  g = $qf(e / m);
+  f = Cast_round_int(d / n);
+  g = Cast_round_int(e / m);
   o = d - n * f;
   p = e - m * g;
   q = b;
@@ -391431,7 +390561,7 @@ _.mV = function X6b(a, b) {
   var c;
   c = this.d;
   this.i + 1 >= c.length &&
-    (c = D6b(this, $wnd.Math.max(8, $qf(this.i * Noi))));
+    (c = D6b(this, $wnd.Math.max(8, Cast_round_int(this.i * Noi))));
   c[this.i] = a;
   c[this.i + 1] = b;
   this.i += 2;
@@ -391440,7 +390570,7 @@ _.nV = function Y6b(a, b, c) {
   var d;
   d = this.d;
   this.i + 2 >= d.length &&
-    (d = D6b(this, $wnd.Math.max(8, $qf(this.i * Noi))));
+    (d = D6b(this, $wnd.Math.max(8, Cast_round_int(this.i * Noi))));
   d[this.i] = a;
   d[this.i + 1] = b;
   d[this.i + 2] = c;
@@ -391450,7 +390580,7 @@ _.oV = function Z6b(a, b, c, d) {
   var e;
   e = this.d;
   this.i + 3 >= e.length &&
-    (e = D6b(this, $wnd.Math.max(8, $qf(this.i * Uhi))));
+    (e = D6b(this, $wnd.Math.max(8, Cast_round_int(this.i * Uhi))));
   e[this.i] = a;
   e[this.i + 1] = b;
   e[this.i + 2] = c;
@@ -391736,7 +390866,7 @@ _.aW = function z8b(a) {
   if (a < 0) throw w$f(new _Wh(Ooi + a));
   b = this.g + a;
   b > this.c.length &&
-    o8b(this, $wnd.Math.max($wnd.Math.max(8, b), $qf(this.g * Noi)));
+    o8b(this, $wnd.Math.max($wnd.Math.max(8, b), Cast_round_int(this.g * Noi)));
 };
 _.bW = function A8b() {
   return h8b(this);
@@ -391833,7 +390963,7 @@ _.kW = function M8b(a, b) {
 };
 _.lW = function N8b(a, b, c) {
   if (a > this.g) throw w$f(new sVh("" + a));
-  this.g == this.c.length && o8b(this, $wnd.Math.max(8, $qf(this.g * Noi)));
+  this.g == this.c.length && o8b(this, $wnd.Math.max(8, Cast_round_int(this.g * Noi)));
   if (this.f) {
     kZh(this.c, a, this.c, a + 1, this.g - a);
     kZh(this.i, a, this.i, a + 1, this.g - a);
@@ -391885,7 +391015,7 @@ _.qW = function V8b(a, b, c) {
   d = j8b(this, a);
   d != -1
     ? n8b(this, d)
-    : this.g == this.c.length && o8b(this, $wnd.Math.max(8, $qf(this.g * Noi)));
+    : this.g == this.c.length && o8b(this, $wnd.Math.max(8, Cast_round_int(this.g * Noi)));
   kZh(this.c, c, this.c, c + 1, this.g - c);
   kZh(this.i, c, this.i, c + 1, this.g - c);
   this.c[c] = a;
@@ -392637,7 +391767,7 @@ _.ZW = function qec() {
   for (d = this.a; d; d = d.e, b++) {
     switch (d.k.f) {
       case 2:
-        c = d.j.length == 0 ? 0 : nYh(d.j, 0);
+        c = d.j.length == 0 ? 0 : String_$charAt(d.j, 0);
         break;
       case 3:
         c = Zqf(d.b);
@@ -394529,7 +393659,7 @@ _.q = 0;
 var RCf = Class_createForClass(cri, "Field", 8, WXf);
 Runtime_defineClass(wJi, 1, {}, DZc);
 
-_.kZ = function Kcd(a, b) {
+_.kZ = function IReflectionCache2Generated_get(a, b) {
   switch (a.d) {
     case 0:
       return (rGg(), qGg);
@@ -396750,13 +395880,13 @@ _.kZ = function Kcd(a, b) {
     case zfi:
       return new NWh(160);
     case Jgi:
-      return new NWh(nth);
+      return new NWh(PixelScene_defaultZoom);
     case rhi:
       return new NWh(vth);
     case Bhi:
       return new NWh(uth);
     case Jhi:
-      return yth;
+      return PixelScene_uiCamera;
     case Phi:
       return qth;
     case Vhi:
@@ -396770,9 +395900,9 @@ _.kZ = function Kcd(a, b) {
     case Iii:
       return oth;
     case Jii:
-      return new NWh(xth);
+      return new NWh(PixelScene_scale);
     case $ii:
-      return (wVh(), b, wth ? true : false);
+      return (wVh(), b, PixelScene_noFade ? true : false);
     case bji:
       return new NWh(Bwh);
     case Eji:
@@ -398034,7 +397164,7 @@ _.kZ = function Kcd(a, b) {
     case ROi:
       return b.a;
     case SOi:
-      return lWh(31);
+      return Character_valueOf(31);
     case TOi:
       return b.b;
     case UOi:
@@ -399601,7 +398731,7 @@ _.nZ = function IReflectionCache2Generated_invoke(a, b, c) {
     case 872:
       return new S3g();
     case 876:
-      return new o4g();
+      return new PotionOfExperience();
     case 877:
       return JTc(b, IVh(c[0]));
     case 880:
@@ -399637,7 +398767,7 @@ _.nZ = function IReflectionCache2Generated_invoke(a, b, c) {
     case 920:
       return NTc(b, IVh(c[0]));
     case 923:
-      return new h5g();
+      return new PotionOfToxicGas();
     case 927:
       return new l5g();
     case 932:
@@ -400484,7 +399614,7 @@ _.oZ = function Jed(a, b) {
       case 381:
         return Zpf(TRf, Ubj, 740, b, 0, 1);
       case 382:
-        return Zpf(WRf, Ubj, 999, b, 0, 1);
+        return Zpf("RankingsScene", Ubj, 999, b, 0, 1);
       case 383:
         return Zpf(VRf, Ubj, 923, b, 0, 1);
       case 384:
@@ -402194,7 +401324,7 @@ _.pZ = function kgd(a, b, c) {
       iUc(HVh(c));
       return;
     case Jhi:
-      yth = c;
+      PixelScene_uiCamera = c;
       return;
     case Phi:
       qth = c;
@@ -406419,7 +405549,7 @@ _.kZ = function f0e(a, b) {
     case 990:
       return rXh(b.c);
     case 991:
-      return lWh(b.b);
+      return Character_valueOf(b.b);
     case 992:
       return b.e;
     case 993:
@@ -407487,17 +406617,17 @@ _.kZ = function f0e(a, b) {
     case G9h:
       return b.j;
     case ZIi:
-      return lWh(8);
+      return Character_valueOf(8);
     case eJi:
-      return lWh(13);
+      return Character_valueOf(13);
     case mKi:
-      return lWh(10);
+      return Character_valueOf(10);
     case nKi:
-      return lWh(9);
+      return Character_valueOf(9);
     case lJi:
-      return lWh(127);
+      return Character_valueOf(127);
     case oKi:
-      return lWh(149);
+      return Character_valueOf(149);
     case mIi:
       return (QWb(), NWb);
     case tIi:
@@ -407557,7 +406687,7 @@ _.kZ = function f0e(a, b) {
     case UIi:
       return b.K;
     case gJi:
-      return lWh(b.L);
+      return Character_valueOf(b.L);
     case yKi:
       return new NWh(b.u);
     case zKi:
@@ -408482,7 +407612,7 @@ _.kZ = function f0e(a, b) {
     case kOi:
       return new NWh((g9f(), d9f));
     case pOi:
-      return (g9f(), f9f);
+      return (g9f(), Camera_main);
     case WPi:
       return new NWh(b.s);
     case OPi:
@@ -408518,9 +407648,9 @@ _.kZ = function f0e(a, b) {
     case zEi:
       return qag;
     case bQi:
-      return rXh(tag);
+      return rXh(Game_width);
     case AEi:
-      return rXh(pag);
+      return rXh(Game_height);
     case JPi:
       return new NWh(nag);
     case cQi:
@@ -409104,11 +408234,11 @@ _.kZ = function f0e(a, b) {
     case 2355:
       return (jgg(), fgg);
     case 2356:
-      return (jgg(), hgg);
+      return (jgg(), Badges_local);
     case 2357:
-      return (wVh(), b, (jgg(), igg) ? true : false);
+      return (wVh(), b, (jgg(), Badges_saveNeeded) ? true : false);
     case 2358:
-      return (jgg(), ggg);
+      return (jgg(), Badges_loadingListener);
     case 2359:
       return KIj;
     case 2514:
@@ -409363,13 +408493,13 @@ _.kZ = function f0e(a, b) {
     case 2488:
       return (Fjg(), Dungeon.resultDescription);
     case 2489:
-      return (Fjg(), rjg);
+      return (Fjg(), Dungeon.chapters);
     case 2490:
       return (Fjg(), Dungeon.visible);
     case 2491:
       return (wVh(), b, (Fjg(), Dungeon.nightMode) ? true : false);
     case 2492:
-      return (Fjg(), ujg);
+      return (Fjg(), Dungeon.droppedItems);
     case 2493:
       return "game.dat";
     case 2494:
@@ -409413,7 +408543,7 @@ _.kZ = function f0e(a, b) {
     case 2513:
       return VIj;
     case 2515:
-      return (Fjg(), zjg);
+      return (Fjg(), Dungeon.passable);
     case 2517:
       return bkg;
     case 2519:
@@ -409508,8 +408638,6 @@ _.kZ = function f0e(a, b) {
       return ZIj;
     case 2566:
       return b.a;
-    case 2567:
-      return (Jlg(), rankings);
     case 2569:
       return $Ij;
     case 2570:
@@ -409530,8 +408658,6 @@ _.kZ = function f0e(a, b) {
       return Lqj;
     case 2578:
       return "won";
-    case 2579:
-      return (Jlg(), scoreComparator);
     case 2580:
       return aJj;
     case 2581:
@@ -409583,29 +408709,29 @@ _.kZ = function f0e(a, b) {
     case 2604:
       return nJj;
     case 2605:
-      return rXh(jmg);
+      return rXh(Statistics_goldCollected);
     case 2606:
-      return rXh(fmg);
+      return rXh(Statistics_deepestFloor);
     case 2607:
-      return rXh(hmg);
+      return rXh(Statistics_enemiesSlain);
     case 2608:
-      return rXh(img);
+      return rXh(Statistics_foodEaten);
     case 2609:
-      return rXh(mmg);
+      return rXh(Statistics_potionsCooked);
     case 2610:
-      return rXh(lmg);
+      return rXh(Statistics_piranhasKilled);
     case 2611:
-      return rXh(kmg);
+      return rXh(Statistics_nightHunt);
     case 2612:
-      return rXh(dmg);
+      return rXh(Statistics_ankhsUsed);
     case 2613:
-      return new NWh(gmg);
+      return new NWh(Statistics_duration);
     case 2614:
-      return (wVh(), b, nmg ? true : false);
+      return (wVh(), b, Statistics_qualifiedForNoKilling ? true : false);
     case 2615:
-      return (wVh(), b, emg ? true : false);
+      return (wVh(), b, Statistics_completedWithNoKilling ? true : false);
     case 2616:
-      return (wVh(), b, cmg ? true : false);
+      return (wVh(), b, Statistics_amuletObtained ? true : false);
     case 2618:
       return vGj;
     case 2619:
@@ -410151,7 +409277,7 @@ _.kZ = function f0e(a, b) {
 _.lZ = function g0e(a, b, c) {
   switch (a.j) {
     case 6:
-      return lWh(b[c]);
+      return Character_valueOf(b[c]);
     case 3:
       return XVh(b[c]);
     case 1:
@@ -410314,46 +409440,46 @@ _.nZ = function i2e(a, b, c) {
     case 94:
       return rXh(
         (mj(),
-        ($qf(c[0].d * 31) << 11) | ($qf(c[0].c * 63) << 5) | $qf(c[0].b * 31)),
+        (Cast_round_int(c[0].d * 31) << 11) | (Cast_round_int(c[0].c * 63) << 5) | Cast_round_int(c[0].b * 31)),
       );
     case 95:
       return rXh(hqe(HVh(c[0]), HVh(c[1]), HVh(c[2]), HVh(c[3])));
     case 96:
       return rXh(
         (mj(),
-        ($qf(c[0].d * 15) << 12) |
-          ($qf(c[0].c * 15) << 8) |
-          ($qf(c[0].b * 15) << 4) |
-          $qf(c[0].a * 15)),
+        (Cast_round_int(c[0].d * 15) << 12) |
+          (Cast_round_int(c[0].c * 15) << 8) |
+          (Cast_round_int(c[0].b * 15) << 4) |
+          Cast_round_int(c[0].a * 15)),
       );
     case 97:
       return rXh(kqe(HVh(c[0]), HVh(c[1]), HVh(c[2])));
     case 98:
       return rXh(
         (mj(),
-        ($qf(c[0].d * 255) << 16) |
-          ($qf(c[0].c * 255) << 8) |
-          $qf(c[0].b * 255)),
+        (Cast_round_int(c[0].d * 255) << 16) |
+          (Cast_round_int(c[0].c * 255) << 8) |
+          Cast_round_int(c[0].b * 255)),
       );
     case 99:
       return rXh(mqe(HVh(c[0]), HVh(c[1]), HVh(c[2]), HVh(c[3])));
     case 100:
       return rXh(
         (mj(),
-        ($qf(c[0].d * 255) << 24) |
-          ($qf(c[0].c * 255) << 16) |
-          ($qf(c[0].b * 255) << 8) |
-          $qf(c[0].a * 255)),
+        (Cast_round_int(c[0].d * 255) << 24) |
+          (Cast_round_int(c[0].c * 255) << 16) |
+          (Cast_round_int(c[0].b * 255) << 8) |
+          Cast_round_int(c[0].a * 255)),
       );
     case 101:
       return rXh(zVd(HVh(c[0]), HVh(c[1]), HVh(c[2]), HVh(c[3])));
     case 102:
       return rXh(
         (mj(),
-        ($qf(c[0].a * 255) << 24) |
-          ($qf(c[0].d * 255) << 16) |
-          ($qf(c[0].c * 255) << 8) |
-          $qf(c[0].b * 255)),
+        (Cast_round_int(c[0].a * 255) << 24) |
+          (Cast_round_int(c[0].d * 255) << 16) |
+          (Cast_round_int(c[0].c * 255) << 8) |
+          Cast_round_int(c[0].b * 255)),
       );
     case 103:
       return AVd(c[0], IVh(c[1]));
@@ -413320,12 +412446,6 @@ _.oZ = function r5e(a, b) {
         return Zpf(cHf, Rnj, 599, b, 0, 1);
       case 494:
         return Zpf(cHf, Tbj, SIi, b, 0, 2);
-      case 495:
-        return Zpf(fHf, Snj, 655, b, 0, 1);
-      case 496:
-        return Zpf(eHf, Zbj, 812, b, 0, 1);
-      case 497:
-        return Zpf(fHf, Tbj, PJi, b, 0, 2);
       case 498:
         return Zpf(gHf, E9h, vFi, b, 0, 1);
       case 499:
@@ -417952,7 +417072,7 @@ _.pZ = function dcf(a, b, c) {
       return;
     case pOi:
       g9f();
-      f9f = c;
+      Camera_main = c;
       return;
     case WPi:
       cAe(b, HVh(c));
@@ -418470,14 +417590,14 @@ _.pZ = function dcf(a, b, c) {
       return;
     case 2356:
       jgg();
-      hgg = c;
+      Badges_local = c;
       return;
     case 2357:
       lCe((W8h(c), c));
       return;
     case 2358:
       jgg();
-      ggg = c;
+      Badges_loadingListener = c;
       return;
     case 2453:
       sCe(b, (W8h(c), c));
@@ -418529,7 +417649,7 @@ _.pZ = function dcf(a, b, c) {
       return;
     case 2489:
       Fjg();
-      rjg = c;
+      Dungeon.chapters = c;
       return;
     case 2490:
       Fjg();
@@ -418540,11 +417660,11 @@ _.pZ = function dcf(a, b, c) {
       return;
     case 2492:
       Fjg();
-      ujg = c;
+      Dungeon.droppedItems = c;
       return;
     case 2515:
       Fjg();
-      zjg = c;
+      Dungeon.passable = c;
       return;
     case 2517:
       bkg = c;
@@ -421127,13 +420247,13 @@ _.zZ = function sjf(a, b) {
   kjf(this, a, b);
 };
 _.AZ = function tjf(a) {
-  return ljf(this, a);
+  return TextureFilm_$get(this, a);
 };
 _.BZ = function ujf(a) {
   return mjf(this, a);
 };
 _.CZ = function vjf(a) {
-  return njf(this, a);
+  return TextureFilm_$width(this, a);
 };
 _.g = 0;
 _.i = 0;
@@ -421145,7 +420265,7 @@ _.DZ = function Fjf(a, b, c, d) {
   return xjf(a, b, c, d);
 };
 _.EZ = function Gjf(a) {
-  return yjf(this, a);
+  return BitmapText$Font_$get(this, a);
 };
 _.FZ = function Hjf(a, b, c, d) {
   zjf(this, a, b, c, d);
@@ -421872,7 +420992,7 @@ _.Td = function i2f() {
 _.a = false;
 _.b = null;
 var jFf = Class_createForClass(YJj, "SimplePanel/1", vIi, WXf);
-Runtime_defineClass(974, hKi, AKj, m2f);
+Runtime_defineClass(974, hKi, AKj, VerticalPanel);
 _.h$ = function n2f(a) {
   var b, c;
   c = (X_f(), xnf(a.j));
@@ -421881,7 +421001,7 @@ _.h$ = function n2f(a) {
   return b;
 };
 var mFf = Class_createForClass(YJj, "VerticalPanel", 974, REf);
-Runtime_defineClass(HKi, 1, Dci, t2f);
+Runtime_defineClass(HKi, 1, Dci, WidgetCollection);
 _.Pd = function u2f() {
   return new x2f(this);
 };
@@ -422256,32 +421376,32 @@ _.b_ = function f7f(a, b) {
 _.b = false;
 var TFf = Class_createForClass(IKj, "NoosaInputProcessor/Touch", 738, WXf);
 Runtime_defineClass(20, 1, { 20: 1 }, m7f);
-_.c_ = function n7f() {
+_.c_ = function Gizmo_camera() {
   return this.kb ? this.kb : this.mb ? this.mb.c_() : null;
 };
-_.C$ = function o7f() {
+_.C$ = function Gizmo_destroy() {
   this.mb = null;
 };
-_.jj = function p7f() {};
-_.Xk = function q7f() {
+_.jj = function Gizmo_draw() {};
+_.Xk = function Gizmo_isActive() {
   return g7f(this);
 };
-_.fm = function r7f() {
+_.fm = function Gizmo_isVisible() {
   return h7f(this);
 };
-_.d_ = function s7f() {
+_.d_ = function Gizmo_kill() {
   i7f(this);
 };
-_.e_ = function t7f() {
+_.e_ = function Gizmo_killAndErase() {
   j7f(this);
 };
-_.Td = function u7f() {
+_.Td = function Gizmo_remove() {
   k7f(this);
 };
-_.f_ = function v7f() {
+_.f_ = function Gizmo_revive() {
   l7f(this);
 };
-_.ri = function w7f() {};
+_.ri = function Gizmo_update() {};
 _.ib = false;
 _.jb = false;
 _.lb = false;
@@ -422315,7 +421435,7 @@ _.jj = function X7f() {
   this.A_();
 };
 _.n_ = function Y7f(a, b, c) {
-  C7f(this, a, b, c);
+  Visual_$hardlight(this, a, b, c);
 };
 _.o_ = function Z7f(a) {
   D7f(this, a);
@@ -422419,13 +421539,13 @@ _.F_ = function z8f(a) {
   this.g = a;
 };
 _.G_ = function A8f() {
-  p8f(this);
+  BitmapText_$measure(this);
 };
 _.H_ = function B8f() {
   return this.k;
 };
 _.I_ = function C8f(a) {
-  q8f(this, a);
+  BitmapText_$text(this, a);
 };
 _.A_ = function D8f() {
   r8f(this);
@@ -422444,9 +421564,9 @@ _.J_ = function E8f() {
   this.j = 0;
   c = this.k.length;
   for (b = 0; b < c; b++) {
-    d = yjf(this.g, nYh(this.k, b));
+    d = BitmapText$Font_$get(this.g, String_$charAt(this.k, b));
     !d && (d = null);
-    e = njf(this.g, d);
+    e = TextureFilm_$width(this.g, d);
     a = mjf(this.g, d);
     this.n[0] = this.fb;
     this.n[1] = 0;
@@ -422483,7 +421603,7 @@ _.K_ = function L8f(a, b) {
   G8f(this, a, b);
 };
 _.G_ = function M8f() {
-  H8f(this);
+  BitmapTextMultiline_$measure(this);
 };
 _.J_ = function O8f() {
   var a, b, c, d, e, f, g, h, i, j, k, l, m, n;
@@ -422510,8 +421630,8 @@ _.J_ = function O8f() {
       e = l.length;
       j = 0;
       for (d = 0; d < e; d++) {
-        i = yjf(this.g, (b9h(d, l.length), l.charCodeAt(d)));
-        k = njf(this.g, i);
+        i = BitmapText$Font_$get(this.g, (b9h(d, l.length), l.charCodeAt(d)));
+        k = TextureFilm_$width(this.g, i);
         a = mjf(this.g, i);
         if (this.a == null || this.a[h]) {
           this.n[0] = n.g + j;
@@ -422660,7 +421780,7 @@ _.s = 0;
 var c9f,
   d9f = 0,
   e9f = 0,
-  f9f;
+  Camera_main;
 var $Ff = Class_createForClass(PJj, I9h, 322, bGf);
 Runtime_defineClass(33, 34, JKj, X9f, Y9f, Z9f, $9f);
 _.c0 = function _9f(a) {
@@ -422758,28 +421878,28 @@ _.o0 = function Qag() {
   xag();
 };
 _.Pb = function Rag() {
-  yag(this);
+  Game_$pause(this);
 };
 _.p0 = function Sag(a) {
-  return zag(this, a);
+  return Game_$readFile(this, a);
 };
-_.q0 = function Tag() {
-  Aag(this);
+_.q0 = function Game_render() {
+  Game_$render(this);
 };
-_.X_ = function Uag(a, b) {
+_.X_ = function Game_resize(a, b) {
   Bag(a, b);
 };
-_.Qb = function Vag() {
+_.Qb = function Game_resume() {
   Cag(this);
 };
-_.r0 = function Wag() {
-  Dag(this);
+_.r0 = function Game_step() {
+  Game_$step(this);
 };
-_.s0 = function () {
+_.s0 = function () { // Game_switchScene()
   Game_$switchScene(this);
 };
-_.ri = function Zag() {
-  Fag(this);
+_.ri = function Game_update() {
+  Game_$update(this);
 };
 _.t0 = function Game_writeFile(a, b) {
   Game_$writeFile(this, a, b);
@@ -422789,15 +421909,15 @@ _.e = true;
 _.j = 0;
 var nag = 1,
   oag = 0,
-  pag = 0,
+  Game_height = 0,
   qag,
   rag = 1,
   sag,
-  tag = 0;
+  Game_width = 0;
 var aGf = Class_createForClass(PJj, "Game", 729, WXf);
 Runtime_defineClass(30, 20, { 20: 1, 30: 1 }, nbg);
 _.u0 = function obg(a) {
-  return _ag(this, a);
+  return Group_$add(this, a);
 };
 _.v0 = function pbg(a) {
   return abg(this, a);
@@ -422839,7 +421959,7 @@ _.d_ = function zbg() {
   ibg(this);
 };
 _.C0 = function Abg() {
-  return this.F > 0 ? U0h(this.G, $qf($wnd.Math.random() * this.F)) : null;
+  return this.F > 0 ? U0h(this.G, Cast_round_int($wnd.Math.random() * this.F)) : null;
 };
 _.D0 = function Bbg(a) {
   return jbg(this, a);
@@ -423001,7 +422121,7 @@ _.i0 = function Icg(a, b) {
 var jGf = Class_createForClass(PJj, SBj, 105, dGf);
 Runtime_defineClass(216, 30, { 20: 1, 30: 1, 216: 1 }, Jcg);
 _.c_ = function Kcg() {
-  return (g9f(), f9f);
+  return (g9f(), Camera_main);
 };
 _.j0 = function Lcg() {
   C6f(qag.b, (this.w = new Tcg(this)));
@@ -423014,7 +422134,7 @@ _.e1 = function Ncg() {};
 _.f1 = function Ocg() {};
 _.Pb = function Pcg() {};
 _.Qb = function Qcg() {};
-_.ri = function Rcg() {
+_.ri = function Scene_update() {
   mbg(this);
 };
 var mGf = Class_createForClass(PJj, "Scene", 216, cGf);
@@ -423143,32 +422263,32 @@ _.g1 = function Hdg(a) {
 };
 var rGf = Class_createForClass(PJj, "TouchArea/2", uIi, WXf);
 Runtime_defineClass(600, 38, { 600: 1, 3: 1, 49: 1, 38: 1 }, Rdg);
-_.v1 = function Sdg(a) {
+_.v1 = function Music_enable(a) {
   Kdg(this, a);
 };
-_.nC = function Tdg() {
+_.nC = function Music_isEnabled() {
   return this.a;
 };
-_.w1 = function Udg() {
+_.w1 = function Music_isPlaying() {
   return !!this.d && this.d.d;
 };
-_.x1 = function Vdg() {
+_.x1 = function Music_mute() {
   Ldg(this);
 };
-_.Pb = function Wdg() {
+_.Pb = function Music_pause() {
   Mdg(this);
 };
-_.y1 = function Xdg(a, b) {
-  Ndg(this, a, b);
+_.y1 = function Music_play(a, b) {
+  Music_$play(this, a, b);
 };
-_.Qb = function Ydg() {
+_.Qb = function Music_resume() {
   Odg(this);
 };
-_.Jz = function Zdg() {
+_.Jz = function Music_stop() {
   Pdg(this);
 };
-_.z1 = function aeg(a) {
-  Qdg(this, a);
+_.z1 = function Music_volume(a) {
+  Music_$volume(this, a);
 };
 _.a = true;
 _.b = false;
@@ -423264,7 +422384,7 @@ _.D1 = function Neg(a) {
   do {
     e = STh(b.c - b.b) * this.c;
     f = STh(b.a - b.d) * this.b;
-  } while ((Zk(this.d, $qf(e + c), $qf(f + d)) & 255) == 0);
+  } while ((Zk(this.d, Cast_round_int(e + c), Cast_round_int(f + d)) & 255) == 0);
   this.g.K1(this, a, this.p.gb + e * this.p.db.a, this.p.hb + f * this.p.db.b);
 };
 _.b = 0;
@@ -423373,13 +422493,13 @@ _.X1 = function zfg() {
   return lfg(this);
 };
 _.Y1 = function Afg(a, b) {
-  return mfg(this, a, b);
+  return Component_$setPos(this, a, b);
 };
 _.Z1 = function Bfg(a, b, c, d) {
-  return nfg(this, a, b, c, d);
+  return Component_$setRect(this, a, b, c, d);
 };
 _.$1 = function Cfg(a, b) {
-  return ofg(this, a, b);
+  return Component_$setSize(this, a, b);
 };
 _._1 = function Dfg() {
   return this.D;
@@ -423395,7 +422515,7 @@ var LGf = Class_createForClass(RKj, "Component", 36, cGf);
 Runtime_defineClass(46, 36, { 20: 1, 30: 1, 46: 1, 36: 1 }, Jfg);
 _.T1 = function Kfg() {
   this.k = new Tfg(this);
-  _ag(this, this.k);
+  Group_$add(this, this.k);
 };
 _.UC = function Lfg() {
   Gfg(this);
@@ -423462,11 +422582,11 @@ _.a = false;
 var KGf = Class_createForClass(RKj, Lli, UEi, JGf);
 Runtime_defineClass(aFi, 1, { 1152: 1 }, egg);
 var MGf = Class_createForClass(SKj, "Assets", aFi, WXf);
-Runtime_defineClass(bFi, 1, { 1153: 1 }, kgg);
+Runtime_defineClass(bFi, 1, { 1153: 1 }, Badges);
 var fgg,
-  ggg = null,
-  hgg,
-  igg = false;
+  Badges_loadingListener = null,
+  Badges_local,
+  Badges_saveNeeded = false;
 var OGf = Class_createForClass(SKj, paj, bFi, WXf);
 Runtime_defineClass(42, 38, { 42: 1, 3: 1, 49: 1, 38: 1 }, Lig, Mig, Nig);
 _.b = 0;
@@ -423579,7 +422699,6 @@ var bjg, cjg, djg, ejg, fjg, gjg, hjg, ijg, jjg;
 var RGf = Class_createForEnum(SKj, "Chrome/Type", 247, GXf, njg, mjg);
 var ojg;
 Runtime_defineClass(fEi, 1, { 1157: 1 }, Gjg);
-var rjg, ujg, zjg;
 var VGf = Class_createForClass(SKj, "Dungeon", fEi, WXf);
 Runtime_defineClass(810, 649, { 20: 1, 649: 1, 34: 1, 810: 1 }, ekg);
 _.i2 = function fkg(a, b) {
@@ -423652,7 +422771,7 @@ _.QZ = function alg(a) {
 };
 _.a = 0;
 var _Gf = Class_createForClass(SKj, "Journal/Record", 654, WXf);
-Runtime_defineClass(577, 729, { 1945: 1, 729: 1, 577: 1 }, PixelDungeon);
+Runtime_defineClass(577, 729, { 1945: 1, 729: 1, 577: 1 }, PixelDungeonORIGINAL);
 _.j0 = function PixelDungeon_create() {
   PixelDungeon_$create(this);
 };
@@ -423686,86 +422805,21 @@ _.p2 = function Clg(a, b) {
 var nlg;
 var cHf = Class_createForEnum(SKj, N9h, 599, GXf, Elg, Dlg);
 var Flg;
-Runtime_defineClass(655, 38, { 655: 1, 3: 1, 49: 1, 38: 1 }, Nlg);
-
-_.q2 = function Olg() {
-  loadRankings(this);
-};
-_.r2 = function Plg() {
-  saveRankings(this);
-};
-
-_.s2 = function Qlg(a) {
-  Jlg();
-  return (jmg + (Fjg(), Dungeon.hero).o * fmg * 100) * (a ? 2 : 1);
-};
-
-_.t2 = function Rlg(a) {
-  submitRanking(this, a);
-};
-
-_.a = 0;
-_.c = 0;
-_.d = 0;
-var rankings, scoreComparator;
-var fHf = Class_createForEnum(
-  SKj,
-  oaj,
-  655,
-  GXf,
-  Rankings_values,
-  Rankings_valueOf,
-);
-Runtime_defineClass(QIi, 1, { 725: 1 }, Ulg);
-_.ki = function Vlg(a, b) {
-  return $qf(LXh(b.e - a.e));
-};
-_.Kb = function Wlg(a) {
-  return this === a;
-};
-_.li = function Xlg() {
-  return new G5h(this);
-};
-var dHf = Class_createForClass(SKj, "Rankings/1", QIi, WXf);
-var Ylg;
-Runtime_defineClass(812, 1, { 812: 1, 22: 1 }, $lg);
-_.OZ = function _lg(a) {
-  var b;
-  this.d = Sdc(a.a, aJj, "");
-  this.f = Odc(a.a, vai, false);
-  this.e = Qdc(a.a, gEj, 0);
-  this.c =
-    (Xwg(), (b = Sdc(a.a, fni, "")), b.length > 0 ? Pb((qxg(), pxg), b) : Twg);
-  this.a = Qdc(a.a, _Ti, 0);
-  this.b = Sdc(a.a, P6i, "");
-};
-_.QZ = function amg(a) {
-  TQh(a, aJj, this.d);
-  VQh(a, vai, this.f);
-  PQh(a, gEj, this.e);
-  axg(this.c, a);
-  PQh(a, _Ti, this.a);
-  TQh(a, P6i, this.b);
-};
-_.a = 0;
-_.e = 0;
-_.f = false;
-var eHf = Class_createForClass(SKj, "Rankings/Record", 812, WXf);
 Runtime_defineClass(vFi, 1, { 1161: 1 }, bmg);
 var gHf = Class_createForClass(SKj, hEj, vFi, WXf);
 Runtime_defineClass(wFi, 1, { 1162: 1 }, omg);
-var cmg = false,
-  dmg = 0,
-  emg = false,
-  fmg = 0,
-  gmg = 0,
-  hmg = 0,
-  img = 0,
-  jmg = 0,
-  kmg = 0,
-  lmg = 0,
-  mmg = 0,
-  nmg = false;
+var Statistics_amuletObtained = false,
+  Statistics_ankhsUsed = 0,
+  Statistics_completedWithNoKilling = false,
+  Statistics_deepestFloor = 0,
+  Statistics_duration = 0,
+  Statistics_enemiesSlain = 0,
+  Statistics_foodEaten = 0,
+  Statistics_goldCollected = 0,
+  Statistics_nightHunt = 0,
+  Statistics_piranhasKilled = 0,
+  Statistics_potionsCooked = 0,
+  Statistics_qualifiedForNoKilling = false;
 var hHf = Class_createForClass(SKj, oEj, wFi, WXf);
 Runtime_defineClass(73, 40, { 40: 1, 73: 1, 22: 1 });
 _.GZ = function Lmg() {
@@ -424168,7 +423222,7 @@ _.RZ = function yog() {
   for (e = 0; e < oei; e++) {
     if (this.b[e] > 0 && !!(b = Kjf[e])) {
       c = ((b.B + f) / 40) | 0;
-      $qf($wnd.Math.random() * 40) < (b.B + f) % 40 && ++c;
+      Cast_round_int($wnd.Math.random() * 40) < (b.B + f) % 40 && ++c;
       b.B2(c, this);
     }
   }
@@ -424242,7 +423296,7 @@ Runtime_defineClass(745, 320, { 40: 1, 137: 1, 745: 1, 320: 1, 22: 1 }, Mog);
 _._2 = function Nog(a) {
   var b, c, d;
   ieg((eeg(), deg), hIj, 1, 1);
-  _ag(this.c.mb, new uPg(kkg(this.a)));
+  Group_$add(this.c.mb, new uPg(kkg(this.a)));
   zsg(a.d);
   for (c = 0; c < oei; c++) {
     d = (Fjg(), Dungeon.level).w[c];
@@ -424271,7 +423325,7 @@ _.a3 = function Oog(a) {
   } else {
     a.X3();
     Kgg(a);
-    _ag(this.c.mb, new uPg(kkg(this.a)));
+    Group_$add(this.c.mb, new uPg(kkg(this.a)));
     Ekg((Rkg(), Okg));
     return a;
   }
@@ -424516,7 +423570,7 @@ _.GZ = function Qpg() {
   var a, b;
   if (this.c.A > 0) {
     Rqf(this.c, 141) && qog(this.c, SHf, 1.0099999904632568);
-    this.c.B2(1 + $qf($wnd.Math.random() * 4), this);
+    this.c.B2(1 + Cast_round_int($wnd.Math.random() * 4), this);
     if (Rqf(this.c, 141)) {
       a = _Th(this.c.d.b.a);
       if (Rqf(a, 120) || (Rqf(a, 534) && $wnd.Math.random() < 0.5)) {
@@ -424920,7 +423974,7 @@ var VHf = Class_createForClass(WKj, cYi, 397, LHf);
 Runtime_defineClass(591, 65, { 40: 1, 65: 1, 591: 1, 717: 1, 22: 1 }, vrg);
 _.GZ = function wrg() {
   if (this.c.A > 0) {
-    this.c.B2($qf(this.a / 3) + 1, this);
+    this.c.B2(Cast_round_int(this.a / 3) + 1, this);
     this.P += 1;
     (this.a -= 1) <= 0 && this.c.Q2(this);
   } else {
@@ -425604,7 +424658,7 @@ _.D2 = function Hero_defenseProc(a, b) {
   var c, d, e;
   e = wmg(this, hOf);
   if (e) {
-    d = $qf($wnd.Math.random() * (b + 1));
+    d = Cast_round_int($wnd.Math.random() * (b + 1));
     d > 0 && a.B2(d, e);
   }
   c = wmg(this, gRf);
@@ -425627,16 +424681,16 @@ _.E2 = function Wvg(a) {
   this.J && (g /= 2);
   b = this.d.a ? this.d.a.c - (this.v ? this.a - 2 : this.a) : 0;
   if (b > 0) {
-    return $qf((this.f * g) / $wnd.Math.pow(1.5, b));
+    return Cast_round_int((this.f * g) / $wnd.Math.pow(1.5, b));
   } else {
     if (this.j == (Xwg(), Twg)) {
       !!this.e &&
         this.s == (Axg(), uxg) &&
         !(wmg(this, PHf).a >= 360) &&
         (g *= 2);
-      return $qf((this.f - b) * g);
+      return Cast_round_int((this.f - b) * g);
     } else {
-      return $qf(this.f * g);
+      return Cast_round_int(this.f * g);
     }
   }
 };
@@ -425927,7 +424981,7 @@ _.g5 = function iyg() {
           (g = fQh(a.a)),
           g > 0
             ? hSh(a, Zpf(WXf, E9h, 1, fQh(a.a), 5, 1))[
-                g > 0 ? $qf($wnd.Math.random() * g) : 0
+                g > 0 ? Cast_round_int($wnd.Math.random() * g) : 0
               ]
             : null
         );
@@ -426027,7 +425081,7 @@ _.w = -1;
 var XIf = Class_createForClass(hLj, "Mob", 50, jHf);
 Runtime_defineClass(667, 50, { 40: 1, 73: 1, 50: 1, 667: 1, 22: 1 }, Gyg);
 _.w2 = function Hyg(a, b) {
-  $qf($wnd.Math.random() * 2) == 0 && qog(a, JHf, 10);
+  Cast_round_int($wnd.Math.random() * 2) == 0 && qog(a, JHf, 10);
   return b;
 };
 _.x2 = function Iyg(a) {
@@ -426043,7 +425097,7 @@ _.f5 = function Jyg(a) {
   );
 };
 _.C2 = function Kyg() {
-  return 20 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 13) / 2);
+  return 20 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 13) / 2);
 };
 _.h5 = function Lyg() {
   return "These huge arachnid-like demonic creatures avoid close combat by all means, firing crippling serrated spikes from long distances.";
@@ -426052,9 +425106,9 @@ _.I2 = function Myg() {
   return 16;
 };
 _.j5 = function Nyg() {
-  $qf($wnd.Math.random() * 8) == 0
+  Cast_round_int($wnd.Math.random() * 8) == 0
     ? (Fjg(), Dungeon.level).V8(new w4g(), this.K).c.q6()
-    : $qf($wnd.Math.random() * 6) == 0 &&
+    : Cast_round_int($wnd.Math.random() * 6) == 0 &&
       (Fjg(), Dungeon.level).V8(new j3g(), this.K).c.q6();
 };
 _.l5 = function Oyg(a) {
@@ -426073,7 +425127,7 @@ Runtime_defineClass(
 );
 _.D2 = function Ryg(a, b) {
   var c;
-  c = $qf($wnd.Math.random() * (b + 1));
+  c = Cast_round_int($wnd.Math.random() * (b + 1));
   c > 0 && a.B2(c, this);
   return Pxg(this, a, b);
 };
@@ -426087,7 +425141,7 @@ _.x2 = function Uyg(a) {
   return 8;
 };
 _.C2 = function Vyg() {
-  return 1 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2);
+  return 1 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2);
 };
 _.h5 = function Wyg() {
   return "Marsupial rats are aggressive, but rather weak denizens of the sewers. They can be dangerous only in big numbers.";
@@ -426107,7 +425161,7 @@ Runtime_defineClass(
   Zyg,
 );
 _.w2 = function $yg(a, b) {
-  $qf($wnd.Math.random() * 2) == 0 && Cpg(hog(a, DHf), b);
+  Cast_round_int($wnd.Math.random() * 2) == 0 && Cpg(hog(a, DHf), b);
   return b;
 };
 _.G2 = function _yg(a) {
@@ -426128,7 +425182,7 @@ _.x2 = function ezg(a) {
   return 12;
 };
 _.C2 = function fzg() {
-  return 1 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 7) / 2);
+  return 1 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 7) / 2);
 };
 _.D2 = function gzg(a, b) {
   this.v == this.e && (Fjg(), Dungeon.level).V8(new eYg(), this.K).c.q6();
@@ -426174,7 +425228,7 @@ _.G2 = function ozg(a) {
 };
 _.s5 = function pzg(a) {
   if (azg(this, a)) {
-    qog(a, EHf, 5 + $qf($wnd.Math.random() * 7));
+    qog(a, EHf, 5 + Cast_round_int($wnd.Math.random() * 7));
     Vjg();
     return true;
   } else {
@@ -426196,7 +425250,7 @@ _.x2 = function uzg(a) {
   return 16;
 };
 _.C2 = function vzg() {
-  return 6 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 7) / 2);
+  return 6 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 7) / 2);
 };
 _.F2 = function wzg() {
   return jLj;
@@ -426232,8 +425286,8 @@ _.B2 = function Izg(a, b) {
 };
 _.C2 = function Jzg() {
   return this.a
-    ? 10 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 31) / 2)
-    : 8 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 11) / 2);
+    ? 10 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 31) / 2)
+    : 8 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 11) / 2);
 };
 _.h5 = function Kzg() {
   return "Brutes are the largest, strongest and toughest of all gnolls. When severely wounded, they go berserk, inflicting even more damage to their enemies.";
@@ -426256,7 +425310,7 @@ _.x2 = function Pzg(a) {
   return 12;
 };
 _.C2 = function Qzg() {
-  return 3 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 4) / 2);
+  return 3 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 4) / 2);
 };
 _.F2 = function Rzg() {
   return lLj;
@@ -426299,7 +425353,7 @@ _.x2 = function $zg(a) {
   return 10 + (Fjg(), Dungeon.depth);
 };
 _.C2 = function _zg() {
-  return 3 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 3) / 2);
+  return 3 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 3) / 2);
 };
 _.h5 = function aAg() {
   return "This creature resembles the sad ghost, but it swirls with darkness. Its face bears an expression of despair.";
@@ -426327,7 +425381,7 @@ _.x2 = function jAg(a) {
   return 28;
 };
 _.C2 = function kAg() {
-  return 18 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 7) / 2);
+  return 18 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 7) / 2);
 };
 _.h5 = function lAg() {
   return "This machine was created by the Dwarves several centuries ago. Later, Dwarves started to replace machines with golems, elementals and even demons. Eventually it led their civilization to the decline. The DM-300 and similar machines were typically used for construction and mining, and in some cases, for city defense.";
@@ -426375,7 +425429,7 @@ _.M2 = function pAg(a) {
   b = c[UTh(c.length)];
   if (Dungeon.visible[b]) {
     zeg(fNg(b), (gRg(), jRg(8, false)), nLj, 10);
-    r9f((g9f(), f9f), 3, Ini);
+    r9f((g9f(), Camera_main), 3, Ini);
     ieg((eeg(), deg), CIj, 1, 1);
     if ((Pgh(), Ngh)[b]) {
       fvh(b);
@@ -426414,14 +425468,14 @@ _.u2 = function vAg(a) {
   }
 };
 _.w2 = function wAg(a, b) {
-  $qf($wnd.Math.random() * 2) == 0 && Opg(hog(a, GHf), a);
+  Cast_round_int($wnd.Math.random() * 2) == 0 && Opg(hog(a, GHf), a);
   return b;
 };
 _.x2 = function xAg(a) {
   return 25;
 };
 _.C2 = function yAg() {
-  return 16 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2);
+  return 16 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2);
 };
 _.h5 = function zAg() {
   return "Wandering fire elementals are a byproduct of summoning greater entities. They are too chaotic in their nature to be controlled by even the most powerful demonologist.";
@@ -426489,7 +425543,7 @@ _.x2 = function TAg(a) {
   return 12;
 };
 _.C2 = function UAg() {
-  return 2 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2);
+  return 2 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2);
 };
 _.D2 = function VAg(a, b) {
   Juh(xkf(this.K, 20, qHf));
@@ -426518,7 +425572,7 @@ _.x2 = function aBg(a) {
   return 11;
 };
 _.C2 = function bBg() {
-  return 2 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 4) / 2);
+  return 2 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 4) / 2);
 };
 _.h5 = function cBg() {
   return "Gnolls are hyena-like humanoids. They dwell in sewers and dungeons, venturing up to raid the surface from time to time. Gnoll scouts are regular members of their pack, they are not as strong as brutes and not as intelligent as shamans.";
@@ -426539,7 +425593,7 @@ _.x2 = function kBg(a) {
   return 28;
 };
 _.C2 = function lBg() {
-  return 20 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 21) / 2);
+  return 20 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 21) / 2);
 };
 _.F2 = function mBg() {
   return oLj;
@@ -426581,7 +425635,7 @@ _.v2 = function xBg(a) {
   return b;
 };
 _.w2 = function yBg(a, b) {
-  if ($qf($wnd.Math.random() * 3) == 0) {
+  if (Cast_round_int($wnd.Math.random() * 3) == 0) {
     hog(a, UHf);
     wyh(a.M, 0, 5);
   }
@@ -426600,8 +425654,8 @@ _.f5 = function ABg(a) {
 };
 _.C2 = function BBg() {
   return this.b
-    ? 5 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 26) / 2)
-    : 2 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 11) / 2);
+    ? 5 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 26) / 2)
+    : 2 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 11) / 2);
 };
 _.h5 = function CBg() {
   return "Little known about The Goo. It's quite possible that it is not even a creature, but rather a conglomerate of substances from the sewers that gained rudiments of free will.";
@@ -426641,7 +425695,7 @@ _.i5 = function EBg(a) {
         return true;
       }
     }
-  } else if ($qf($wnd.Math.random() * 3) > 0) {
+  } else if (Cast_round_int($wnd.Math.random() * 3) > 0) {
     return Sxg(this, a);
   } else {
     this.b = true;
@@ -426710,7 +425764,7 @@ _.u5 = function WBg() {
   return QBg(this);
 };
 _.C2 = function XBg() {
-  return 20 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 19) / 2);
+  return 20 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 19) / 2);
 };
 _.F2 = function YBg() {
   return lLj;
@@ -426767,7 +425821,7 @@ var NBg, OBg;
 var PIf = Class_createForClass(hLj, "King", 525, XIf);
 Runtime_defineClass(825, 50, { 40: 1, 73: 1, 825: 1, 50: 1, 22: 1 }, lCg);
 _.w2 = function mCg(a, b) {
-  $qf($wnd.Math.random() * 5) == 0 && qog(a, VHf, 1);
+  Cast_round_int($wnd.Math.random() * 5) == 0 && qog(a, VHf, 1);
   return b;
 };
 _.x2 = function nCg(a) {
@@ -426778,7 +425832,7 @@ _.B2 = function oCg(a, b) {
   Rqf(b, 763) && nkf(b, this.K);
 };
 _.C2 = function pCg() {
-  return 12 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2);
+  return 12 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2);
 };
 _.F2 = function qCg() {
   return oLj;
@@ -426812,7 +425866,7 @@ _.x5 = function BCg(a) {
 };
 _.w2 = function CCg(a, b) {
   var c;
-  if (a == (Fjg(), Dungeon.hero) && $qf($wnd.Math.random() * 3) == 0) {
+  if (a == (Fjg(), Dungeon.hero) && Cast_round_int($wnd.Math.random() * 3) == 0) {
     c = new fYg(VTh((Dungeon.gold / 10) | 0, (Dungeon.gold / 2) | 0));
     if (c.A > 0) {
       Dungeon.gold -= c.A;
@@ -426984,7 +426038,7 @@ _.x2 = function gDg(a) {
   return 30;
 };
 _.C2 = function hDg() {
-  return 12 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2);
+  return 12 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2);
 };
 _.F2 = function iDg() {
   return lLj;
@@ -427072,11 +426126,11 @@ Runtime_defineClass(
   BDg,
 );
 _.w2 = function CDg(a, b) {
-  $qf($wnd.Math.random() * 10) == 0 && qog(a, VHf, wmi);
+  Cast_round_int($wnd.Math.random() * 10) == 0 && qog(a, VHf, wmi);
   return cDg(this, a, b);
 };
 _.C2 = function DDg() {
-  return 12 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 9) / 2);
+  return 12 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 9) / 2);
 };
 _.G2 = function EDg(a) {
   sJg &&
@@ -427104,7 +426158,7 @@ _.f5 = function KDg(a) {
   return urh(this.K, a.K, false, true) == a.K;
 };
 _.C2 = function LDg() {
-  return 2 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2);
+  return 2 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2);
 };
 _.h5 = function MDg() {
   return "The most intelligent gnolls can master shamanistic magic. Gnoll shamans prefer battle spells to compensate for lack of might, not hesitating to use them on those who question their status in a tribe.";
@@ -427118,13 +426172,13 @@ _.i5 = function NDg(a) {
     c && xCh(this.M, a.K);
     Hmg(this, 2);
     if (ang(this, a, true)) {
-      b = 2 + $qf($wnd.Math.random() * 10);
-      Ngh[a.K] && !a.G && (b = $qf(b * 1.5));
+      b = 2 + Cast_round_int($wnd.Math.random() * 10);
+      Ngh[a.K] && !a.G && (b = Cast_round_int(b * 1.5));
       a.B2(b, (erh(), drh));
       zeg(xyh(a.M), (ZUg(), YUg), 0, 3);
       Ayh(a.M);
       if (a == (Fjg(), Dungeon.hero)) {
-        r9f((g9f(), f9f), 2, Dii);
+        r9f((g9f(), Camera_main), 2, Dii);
         if (a.A <= 0) {
           Dungeon_fail(
             yJh(
@@ -427175,7 +426229,7 @@ _.x2 = function XDg(a) {
   return 12;
 };
 _.C2 = function YDg() {
-  return 3 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 6) / 2);
+  return 3 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 6) / 2);
 };
 _.F2 = function ZDg() {
   return oLj;
@@ -427193,7 +426247,7 @@ _.G2 = function _Dg(a) {
       c = $wnd.Math.max(
         0,
         3 +
-          $qf((($wnd.Math.random() + $wnd.Math.random()) * 6) / 2) -
+          Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 6) / 2) -
           WTh(0, (b.I2() / 2) | 0),
       );
       b.B2(c, this);
@@ -427217,7 +426271,7 @@ _.I2 = function aEg() {
 };
 _.j5 = function bEg() {
   var a, b, c;
-  if ($qf($wnd.Math.random() * 5) == 0) {
+  if (Cast_round_int($wnd.Math.random() * 5) == 0) {
     c = IXg((XXg(), WXg));
     for (a = 0; a < 2; a++) {
       b = IXg(WXg);
@@ -427245,10 +426299,10 @@ _.GZ = function hEg() {
 };
 _.w2 = function iEg(a, b) {
   var c;
-  if ($qf($wnd.Math.random() * 2) == 0) {
+  if (Cast_round_int($wnd.Math.random() * 2) == 0) {
     urg(
       hog(a, WHf),
-      (7 + $qf($wnd.Math.random() * 2)) *
+      (7 + Cast_round_int($wnd.Math.random() * 2)) *
         (Ojf(),
         (c = wmg(a, RNf)),
         c ? (c.a < 0 ? 1 : (2 + 0.5 * c.a) / (2 + c.a)) : 1),
@@ -427261,7 +426315,7 @@ _.x2 = function jEg(a) {
   return 20;
 };
 _.C2 = function kEg() {
-  return 12 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2);
+  return 12 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2);
 };
 _.h5 = function lEg() {
   return "These greenish furry cave spiders try to avoid direct combat, preferring to wait in the distance while their victim, entangled in the spinner's excreted cobweb, slowly dies from their poisonous bite.";
@@ -427273,7 +426327,7 @@ _.J2 = function nEg() {
   return dEg;
 };
 _.M2 = function oEg(a) {
-  this.v == this.e && Juh(xkf(this.K, 5 + $qf($wnd.Math.random() * 2), yHf));
+  this.v == this.e && Juh(xkf(this.K, 5 + Cast_round_int($wnd.Math.random() * 2), yHf));
   Cmg(this, a);
   this.G || _gh((Fjg(), Dungeon.level), this);
 };
@@ -427300,7 +426354,7 @@ _.w2 = function yEg(a, b) {
   return b;
 };
 _.x2 = function zEg(a) {
-  return $qf((9 + (Fjg(), Dungeon.depth)) * this.a.d);
+  return Cast_round_int((9 + (Fjg(), Dungeon.depth)) * this.a.d);
 };
 _.e5 = function AEg(a) {};
 _.B2 = function BEg(a, b) {
@@ -427351,14 +426405,14 @@ var gJf = Class_createForClass(hLj, qFj, 830, XIf);
 Runtime_defineClass(JFi, 50, { 40: 1, 73: 1, 50: 1, 1178: 1, 22: 1 }, QEg);
 _.w2 = function REg(a, b) {
   var c;
-  if ($qf($wnd.Math.random() * 3) == 0) {
+  if (Cast_round_int($wnd.Math.random() * 3) == 0) {
     iog(
       a,
       HHf,
       (Ojf(),
       (c = wmg(a, RNf)),
       (c ? (c.a < 0 ? 1 : (2 + 0.5 * c.a) / (2 + c.a)) : 1) *
-        (3 + $qf($wnd.Math.random() * 5))),
+        (3 + Cast_round_int($wnd.Math.random() * 5))),
     ).a = Pjf(this);
     zeg(xyh(a.M), (gRg(), jRg(11, false)), zii, 5);
     ieg((eeg(), deg), zIj, 1, 1);
@@ -427373,7 +426427,7 @@ _.A5 = function TEg(a) {
   PEg(this, a);
 };
 _.C2 = function UEg() {
-  return 15 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 11) / 2);
+  return 15 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 11) / 2);
 };
 _.h5 = function VEg() {
   return "The succubi are demons that look like seductive (in a slightly gothic way) girls. Using its magic, the succubus can charm a hero, who will become unable to attack anything until the charm wears off.";
@@ -427405,7 +426459,7 @@ _.x2 = function aFg(a) {
   return 12;
 };
 _.C2 = function bFg() {
-  return 1 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 4) / 2);
+  return 1 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 4) / 2);
 };
 _.D2 = function cFg(a, b) {
   var c, d, e, f, g, h, i, j;
@@ -427427,7 +426481,7 @@ _.D2 = function cFg(a, b) {
       d.A = ((this.A - b) / 2) | 0;
       d.K = ((j = c.a.length),
       j > 0
-        ? y8h(c.a, c.a.length)[j > 0 ? $qf($wnd.Math.random() * j) : 0]
+        ? y8h(c.a, c.a.length)[j > 0 ? Cast_round_int($wnd.Math.random() * j) : 0]
         : null).a;
       d.v = d.f;
       (Fjg(), Dungeon.level).w[d.K] == 5 && vph(d.K);
@@ -427470,7 +426524,7 @@ _.f5 = function oFg(a) {
   return urh(this.K, a.K, false, true) == a.K;
 };
 _.C2 = function pFg() {
-  return 8 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 8) / 2);
+  return 8 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 8) / 2);
 };
 _.h5 = function qFg() {
   return "Tengu are members of the ancient assassins clan, which is also called Tengu. These assassins are noted for extensive use of shuriken and traps.";
@@ -427565,7 +426619,7 @@ _.f5 = function HFg(a) {
   return urh(this.K, a.K, false, true) == a.K;
 };
 _.C2 = function IFg() {
-  return 12 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 9) / 2);
+  return 12 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 9) / 2);
 };
 _.h5 = function JFg() {
   return "When dwarves' interests have shifted from engineering to arcane arts, warlocks have come to power in the city. They started with elemental magic, but soon switched to demonology and necromancy.";
@@ -427661,7 +426715,7 @@ _.D2 = function jGg(a, b) {
     d = new DGg();
     d.K = ((f = g.a.length),
     f > 0
-      ? y8h(g.a, g.a.length)[f > 0 ? $qf($wnd.Math.random() * f) : 0]
+      ? y8h(g.a, g.a.length)[f > 0 ? Cast_round_int($wnd.Math.random() * f) : 0]
       : null).a;
     Kuh(d);
     Vjf(new SQg(d, this.K, d.K), -1);
@@ -427720,7 +426774,7 @@ _.v2 = function uGg(a) {
   } else {
     Hmg(this, 1);
     if (ang(this, a, true)) {
-      c = 20 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 13) / 2);
+      c = 20 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 13) / 2);
       a.B2(c, this);
       vyh(a.M, z7f(this.M), c);
       Ayh(a.M);
@@ -427748,7 +426802,7 @@ _.f5 = function wGg(a) {
   return urh(this.K, a.K, false, true) == a.K;
 };
 _.C2 = function xGg() {
-  return 20 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 13) / 2);
+  return 20 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 13) / 2);
 };
 _.h5 = function yGg() {
   return AJj;
@@ -427773,7 +426827,7 @@ _.x2 = function EGg(a) {
   return 30;
 };
 _.C2 = function FGg() {
-  return 15 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 6) / 2);
+  return 15 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 6) / 2);
 };
 _.h5 = function GGg() {
   return AJj;
@@ -427791,7 +426845,7 @@ _.GZ = function MGg() {
   return Lxg(this);
 };
 _.w2 = function NGg(a, b) {
-  if ($qf($wnd.Math.random() * 3) == 0) {
+  if (Cast_round_int($wnd.Math.random() * 3) == 0) {
     hog(a, UHf);
     wyh(a.M, Pbi, 5);
   }
@@ -427801,7 +426855,7 @@ _.x2 = function OGg(a) {
   return 36;
 };
 _.C2 = function PGg() {
-  return 24 + $qf((($wnd.Math.random() + $wnd.Math.random()) * 13) / 2);
+  return 24 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 13) / 2);
 };
 _.h5 = function QGg() {
   return AJj;
@@ -427865,7 +426919,7 @@ _.g5 = function eHg() {
       ? ((g = fQh(a.a)),
         g > 0
           ? hSh(a, Zpf(WXf, E9h, 1, fQh(a.a), 5, 1))[
-              g > 0 ? $qf($wnd.Math.random() * g) : 0
+              g > 0 ? Cast_round_int($wnd.Math.random() * g) : 0
             ]
           : null)
       : null;
@@ -428409,7 +427463,7 @@ _.g5 = function TJg() {
       ? ((g = fQh(a.a)),
         g > 0
           ? hSh(a, Zpf(WXf, E9h, 1, fQh(a.a), 5, 1))[
-              g > 0 ? $qf($wnd.Math.random() * g) : 0
+              g > 0 ? Cast_round_int($wnd.Math.random() * g) : 0
             ]
           : null)
       : null;
@@ -428582,7 +427636,7 @@ _.X5 = function GKg() {
     qYg(
       ((e = a.a.length),
       e > 0
-        ? y8h(a.a, a.a.length)[e > 0 ? $qf($wnd.Math.random() * e) : 0]
+        ? y8h(a.a, a.a.length)[e > 0 ? Cast_round_int($wnd.Math.random() * e) : 0]
         : null),
       new l5g(),
     );
@@ -428604,7 +427658,7 @@ _.V5 = function IKg() {
 _.X5 = function JKg() {
   var a, b, c;
   for (b = 0; b < 100; b++) {
-    c = $qf($wnd.Math.random() * oei);
+    c = Cast_round_int($wnd.Math.random() * oei);
     if ((Pgh(), Ngh)[c]) {
       a = (Fjg(), Dungeon.level).V8(new D5g(), c);
       a.d = (XYg(), SYg);
@@ -428700,7 +427754,7 @@ Runtime_defineClass(
   HtmlLauncher,
 );
 _.e6 = function HtmlLauncher_createApplicationListener() {
-  return new PixelDungeon(new gMg(new wLg()));
+  return new PixelDungeonORIGINAL(new gMg(new wLg()));
 };
 _.f6 = function HtmlLauncher_getConfig() {
   return new GwtApplicationConfiguration();
@@ -428719,7 +427773,7 @@ _.h6 = function SLg() {
   Nf(
     fc,
     ((a = fc.b.g ? $wnd.devicePixelRatio || 1 : 1),
-    new Sf($qf($wnd.screen.width * a), $qf($wnd.screen.height * a))),
+    new Sf(Cast_round_int($wnd.screen.width * a), Cast_round_int($wnd.screen.height * a))),
   );
 };
 _.i6 = function TLg() {
@@ -429069,20 +428123,20 @@ var pOg;
 Runtime_defineClass(841, 36, { 20: 1, 30: 1, 36: 1, 841: 1 }, wOg);
 _.T1 = function xOg() {
   this.d = new nbg();
-  _ag(this, this.d);
+  Group_$add(this, this.d);
   this.a = new Z9f(bHj);
   this.a.f0(rOg);
   uTh(this.a.ab, this.a.fb / 2);
   this.a.V = -90;
-  _ag(this, this.a);
+  Group_$add(this, this.a);
   this.b = new Beg();
   zeg(this.b, new BOg(), cci, 0);
-  _ag(this, this.b);
+  Group_$add(this, this.b);
   this.c = new Z9f(bHj);
   this.c.f0(uOg);
   uTh(this.c.ab, this.c.fb / 2);
   this.c.V = 360;
-  _ag(this, this.c);
+  Group_$add(this, this.c);
   U4f(this.a.O, (cm(), Xl), Xl);
 };
 _.jj = function yOg() {
@@ -429118,7 +428172,7 @@ _.ri = function AOg() {
     );
     vTh(a.eb, -40 + $wnd.Math.random() * 80, -60 + $wnd.Math.random() * 80);
     vTh(a.S, 0, 80);
-    _ag(this.d, a);
+    Group_$add(this.d, a);
   }
 };
 var rOg, sOg, tOg, uOg;
@@ -430396,8 +429450,8 @@ _.D3 = function wWg(a) {
 };
 _.O3 = function xWg(a) {
   if (etg(this, a)) {
-    if (!cmg) {
-      cmg = true;
+    if (!Statistics_amuletObtained) {
+      Statistics_amuletObtained = true;
       Xgg();
       uWg(true);
     }
@@ -431109,7 +430163,7 @@ _.I7 = function $$g() {
   return O7f(this.g) + 4;
 };
 _.I_ = function _$g(a) {
-  q8f(this.g, a);
+  BitmapText_$text(this.g, a);
   this.g.G_();
   this.UC();
 };
@@ -431217,7 +430271,7 @@ _.XX = function G_g() {
 _.h4 = function H_g() {
   var a;
   a = 10 * (1 << (this.f - 1));
-  !!this.d && (a = $qf(a * 1.5));
+  !!this.d && (a = Cast_round_int(a * 1.5));
   return _sg(this, a);
 };
 _.O7 = function I_g(a, b, c) {
@@ -431645,7 +430699,7 @@ _.t5 = function d1g() {
     !!b && b != Usg && qog(b, VHf, (V0g(), T0g));
   }
   zeg(eNg(this.a), (gRg(), jRg(109, false)), 0, 10);
-  r9f((g9f(), f9f), 2, 0.5);
+  r9f((g9f(), Camera_main), 2, 0.5);
   wvg(Usg, (V0g(), S0g));
 };
 _.a = 0;
@@ -431659,16 +430713,16 @@ _.U7 = function i1g(a) {
 };
 _.V7 = function j1g(a, b, c, d) {
   var e, f, g, h, i;
-  g = $qf(FRh(0, a.s <= 0 ? 0 : a.u, 6));
+  g = Cast_round_int(FRh(0, a.s <= 0 ? 0 : a.u, 6));
   Pgh();
   e = $wnd.Math.abs(b.K - c.K);
   if (
     (e == 1 || e == 32 || e == 33 || e == 31) &&
     (((g / 2) | 0) + 5 > 0
-      ? $qf($wnd.Math.random() * (((g / 2) | 0) + 5))
+      ? Cast_round_int($wnd.Math.random() * (((g / 2) | 0) + 5))
       : 0) >= 4
   ) {
-    f = 3 + $qf($wnd.Math.random() * 5);
+    f = 3 + Cast_round_int($wnd.Math.random() * 5);
     iog(
       b,
       HHf,
@@ -431677,7 +430731,7 @@ _.V7 = function j1g(a, b, c, d) {
       (i ? (i.a < 0 ? 1 : (2 + 0.5 * i.a) / (2 + i.a)) : 1) * f),
     ).a = Pjf(c);
     zeg(xyh(b.M), (gRg(), jRg(11, false)), zii, 5);
-    f = $qf(f * (0.5 + $wnd.Math.random() * 0.5));
+    f = Cast_round_int(f * (0.5 + $wnd.Math.random() * 0.5));
     iog(
       c,
       HHf,
@@ -431705,7 +430759,7 @@ _.V7 = function p1g(a, b, c, d) {
   e = $wnd.Math.abs(b.K - c.K);
   if (
     (e == 1 || e == 32 || e == 33 || e == 31) &&
-    (f + 6 > 0 ? $qf($wnd.Math.random() * (f + 6)) : 0) >= 5
+    (f + 6 > 0 ? Cast_round_int($wnd.Math.random() * (f + 6)) : 0) >= 5
   ) {
     qog(
       b,
@@ -431751,7 +430805,7 @@ _.V7 = function y1g(a, b, c, d) {
   e = $wnd.Math.abs(b.K - c.K);
   if (
     (e == 1 || e == 32 || e == 33 || e == 31) &&
-    (g + 5 > 0 ? $qf($wnd.Math.random() * (g + 5)) : 0) >= 4
+    (g + 5 > 0 ? Cast_round_int($wnd.Math.random() * (g + 5)) : 0) >= 4
   ) {
     for (f = 0; f < zgh.length; f++) {
       i = zgh[f];
@@ -431787,7 +430841,7 @@ _.V7 = function E1g(a, b, c, d) {
   f = a.s <= 0 ? 0 : a.u;
   g = (f < 0 ? 1 : f + 1) * 5;
   for (e = 0; e < g; e++) {
-    h = $qf($wnd.Math.random() * oei);
+    h = Cast_round_int($wnd.Math.random() * oei);
     if (Dungeon.visible[h] && (Pgh(), Hgh)[h] && (Ojf(), !Kjf[h])) {
       Ebh(c, h);
       Dungeon.level.a9(h, c);
@@ -431809,13 +430863,13 @@ _.U7 = function J1g(a) {
 _.V7 = function K1g(a, b, c, d) {
   var e, f;
   f = $wnd.Math.max(0, a.s <= 0 ? 0 : a.u);
-  if ($qf($wnd.Math.random() * 4) == 0) {
+  if (Cast_round_int($wnd.Math.random() * 4) == 0) {
     Ojf();
     e = hog(c, ZHf);
     e.P < Njf + (5 - ((f / 5) | 0)) && (e.P = Njf + (5 - ((f / 5) | 0)));
     rsh(hog(c, gRf), 5 * (f + 1));
     zeg(dNg(c.K), (vSg(), uSg), Sni, 8);
-    r9f((g9f(), f9f), 1, xii);
+    r9f((g9f(), Camera_main), 1, xii);
   }
   return d;
 };
@@ -431833,7 +430887,7 @@ _.V7 = function Q1g(a, b, c, d) {
   g = $wnd.Math.max(0, a.s <= 0 ? 0 : a.u);
   if (
     (((g / 2) | 0) + 5 > 0
-      ? $qf($wnd.Math.random() * (((g / 2) | 0) + 5))
+      ? Cast_round_int($wnd.Math.random() * (((g / 2) | 0) + 5))
       : 0) >= 4
   ) {
     e = $wnd.Math.min(c.B - c.A, VTh(1, (c.B / 5) | 0));
@@ -431864,7 +430918,7 @@ _.V7 = function W1g(a, b, c, d) {
   f = $wnd.Math.max(0, a.s <= 0 ? 0 : a.u);
   if (
     (((f / 2) | 0) + 6 > 0
-      ? $qf($wnd.Math.random() * (((f / 2) | 0) + 6))
+      ? Cast_round_int($wnd.Math.random() * (((f / 2) | 0) + 6))
       : 0) >= 5
   ) {
     i = new a1h();
@@ -431881,7 +430935,7 @@ _.V7 = function W1g(a, b, c, d) {
         g,
         ((j = i.a.length),
         j > 0
-          ? y8h(i.a, i.a.length)[j > 0 ? $qf($wnd.Math.random() * j) : 0]
+          ? y8h(i.a, i.a.length)[j > 0 ? Cast_round_int($wnd.Math.random() * j) : 0]
           : null).a,
       );
       c.B2(WTh(1, (c.B / 6) | 0), this);
@@ -431906,16 +430960,16 @@ _.V7 = function a2g(a, b, c, d) {
   e = $wnd.Math.abs(b.K - c.K);
   if (
     (e == 1 || e == 32 || e == 33 || e == 31) &&
-    (g + 7 > 0 ? $qf($wnd.Math.random() * (g + 7)) : 0) >= 6
+    (g + 7 > 0 ? Cast_round_int($wnd.Math.random() * (g + 7)) : 0) >= 6
   ) {
-    f = 1 + $qf($wnd.Math.random() * (d - 1 + 1));
+    f = 1 + Cast_round_int($wnd.Math.random() * (d - 1 + 1));
     b.B2(f, (erh(), drh));
-    f = 1 + $qf($wnd.Math.random() * (f - 1 + 1));
+    f = 1 + Cast_round_int($wnd.Math.random() * (f - 1 + 1));
     c.B2(f, drh);
     W_g(this, c);
-    c == (Fjg(), Dungeon.hero) && r9f((g9f(), f9f), 2, Dii);
+    c == (Fjg(), Dungeon.hero) && r9f((g9f(), Camera_main), 2, Dii);
     h = aqf(Vpf(erf, 1), $9h, 23, 15, [b.K, c.K]);
-    _ag(b.M.mb, new zPg(h, 2, null));
+    Group_$add(b.M.mb, new zPg(h, 2, null));
   }
   return d;
 };
@@ -431934,7 +430988,7 @@ _.V7 = function g2g(a, b, c, d) {
   Pgh();
   e = $wnd.Math.abs(b.K - c.K);
   (e == 1 || e == 32 || e == 33 || e == 31) &&
-    (f + 5 > 0 ? $qf($wnd.Math.random() * (f + 5)) : 0) >= 4 &&
+    (f + 5 > 0 ? Cast_round_int($wnd.Math.random() * (f + 5)) : 0) >= 4 &&
     Juh(xkf(b.K, 20, uHf));
   return d;
 };
@@ -431953,7 +431007,7 @@ _.V7 = function m2g(a, b, c, d) {
     return 0;
   }
   f = $wnd.Math.max(0, a.s <= 0 ? 0 : a.u);
-  if ((f + 7 > 0 ? $qf($wnd.Math.random() * (f + 7)) : 0) >= 6) {
+  if ((f + 7 > 0 ? Cast_round_int($wnd.Math.random() * (f + 7)) : 0) >= 6) {
     e = wmg(c, YMf);
     if (!e) {
       e = new o2g();
@@ -432144,7 +431198,7 @@ Runtime_defineClass(683, 212, { 31: 1, 212: 1, 683: 1, 22: 1 }, e3g);
 _.T3 = function g3g(a, b) {
   U2g(this, a, b);
   if (sYh(b, M8i)) {
-    switch ($qf($wnd.Math.random() * 5)) {
+    switch (Cast_round_int($wnd.Math.random() * 5)) {
       case 0:
         uJh(gMj, aqf(Vpf(WXf, 1), E9h, 1, 5, []));
         iog(a, QHf, 15);
@@ -432182,7 +431236,7 @@ _.T3 = function k3g(a, b) {
   var c, d;
   U2g(this, a, b);
   if (sYh(b, M8i)) {
-    switch ($qf($wnd.Math.random() * 5)) {
+    switch (Cast_round_int($wnd.Math.random() * 5)) {
       case 0:
         sJh();
         uJh("** Oh it's hot!", aqf(Vpf(WXf, 1), E9h, 1, 5, []));
@@ -432327,7 +431381,7 @@ _.T3 = function Y3g(a, b) {
 };
 _.X3 = function Z3g() {
   vZg(K3g, this) || wZg(K3g, this);
-  vgg();
+  Badges_validateAllPotionsIdentified();
   return this;
 };
 _.Z3 = function $3g() {
@@ -432383,27 +431437,27 @@ _.N5 = function n4g(a) {
   a == 0 && gvh((Xsg(), Wsg));
 };
 var pNf = Class_createForClass(iMj, "Potion/2", qMi, TVf);
-Runtime_defineClass(864, 133, { 31: 1, 133: 1, 864: 1, 22: 1 }, o4g);
-_.Z7 = function p4g(a) {
+Runtime_defineClass(864, 133, { 31: 1, 133: 1, 864: 1, 22: 1 }, PotionOfExperience);
+_.Z7 = function PotionOfExperience_apply(a) {
   vZg(K3g, this) || wZg(K3g, this);
-  vgg();
+  Badges_validateAllPotionsIdentified();
   fvg(a, 5 + a.o * 5 - a.i);
 };
-_.K3 = function q4g() {
+_.K3 = function PotionOfExperience_desc() {
   return "The storied experiences of multitudes of battles reduced to liquid form, this draught will instantly raise your experience level.";
 };
-_.h4 = function r4g() {
+_.h4 = function PotionOfExperience_price() {
   return vZg(K3g, this) ? 80 * this.A : 20 * this.A;
 };
 var qNf = Class_createForClass(iMj, hVi, 864, CNf);
 Runtime_defineClass($Di, 133, { 31: 1, 133: 1, 1238: 1, 22: 1 }, s4g);
-_.K3 = function t4g() {
+_.K3 = function PotionOfFrost_desc() {
   return "Upon exposure to open air, this chemical will evaporate into a freezing cloud, causing any creature that contacts it to be frozen in place, unable to act and move.";
 };
-_.h4 = function u4g() {
+_.h4 = function PotionOfFrost_price() {
   return vZg(K3g, this) ? 50 * this.A : 20 * this.A;
 };
-_.c8 = function v4g(a) {
+_.c8 = function PotionOfFrost_shatter(a) {
   var b, c, d, e;
   YRh(a, pJh((Pgh(), Ggh), null), 2);
   c = ZPh((Fjg(), Dungeon.level).o, nHf);
@@ -432417,72 +431471,72 @@ _.c8 = function v4g(a) {
     MRg(new yTh(((a % 32) + 0.5) * 16, (((a / 32) | 0) + 0.5) * 16), b, 5);
     ieg((eeg(), deg), iIj, 1, 1);
     vZg(K3g, this) || wZg(K3g, this);
-    vgg();
+    Badges_validateAllPotionsIdentified();
   }
 };
 var rNf = Class_createForClass(iMj, jVi, $Di, CNf);
 Runtime_defineClass(309, 133, { 31: 1, 133: 1, 309: 1, 22: 1 }, w4g);
-_.Z7 = function x4g(a) {
+_.Z7 = function PotionOfHealing_apply(a) {
   vZg(K3g, this) || wZg(K3g, this);
-  vgg();
+  Badges_validateAllPotionsIdentified();
   z4g((Fjg(), Dungeon.hero));
   sJh();
   uJh("++ Your wounds heal completely.", aqf(Vpf(WXf, 1), E9h, 1, 5, []));
 };
-_.K3 = function y4g() {
+_.K3 = function PotionOfHealing_desc() {
   return "An elixir that will instantly return you to full health and cure poison.";
 };
-_.h4 = function A4g() {
+_.h4 = function PotionOfHealing_price() {
   return vZg(K3g, this) ? 30 * this.A : 20 * this.A;
 };
 var sNf = Class_createForClass(iMj, lVi, 309, CNf);
 Runtime_defineClass(592, 133, { 31: 1, 133: 1, 592: 1, 22: 1 }, B4g);
-_.Z7 = function C4g(a) {
+_.Z7 = function PotionOfInvisibility_apply(a) {
   var b;
   vZg(K3g, this) || wZg(K3g, this);
-  vgg();
+  Badges_validateAllPotionsIdentified();
   Ojf();
   b = hog(a, QHf);
   b.P += 15;
   uJh(gMj, aqf(Vpf(WXf, 1), E9h, 1, 5, []));
   ieg((eeg(), deg), sIj, 1, 1);
 };
-_.K3 = function D4g() {
+_.K3 = function PotionOfInvisibility_desc() {
   return "Drinking this potion will render you temporarily invisible. While invisible, enemies will be unable to see you. Attacking an enemy, as well as using a wand or a scroll before enemy's eyes, will dispel the effect.";
 };
-_.h4 = function F4g() {
+_.h4 = function PotionOfInvisibility_price() {
   return vZg(K3g, this) ? 40 * this.A : 20 * this.A;
 };
 var tNf = Class_createForClass(iMj, mVi, 592, CNf);
 Runtime_defineClass(685, 133, { 31: 1, 133: 1, 685: 1, 22: 1 }, G4g);
-_.Z7 = function H4g(a) {
+_.Z7 = function PotionOfLevitation_apply(a) {
   var b;
   vZg(K3g, this) || wZg(K3g, this);
-  vgg();
+  Badges_validateAllPotionsIdentified();
   Ojf();
   b = hog(a, RHf);
   b.P += 20;
   uJh("You float into the air!", aqf(Vpf(WXf, 1), E9h, 1, 5, []));
 };
-_.K3 = function I4g() {
+_.K3 = function PotionOfLevitation_desc() {
   return "Drinking this curious liquid will cause you to hover in the air, able to drift effortlessly over traps. Flames and gases fill the air, however, and cannot be bypassed while airborne.";
 };
-_.h4 = function J4g() {
+_.h4 = function PotionOfLevitation_price() {
   return vZg(K3g, this) ? 35 * this.A : 20 * this.A;
 };
 var uNf = Class_createForClass(iMj, nVi, 685, CNf);
 Runtime_defineClass(533, 133, { 31: 1, 133: 1, 533: 1, 22: 1 }, K4g);
-_.K3 = function L4g() {
+_.K3 = function PotionOfLiquidFlame_desc() {
   return "This flask contains an unstable compound which will burst violently into flame upon exposure to open air.";
 };
-_.h4 = function M4g() {
+_.h4 = function PotionOfLiquidFlame_price() {
   return vZg(K3g, this) ? 40 * this.A : 20 * this.A;
 };
-_.c8 = function N4g(a) {
+_.c8 = function PotionOfLiquidFlame_shatter(a) {
   var b;
   if ((Fjg(), Dungeon.visible)[a]) {
     vZg(K3g, this) || wZg(K3g, this);
-    vgg();
+    Badges_validateAllPotionsIdentified();
     b = _Ng(this.t, 8, 10);
     IRg();
     MRg(new yTh(((a % 32) + 0.5) * 16, (((a / 32) | 0) + 0.5) * 16), b, 5);
@@ -432492,26 +431546,26 @@ _.c8 = function N4g(a) {
 };
 var vNf = Class_createForClass(iMj, oVi, 533, CNf);
 Runtime_defineClass(259, 133, { 31: 1, 133: 1, 259: 1, 22: 1 }, O4g);
-_.Z7 = function P4g(a) {
+_.Z7 = function PotionOfStrength_apply(a) {
   vZg(K3g, this) || wZg(K3g, this);
-  vgg();
+  Badges_validateAllPotionsIdentified();
   ++a.a;
   Qyh(a.M, Rbi, "+1 str", aqf(Vpf(WXf, 1), E9h, 1, 5, []));
   sJh();
   uJh(kMj, aqf(Vpf(WXf, 1), E9h, 1, 5, []));
   Wgg();
 };
-_.K3 = function Q4g() {
+_.K3 = function PotionOfStrength_desc() {
   return "This powerful liquid will course through your muscles, permanently increasing your strength by one point.";
 };
-_.h4 = function R4g() {
+_.h4 = function PotionOfStrength_price() {
   return vZg(K3g, this) ? 100 * this.A : 20 * this.A;
 };
 var ANf = Class_createForClass(iMj, tVi, 259, CNf);
 Runtime_defineClass(382, 259, { 31: 1, 133: 1, 382: 1, 259: 1, 22: 1 }, S4g);
-_.Z7 = function T4g(a) {
+_.Z7 = function PotionOfMight_apply(a) {
   vZg(K3g, this) || wZg(K3g, this);
-  vgg();
+  Badges_validateAllPotionsIdentified();
   ++a.a;
   a.B += 5;
   a.A += 5;
@@ -432520,10 +431574,10 @@ _.Z7 = function T4g(a) {
   uJh(kMj, aqf(Vpf(WXf, 1), E9h, 1, 5, []));
   Wgg();
 };
-_.K3 = function U4g() {
+_.K3 = function PotionOfMight_desc() {
   return "This powerful liquid will course through your muscles, permanently increasing your strength by one point and health by five points.";
 };
-_.h4 = function V4g() {
+_.h4 = function PotionOfMight_price() {
   return vZg(K3g, this)
     ? 200 * this.A
     : vZg(K3g, this)
@@ -432532,10 +431586,10 @@ _.h4 = function V4g() {
 };
 var wNf = Class_createForClass(iMj, pVi, 382, ANf);
 Runtime_defineClass(865, 133, { 31: 1, 133: 1, 865: 1, 22: 1 }, W4g);
-_.Z7 = function X4g(a) {
+_.Z7 = function PotionOfMindVision_apply(a) {
   var b;
   vZg(K3g, this) || wZg(K3g, this);
-  vgg();
+  Badges_validateAllPotionsIdentified();
   Ojf();
   b = hog(a, THf);
   b.P += 20;
@@ -432550,25 +431604,25 @@ _.Z7 = function X4g(a) {
         aqf(Vpf(WXf, 1), E9h, 1, 5, []),
       );
 };
-_.K3 = function Y4g() {
+_.K3 = function PotionOfMindVision_desc() {
   return "After drinking this, your mind will become attuned to the psychic signature of distant creatures, enabling you to sense biological presences through walls. Also this potion will permit you to see through nearby walls and doors.";
 };
-_.h4 = function Z4g() {
+_.h4 = function PotionOfMindVision_price() {
   return vZg(K3g, this) ? 35 * this.A : 20 * this.A;
 };
 var xNf = Class_createForClass(iMj, qVi, 865, CNf);
 Runtime_defineClass(866, 133, { 31: 1, 133: 1, 866: 1, 22: 1 }, $4g);
-_.K3 = function _4g() {
+_.K3 = function PotionOfParalyticGas_desc() {
   return "Upon exposure to open air, the liquid in this flask will vaporize into a numbing yellow haze. Anyone who inhales the cloud will be paralyzed instantly, unable to move for some time after the cloud dissipates. This item can be thrown at distant enemies to catch them within the effect of the gas.";
 };
-_.h4 = function a5g() {
+_.h4 = function PotionOfParalyticGas_price() {
   return vZg(K3g, this) ? 40 * this.A : 20 * this.A;
 };
-_.c8 = function b5g(a) {
+_.c8 = function PotionOfParalyticGas_shatter(a) {
   var b;
   if ((Fjg(), Dungeon.visible)[a]) {
     vZg(K3g, this) || wZg(K3g, this);
-    vgg();
+    Badges_validateAllPotionsIdentified();
     b = _Ng(this.t, 8, 10);
     IRg();
     MRg(new yTh(((a % 32) + 0.5) * 16, (((a / 32) | 0) + 0.5) * 16), b, 5);
@@ -432578,7 +431632,7 @@ _.c8 = function b5g(a) {
 };
 var yNf = Class_createForClass(iMj, rVi, 866, CNf);
 Runtime_defineClass(ACi, 133, { 31: 1, 133: 1, 1239: 1, 22: 1 }, c5g);
-_.Z7 = function d5g(a) {
+_.Z7 = function PotionOfPurity_apply(a) {
   var b;
   sJh();
   uJh("** You've stopped sensing any smells!", aqf(Vpf(WXf, 1), E9h, 1, 5, []));
@@ -432586,15 +431640,15 @@ _.Z7 = function d5g(a) {
   b = hog(a, OHf);
   b.P < Njf + 5 && (b.P = Njf + 5);
   vZg(K3g, this) || wZg(K3g, this);
-  vgg();
+  Badges_validateAllPotionsIdentified();
 };
-_.K3 = function e5g() {
+_.K3 = function PotionOfPurity_desc() {
   return "This reagent will quickly neutralize all harmful gases in the area of effect. Drinking it will give you a temporary immunity to such gases.";
 };
-_.h4 = function f5g() {
+_.h4 = function PotionOfPurity_price() {
   return vZg(K3g, this) ? 50 * this.A : 20 * this.A;
 };
-_.c8 = function g5g(a) {
+_.c8 = function PotionOfPurity_shatter(a) {
   var b, c, d, e, f, g, h, i;
   YRh(a, pJh((Pgh(), Ggh), null), 2);
   h = false;
@@ -432628,7 +431682,7 @@ _.c8 = function g5g(a) {
       ieg((eeg(), deg), iIj, 1, 1);
     }
     vZg(K3g, this) || wZg(K3g, this);
-    vgg();
+    Badges_validateAllPotionsIdentified();
     e &&
       (sJh(),
       uJh(
@@ -432640,23 +431694,23 @@ _.c8 = function g5g(a) {
     if (e) {
       uJh(S8i, aqf(Vpf(WXf, 1), E9h, 1, 5, []));
       vZg(K3g, this) || wZg(K3g, this);
-      vgg();
+      Badges_validateAllPotionsIdentified();
     }
   }
 };
 var zNf = Class_createForClass(iMj, sVi, ACi, CNf);
-Runtime_defineClass(867, 133, { 31: 1, 133: 1, 867: 1, 22: 1 }, h5g);
-_.K3 = function i5g() {
+Runtime_defineClass(867, 133, { 31: 1, 133: 1, 867: 1, 22: 1 }, PotionOfToxicGas);
+_.K3 = function PotionOfToxicGas_desc() {
   return "Uncorking or shattering this pressurized glass will cause its contents to explode into a deadly cloud of toxic green gas. You might choose to fling this potion at distant enemies instead of uncorking it by hand.";
 };
-_.h4 = function j5g() {
+_.h4 = function PotionOfToxicGas_price() {
   return vZg(K3g, this) ? 40 * this.A : 20 * this.A;
 };
-_.c8 = function k5g(a) {
+_.c8 = function PotionOfToxicGas_shatter(a) {
   var b;
   if ((Fjg(), Dungeon.visible)[a]) {
     vZg(K3g, this) || wZg(K3g, this);
-    vgg();
+    Badges_validateAllPotionsIdentified();
     b = _Ng(this.t, 8, 10);
     IRg();
     MRg(new yTh(((a % 32) + 0.5) * 16, (((a / 32) | 0) + 0.5) * 16), b, 5);
@@ -432772,7 +431826,7 @@ _.y7 = function T5g(a) {
   b = XTh(this.A7(), this.z7());
   if (!!a.p == (a.j == (Xwg(), Pwg))) {
     c = (a.v ? a.a - 2 : a.a) - this.f;
-    c > 0 && (b += $qf($wnd.Math.random() * (c + 1)));
+    c > 0 && (b += Cast_round_int($wnd.Math.random() * (c + 1)));
   }
   return b;
 };
@@ -433061,7 +432115,7 @@ _.h4 = function h7g() {
 };
 _.k4 = function i7g() {
   var a;
-  a = 1 + $qf($wnd.Math.random() * 2);
+  a = 1 + Cast_round_int($wnd.Math.random() * 2);
   if ($wnd.Math.random() < Dii) {
     btg(this, a);
     this.p = true;
@@ -433481,7 +432535,7 @@ _.K3 = function n9g() {
   return "Permanently reveals all of the secrets of a single item.";
 };
 _.p8 = function o9g(a) {
-  _ag((Xsg(), Usg).M.mb, new uPg(qTh(z7f(Usg.M), 0, -16)));
+  Group_$add((Xsg(), Usg).M.mb, new uPg(qTh(z7f(Usg.M), 0, -16)));
   a.X3();
   uJh("It is " + a, aqf(Vpf(WXf, 1), E9h, 1, 5, []));
   Kgg(a);
@@ -433600,7 +432654,7 @@ _.m8 = function A9g() {
   }
   e = 3;
   while (e > 0 && h.a.length > 0) {
-    c = $qf($wnd.Math.random() * h.a.length);
+    c = Cast_round_int($wnd.Math.random() * h.a.length);
     d = new QJg();
     PJg(d, (Xsg(), Usg));
     Kuh(d);
@@ -433647,7 +432701,7 @@ _.K3 = function G9g() {
 _.m8 = function H9g() {
   var a, b, c, d, e;
   zuh();
-  _ag(yuh, new Cwh(-1, true));
+  Group_$add(yuh, new Cwh(-1, true));
   ieg((eeg(), deg), uIj, 1, 1);
   Ojf();
   a = wmg((Fjg(), Dungeon.hero), QHf);
@@ -433659,11 +432713,11 @@ _.m8 = function H9g() {
   ) {
     b = c[d];
     if ((Pgh(), Dgh)[b.K]) {
-      qog(b, EHf, 3 + $qf($wnd.Math.random() * 3));
+      qog(b, EHf, 3 + Cast_round_int($wnd.Math.random() * 3));
       b.B2(WTh(1, ((b.B * 2) / 3) | 0), this);
     }
   }
-  qog((Xsg(), Usg), EHf, 3 + $qf($wnd.Math.random() * 3));
+  qog((Xsg(), Usg), EHf, 3 + Cast_round_int($wnd.Math.random() * 3));
   Vjg();
   vZg(D8g, this) || wZg(D8g, this);
   xgg();
@@ -434145,10 +433199,10 @@ _.v8 = function Cbh(a) {
       b = (Ojf(), Kjf[d]);
       if (b) {
         Ayh(b.M);
-        b.B2(2 + $qf($wnd.Math.random() * ((g + 4 - c) * (e + 1) - 2)), this);
+        b.B2(2 + Cast_round_int($wnd.Math.random() * ((g + 4 - c) * (e + 1) - 2)), this);
         b.A > 0 &&
-          (e + 2 + c > 0 ? $qf($wnd.Math.random() * (e + 2 + c)) : 0) < e + 1 &&
-          qog(b, VHf, 2 + $qf($wnd.Math.random() * 5));
+          (e + 2 + c > 0 ? Cast_round_int($wnd.Math.random() * (e + 2 + c)) : 0) < e + 1 &&
+          qog(b, VHf, 2 + Cast_round_int($wnd.Math.random() * 5));
       }
       !!b && b.A > 0
         ? Rqf(b, 50)
@@ -434161,7 +433215,7 @@ _.v8 = function Cbh(a) {
         f < g - c && (f = g - c);
       }
     }
-    r9f((g9f(), f9f), 3, nLj * (3 + f));
+    r9f((g9f(), Camera_main), 3, nLj * (3 + f));
   }
   if ((Xsg(), Usg).A <= 0) {
     Dungeon_fail(
@@ -434218,7 +433272,7 @@ _.B8 = function Kbh() {
 };
 _.t8 = function Lbh(a, b) {
   a = (srh(), rrh)[$wnd.Math.min(qrh, this.u + 4) - 1];
-  _ag(
+  Group_$add(
     (Xsg(), Usg).M.mb,
     new iNg(
       z7f(Usg.M),
@@ -434250,7 +433304,7 @@ _.v8 = function Mbh(a) {
       !!yuh && smh(yuh.t.n, b % 32, (b / 32) | 0);
       l = true;
     }
-    zeg(eNg(b), (OTg(), MTg), 0, 1 + $qf($wnd.Math.random() * 2));
+    zeg(eNg(b), (OTg(), MTg), 0, 1 + Cast_round_int($wnd.Math.random() * 2));
   }
   l && Vjg();
   i = h + e.a.length;
@@ -434258,10 +433312,10 @@ _.v8 = function Mbh(a) {
   for (d = new G1h(e); d.a < d.c.a.length; ) {
     c = F1h(d);
     c.B2(
-      i + $qf((($wnd.Math.random() + $wnd.Math.random()) * (f - i + 1)) / 2),
+      i + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * (f - i + 1)) / 2),
       this,
     );
-    zeg(xyh(c.M), (OTg(), MTg), 0, 1 + $qf($wnd.Math.random() * 2));
+    zeg(xyh(c.M), (OTg(), MTg), 0, 1 + Cast_round_int($wnd.Math.random() * 2));
     Ayh(c.M);
   }
 };
@@ -434289,7 +433343,7 @@ _.v8 = function Qbh(a) {
   Juh(xkf(a, 1, nHf));
   c = (Ojf(), Kjf[a]);
   if (c) {
-    c.B2(VTh(1, $qf(2 * $wnd.Math.pow(e, 1.5)) + 6), this);
+    c.B2(VTh(1, Cast_round_int(2 * $wnd.Math.pow(e, 1.5)) + 6), this);
     Opg(hog(c, GHf), c);
     zeg(zyh(c.M), (VSg(), USg), 0, 5);
     if (c == (Xsg(), Usg) && c.A <= 0) {
@@ -434414,13 +433468,13 @@ _.t8 = function ech(a, b) {
       c,
       5 +
         ((d / 2) | 0) +
-        $qf($wnd.Math.random() * (10 + d - (5 + ((d / 2) | 0)))),
+        Cast_round_int($wnd.Math.random() * (10 + d - (5 + ((d / 2) | 0)))),
     );
   } else {
     this.c[this.b++] = a;
     zeg(eNg(a), (ZUg(), YUg), 0, 3);
   }
-  _ag((Xsg(), Usg).M.mb, new zPg(this.c, this.b, b));
+  Group_$add((Xsg(), Usg).M.mb, new zPg(this.c, this.b, b));
 };
 _.C8 = function fch(a, b) {
   qah();
@@ -434487,7 +433541,7 @@ _.v8 = function nch(a) {
   b = (Ojf(), Kjf[a]);
   if (b) {
     c = zah(this);
-    b.B2(1 + $qf($wnd.Math.random() * (6 + c * 2 - 1)), this);
+    b.B2(1 + Cast_round_int($wnd.Math.random() * (6 + c * 2 - 1)), this);
     wyh(b.M, -6697729, ((c / 2) | 0) + 2);
     if (b == (Xsg(), Usg) && b.A <= 0) {
       Dungeon_fail(
@@ -434733,7 +433787,7 @@ _.U7 = function gdh(a) {
 _.E8 = function hdh(a, b, c, d) {
   var e;
   e = $wnd.Math.max(0, a.s <= 0 ? 0 : a.u);
-  if ((e + 100 > 0 ? $qf($wnd.Math.random() * (e + 100)) : 0) >= 92) {
+  if ((e + 100 > 0 ? Cast_round_int($wnd.Math.random() * (e + 100)) : 0) >= 92) {
     c.B2(c.A, this);
     zeg(zyh(c.M), (kUg(), jUg), 0, 5);
     c.A <= 0 && Rqf(b, 141) && Jgg();
@@ -434754,9 +433808,9 @@ _.U7 = function mdh(a) {
 _.E8 = function ndh(a, b, c, d) {
   var e;
   e = $wnd.Math.max(0, a.s <= 0 ? 0 : a.u);
-  if ((e + 3 > 0 ? $qf($wnd.Math.random() * (e + 3)) : 0) >= 2) {
-    $qf($wnd.Math.random() * 2) == 0 && Opg(hog(c, GHf), c);
-    c.B2(1 + $qf($wnd.Math.random() * (e + 2 - 1)), this);
+  if ((e + 3 > 0 ? Cast_round_int($wnd.Math.random() * (e + 3)) : 0) >= 2) {
+    Cast_round_int($wnd.Math.random() * 2) == 0 && Opg(hog(c, GHf), c);
+    c.B2(1 + Cast_round_int($wnd.Math.random() * (e + 2 - 1)), this);
     zeg(zyh(c.M), (VSg(), USg), 0, e + 1);
     return true;
   } else {
@@ -434775,7 +433829,7 @@ _.U7 = function sdh(a) {
 _.E8 = function tdh(a, b, c, d) {
   var e, f;
   e = $wnd.Math.max(0, a.s <= 0 ? 0 : a.u);
-  if ((e + 5 > 0 ? $qf($wnd.Math.random() * (e + 5)) : 0) >= 4) {
+  if ((e + 5 > 0 ? Cast_round_int($wnd.Math.random() * (e + 5)) : 0) >= 4) {
     c == (Fjg(), Dungeon.hero)
       ? iog(
           c,
@@ -434812,7 +433866,7 @@ _.E8 = function Cdh(a, b, c, d) {
   var e, f, g;
   f = $wnd.Math.max(0, a.s <= 0 ? 0 : a.u);
   g = ((d * (f + 2)) / (f + 6)) | 0;
-  e = $wnd.Math.min($qf($wnd.Math.random() * (g + 1)), b.B - b.A);
+  e = $wnd.Math.min(Cast_round_int($wnd.Math.random() * (g + 1)), b.B - b.A);
   if (e > 0) {
     b.A += e;
     zeg(zyh(b.M), (gRg(), jRg(0, false)), xii, 1);
@@ -434857,7 +433911,7 @@ _.U7 = function Ndh(a) {
 _.E8 = function Odh(a, b, c, d) {
   var e;
   e = $wnd.Math.max(0, a.s <= 0 ? 0 : a.u);
-  if ((e + 8 > 0 ? $qf($wnd.Math.random() * (e + 8)) : 0) >= 7) {
+  if ((e + 8 > 0 ? Cast_round_int($wnd.Math.random() * (e + 8)) : 0) >= 7) {
     qog(c, VHf, 1 + $wnd.Math.random() * (1.5 + e - 1));
     return true;
   } else {
@@ -434876,7 +433930,7 @@ _.U7 = function Tdh(a) {
 _.E8 = function Udh(a, b, c, d) {
   var e, f;
   e = $wnd.Math.max(0, a.s <= 0 ? 0 : a.u);
-  if ((e + 3 > 0 ? $qf($wnd.Math.random() * (e + 3)) : 0) >= 2) {
+  if ((e + 3 > 0 ? Cast_round_int($wnd.Math.random() * (e + 3)) : 0) >= 2) {
     urg(
       hog(c, WHf),
       (Ojf(),
@@ -434901,13 +433955,13 @@ _.U7 = function Ydh(a) {
 _.E8 = function Zdh(a, b, c, d) {
   var e;
   e = $wnd.Math.max(0, a.s <= 0 ? 0 : a.u);
-  if ((e + 4 > 0 ? $qf($wnd.Math.random() * (e + 4)) : 0) >= 3) {
+  if ((e + 4 > 0 ? Cast_round_int($wnd.Math.random() * (e + 4)) : 0) >= 3) {
     this.c[0] = b.K;
     this.b = 1;
     this.a.a = Zpf(WXf, E9h, 1, 0, 5, 1);
     T0h(this.a, b);
-    Vdh(this, c, 1 + $qf($wnd.Math.random() * (((d / 2) | 0) - 1)));
-    _ag(b.M.mb, new zPg(this.c, this.b, null));
+    Vdh(this, c, 1 + Cast_round_int($wnd.Math.random() * (((d / 2) | 0) - 1)));
+    Group_$add(b.M.mb, new zPg(this.c, this.b, null));
     return true;
   } else {
     return false;
@@ -434925,7 +433979,7 @@ _.U7 = function ceh(a) {
 _.E8 = function deh(a, b, c, d) {
   var e;
   e = $wnd.Math.max(0, a.s <= 0 ? 0 : a.u);
-  if ((e + 4 > 0 ? $qf($wnd.Math.random() * (e + 4)) : 0) >= 3) {
+  if ((e + 4 > 0 ? Cast_round_int($wnd.Math.random() * (e + 4)) : 0) >= 3) {
     qog(c, aIf, 1 + $wnd.Math.random() * (1.5 + e - 1));
     return true;
   } else {
@@ -434944,7 +433998,7 @@ _.U7 = function ieh(a) {
 _.E8 = function jeh(a, b, c, d) {
   var e;
   e = $wnd.Math.max(0, a.s <= 0 ? 0 : a.u);
-  if ((e + 4 > 0 ? $qf($wnd.Math.random() * (e + 4)) : 0) < 3) {
+  if ((e + 4 > 0 ? Cast_round_int($wnd.Math.random() * (e + 4)) : 0) < 3) {
     return false;
   }
   qog(c, aIf, (1 + $wnd.Math.random() * (e + 2 - 1)) * oog(c));
@@ -434992,7 +434046,7 @@ _.Z3 = function ueh() {
         : (xYh(
             vJh,
             OYh(
-              nYh(
+              String_$charAt(
                 String.fromCharCode(
                   (b9h(0, e.length), e.charCodeAt(0)),
                 ).toLowerCase(),
@@ -435073,7 +434127,7 @@ _.z7 = function veh() {
   return this.s <= 0 ? this.G8() : this.G8() + this.u * this.c;
 };
 _.G8 = function weh() {
-  return $qf(((this.c * this.c - this.c + 10) / this.d) * this.e);
+  return Cast_round_int(((this.c * this.c - this.c + 10) / this.d) * this.e);
 };
 _.A7 = function xeh() {
   return this.s <= 0 ? this.c : this.c + this.u;
@@ -435084,7 +434138,7 @@ _.H8 = function yeh() {
 _.h4 = function zeh() {
   var a;
   a = 20 * (1 << (this.c - 1));
-  !!this.g && (a = $qf(a * 1.5));
+  !!this.g && (a = Cast_round_int(a * 1.5));
   return _sg(this, a);
 };
 _.k4 = function Aeh() {
@@ -435399,7 +434453,7 @@ _.B7 = function Jfh(a, b, c) {
   efh(this, a, b, c);
 };
 _.k4 = function Kfh() {
-  this.A = 2 + $qf($wnd.Math.random() * 3);
+  this.A = 2 + Cast_round_int($wnd.Math.random() * 3);
   return this;
 };
 var yPf = Class_createForClass(LMj, nYi, 688, DPf);
@@ -435423,7 +434477,7 @@ _.h4 = function Qfh() {
   return this.A * 2;
 };
 _.k4 = function Rfh() {
-  this.A = 5 + $qf($wnd.Math.random() * 10);
+  this.A = 5 + Cast_round_int($wnd.Math.random() * 10);
   return this;
 };
 var zPf = Class_createForClass(LMj, "Dart", 383, DPf);
@@ -435466,7 +434520,7 @@ _.B7 = function Zfh(a, b, c) {
   efh(this, a, b, c);
 };
 _.k4 = function $fh() {
-  this.A = 3 + $qf($wnd.Math.random() * 3);
+  this.A = 3 + Cast_round_int($wnd.Math.random() * 3);
   return this;
 };
 var APf = Class_createForClass(LMj, oYi, 689, DPf);
@@ -435497,7 +434551,7 @@ _.B7 = function fgh(a, b, c) {
   d.P < Njf + 10 && (d.P = Njf + 10);
 };
 _.k4 = function ggh() {
-  this.A = 5 + $qf($wnd.Math.random() * 10);
+  this.A = 5 + Cast_round_int($wnd.Math.random() * 10);
   return this;
 };
 var BPf = Class_createForClass(LMj, pYi, 690, DPf);
@@ -435526,7 +434580,7 @@ _.h4 = function ogh() {
   return 15 * this.A;
 };
 _.k4 = function pgh() {
-  this.A = 5 + $qf($wnd.Math.random() * 10);
+  this.A = 5 + Cast_round_int($wnd.Math.random() * 10);
   return this;
 };
 var EPf = Class_createForClass(LMj, sYi, 447, DPf);
@@ -435554,7 +434608,7 @@ _.B7 = function wgh(a, b, c) {
   Cpg(hog(b, DHf), c);
 };
 _.k4 = function xgh() {
-  this.A = 5 + $qf($wnd.Math.random() * 7);
+  this.A = 5 + Cast_round_int($wnd.Math.random() * 7);
   return this;
 };
 var FPf = Class_createForClass(LMj, tYi, 691, DPf);
@@ -435614,14 +434668,14 @@ _.a9 = function Ahh(a, b) {
 _.b9 = function Bhh() {
   var a;
   do {
-    a = $qf($wnd.Math.random() * oei);
+    a = Cast_round_int($wnd.Math.random() * oei);
   } while (!Hgh[a]);
   return a;
 };
 _.c9 = function Chh() {
   var a;
   do {
-    a = $qf($wnd.Math.random() * oei);
+    a = Cast_round_int($wnd.Math.random() * oei);
   } while (!Hgh[a] || (Fjg(), Dungeon.visible)[a] || (Ojf(), !!Kjf[a]));
   return a;
 };
@@ -435689,37 +434743,37 @@ _.O8 = function Thh() {
   var a, b, c, d, e, f, g, h, i;
   i = v9h;
   for (c = 0; c < 8; c++) {
-    if ($qf($wnd.Math.random() * 2) == 0) {
-      e = 1 + $qf($wnd.Math.random() * 10);
+    if (Cast_round_int($wnd.Math.random() * 2) == 0) {
+      e = 1 + Cast_round_int($wnd.Math.random() * 10);
       g = 21;
     } else {
       e = 11;
-      g = 21 + $qf($wnd.Math.random() * 10);
+      g = 21 + Cast_round_int($wnd.Math.random() * 10);
     }
-    if ($qf($wnd.Math.random() * 2) == 0) {
-      h = 2 + $qf($wnd.Math.random() * 9);
+    if (Cast_round_int($wnd.Math.random() * 2) == 0) {
+      h = 2 + Cast_round_int($wnd.Math.random() * 9);
       a = 21;
     } else {
       h = 11;
-      a = 17 + $qf($wnd.Math.random() * 14);
+      a = 17 + Cast_round_int($wnd.Math.random() * 14);
     }
     Eph(this, e, h, g - e + 1, a - h + 1, 1);
     if (h < i) {
       i = h;
-      this.s = e + $qf($wnd.Math.random() * (g - e)) + (h - 1) * 32;
+      this.s = e + Cast_round_int($wnd.Math.random() * (g - e)) + (h - 1) * 32;
     }
   }
   this.w[this.s] = 25;
   for (d = 0; d < oei; d++) {
-    this.w[d] == 1 && $qf($wnd.Math.random() * 6) == 0 && (this.w[d] = 23);
+    this.w[d] == 1 && Cast_round_int($wnd.Math.random() * 6) == 0 && (this.w[d] = 23);
   }
   Eph(this, 13, 13, 7, 7, 4);
   Eph(this, 14, 15, 5, 4, 1);
   Eph(this, 14, 14, 5, 1, 17);
-  this.a = 14 + $qf($wnd.Math.random() * 4) + 608;
+  this.a = 14 + Cast_round_int($wnd.Math.random() * 4) + 608;
   this.w[this.a] = 5;
   this.r =
-    15 + $qf($wnd.Math.random() * 2) + (15 + $qf($wnd.Math.random() * 2)) * 32;
+    15 + Cast_round_int($wnd.Math.random() * 2) + (15 + Cast_round_int($wnd.Math.random() * 2)) * 32;
   this.w[this.r] = 7;
   f = Dlh(Eii, 6);
   for (b = 0; b < oei; b++) {
@@ -435734,8 +434788,8 @@ _.R8 = function Uhh() {
     do {
       b =
         14 +
-        $qf($wnd.Math.random() * 5) +
-        (15 + $qf($wnd.Math.random() * 4)) * 32;
+        Cast_round_int($wnd.Math.random() * 5) +
+        (15 + Cast_round_int($wnd.Math.random() * 4)) * 32;
     } while (b == this.r || this.w[b] == 29);
     Phh(this, a, b).d = (XYg(), VYg);
   }
@@ -435750,17 +434804,17 @@ _.T8 = function Whh() {
       this.w[b - 1] == 4 && ++c;
       this.w[b + 32] == 4 && ++c;
       this.w[b - 32] == 4 && ++c;
-      $qf($wnd.Math.random() * 8) <= c && (this.w[b] = 24);
+      Cast_round_int($wnd.Math.random() * 8) <= c && (this.w[b] = 24);
     }
   }
   for (a = 0; a < oei; a++) {
-    this.w[a] == 4 && $qf($wnd.Math.random() * 8) == 0 && (this.w[a] = 12);
+    this.w[a] == 4 && Cast_round_int($wnd.Math.random() * 8) == 0 && (this.w[a] = 12);
   }
   do {
     d =
       14 +
-      $qf($wnd.Math.random() * 4) +
-      (14 + $qf($wnd.Math.random() * 4)) * 32;
+      Cast_round_int($wnd.Math.random() * 4) +
+      (14 + Cast_round_int($wnd.Math.random() * 4)) * 32;
   } while (d == this.r);
   this.w[d] = 29;
 };
@@ -435779,14 +434833,14 @@ _.a9 = function Zhh(a, b) {
     c = Bzg((Fjg(), Dungeon.depth));
     c.v = c.f;
     do {
-      c.K = $qf($wnd.Math.random() * oei);
+      c.K = Cast_round_int($wnd.Math.random() * oei);
     } while (!Hgh[c.K] || !Qhh(c.K) || Dungeon.visible[c.K]);
     Kuh(c);
     Ghh(this.a, 4);
     lvh(this.a);
     Vjg();
     zeg(fNg(this.a), (gRg(), jRg(8, false)), nLj, 10);
-    r9f((g9f(), f9f), 3, Ini);
+    r9f((g9f(), Camera_main), 3, Ini);
     ieg((eeg(), deg), CIj, 1, 1);
   }
 };
@@ -435854,7 +434908,7 @@ _.O8 = function yih() {
     return false;
   }
   o = 0;
-  e = $qf($wnd.Math.sqrt(fQh(this.j.a)));
+  e = Cast_round_int($wnd.Math.sqrt(fQh(this.j.a)));
   do {
     do {
       this.g = _Th(this.j);
@@ -435891,13 +434945,13 @@ _.O8 = function yih() {
     p = g;
     aQh(a.a, g, a);
   }
-  f = $qf(fQh(this.j.a) * (0.5 + $wnd.Math.random() * QLj));
+  f = Cast_round_int(fQh(this.j.a) * (0.5 + $wnd.Math.random() * QLj));
   while (fQh(a.a) < f) {
     b =
       ((r = fQh(a.a)),
       r > 0
         ? hSh(a, Zpf(WXf, E9h, 1, fQh(a.a), 5, 1))[
-            r > 0 ? $qf($wnd.Math.random() * r) : 0
+            r > 0 ? Cast_round_int($wnd.Math.random() * r) : 0
           ]
         : null);
     j = _Th(b.c);
@@ -435944,7 +434998,7 @@ _.p9 = function Cih(a, b) {
   return kih(this, a, b);
 };
 _.Z8 = function Dih() {
-  return 2 + ((Fjg(), Dungeon.depth) % 5) + $qf($wnd.Math.random() * 3);
+  return 2 + ((Fjg(), Dungeon.depth) % 5) + Cast_round_int($wnd.Math.random() * 3);
 };
 _.q9 = function Eih() {
   return (Fjg(), Dungeon.depth) <= 1
@@ -435977,7 +435031,7 @@ _.s9 = function Gih(a) {
           h =
             (Dungeon.depth < 6
               ? UTh(12 - Dungeon.depth)
-              : $qf($wnd.Math.random() * 6)) == 0;
+              : Cast_round_int($wnd.Math.random() * 6)) == 0;
           this.w[c] = h ? 16 : 5;
           h && ++this.k;
         }
@@ -435990,7 +435044,7 @@ _.s9 = function Gih(a) {
         ++this.k;
         break;
       case 5:
-        this.w[c] = $qf($wnd.Math.random() * 3) == 0 ? 41 : 13;
+        this.w[c] = Cast_round_int($wnd.Math.random() * 3) == 0 ? 41 : 13;
         break;
       case 6:
         this.w[c] = 10;
@@ -436082,26 +435136,26 @@ _.T8 = function Zih() {
       continue;
     }
     q = (o.i - o.g) * (o.f - o.j);
-    if ((q > 0 ? $qf($wnd.Math.random() * q) : 0) > 8) {
+    if ((q > 0 ? Cast_round_int($wnd.Math.random() * q) : 0) > 8) {
       a = o.g + 1 + (o.j + 1) * 32;
       this.w[a - 1] == 4 && this.w[a - 32] == 4 && (this.w[a] = 4);
     }
-    if ((q > 0 ? $qf($wnd.Math.random() * q) : 0) > 8) {
+    if ((q > 0 ? Cast_round_int($wnd.Math.random() * q) : 0) > 8) {
       a = o.i - 1 + (o.j + 1) * 32;
       this.w[a + 1] == 4 && this.w[a - 32] == 4 && (this.w[a] = 4);
     }
-    if ((q > 0 ? $qf($wnd.Math.random() * q) : 0) > 8) {
+    if ((q > 0 ? Cast_round_int($wnd.Math.random() * q) : 0) > 8) {
       a = o.g + 1 + (o.f - 1) * 32;
       this.w[a - 1] == 4 && this.w[a + 32] == 4 && (this.w[a] = 4);
     }
-    if ((q > 0 ? $qf($wnd.Math.random() * q) : 0) > 8) {
+    if ((q > 0 ? Cast_round_int($wnd.Math.random() * q) : 0) > 8) {
       a = o.i - 1 + (o.f - 1) * 32;
       this.w[a + 1] == 4 && this.w[a + 32] == 4 && (this.w[a] = 4);
     }
     for (g = ((j = new Q_h(o.a).a.Ocb().Pd()), new W_h(j)); g.a.Rd(); ) {
       f = ((b = g.a.Sd()), b.Aeb());
       (f.e == $nh || f.e == doh) &&
-        $qf($wnd.Math.random() * 3) == 0 &&
+        Cast_round_int($wnd.Math.random() * 3) == 0 &&
         Iph(this, ZPh(o.a, f), 24);
     }
   }
@@ -436112,11 +435166,11 @@ _.T8 = function Zih() {
       this.w[e - 1] == 4 && ++f;
       this.w[e + 32] == 4 && ++f;
       this.w[e - 32] == 4 && ++f;
-      $qf($wnd.Math.random() * 6) <= f && (this.w[e] = 24);
+      Cast_round_int($wnd.Math.random() * 6) <= f && (this.w[e] = 24);
     }
   }
   for (d = 0; d < oei; d++) {
-    this.w[d] == 4 && $qf($wnd.Math.random() * 12) == 0 && (this.w[d] = 12);
+    this.w[d] == 4 && Cast_round_int($wnd.Math.random() * 12) == 0 && (this.w[d] = 12);
   }
   while (true) {
     l = Pmh(this.g, 0);
@@ -436254,7 +435308,7 @@ _.O8 = function ojh() {
   Eph(this, 12, 18, 1, 3, 41);
   Eph(this, 18, 18, 1, 3, 41);
   this.r =
-    (19 + $qf($wnd.Math.random() * 2)) * 32 + 12 + $qf($wnd.Math.random() * 5);
+    (19 + Cast_round_int($wnd.Math.random() * 2)) * 32 + 12 + Cast_round_int($wnd.Math.random() * 5);
   this.w[this.r] = 7;
   return true;
 };
@@ -436265,8 +435319,8 @@ _.R8 = function pjh() {
     do {
       b =
         13 +
-        $qf($wnd.Math.random() * 5) +
-        (18 + $qf($wnd.Math.random() * 3)) * 32;
+        Cast_round_int($wnd.Math.random() * 5) +
+        (18 + Cast_round_int($wnd.Math.random() * 3)) * 32;
     } while (b == this.r || this.w[b] == 29);
     kjh(this, a, b).d = (XYg(), VYg);
   }
@@ -436275,9 +435329,9 @@ _.S8 = function qjh() {};
 _.T8 = function rjh() {
   var a, b;
   for (a = 0; a < oei; a++) {
-    this.w[a] == 1 && $qf($wnd.Math.random() * 10) == 0
+    this.w[a] == 1 && Cast_round_int($wnd.Math.random() * 10) == 0
       ? (this.w[a] = 24)
-      : this.w[a] == 4 && $qf($wnd.Math.random() * 8) == 0 && (this.w[a] = 12);
+      : this.w[a] == 4 && Cast_round_int($wnd.Math.random() * 8) == 0 && (this.w[a] = 12);
   }
   b = this.a + 32 + 1;
   this.w[b] = 29;
@@ -436302,7 +435356,7 @@ _.a9 = function ujh(a, b) {
     c.v = c.f;
     d = 0;
     do {
-      c.K = $qf($wnd.Math.random() * oei);
+      c.K = Cast_round_int($wnd.Math.random() * oei);
     } while (
       !Hgh[c.K] ||
       !ljh(this, c.K) ||
@@ -436312,7 +435366,7 @@ _.a9 = function ujh(a, b) {
     if (Dungeon.visible[c.K]) {
       c.o5();
       x7f(c.M, 0);
-      _ag(c.M.mb, new Yeg(c.M, 1, cci));
+      Group_$add(c.M.mb, new Yeg(c.M, 1, cci));
     }
     Ghh(this.a, 10);
     lvh(this.a);
@@ -436397,9 +435451,9 @@ _.R8 = function Hjh() {
 _.T8 = function Ijh() {
   var a, b;
   for (a = 0; a < oei; a++) {
-    this.w[a] == 1 && $qf($wnd.Math.random() * 10) == 0
+    this.w[a] == 1 && Cast_round_int($wnd.Math.random() * 10) == 0
       ? (this.w[a] = 24)
-      : this.w[a] == 4 && $qf($wnd.Math.random() * 8) == 0 && (this.w[a] = 12);
+      : this.w[a] == 4 && Cast_round_int($wnd.Math.random() * 8) == 0 && (this.w[a] = 12);
   }
   while (true) {
     b = Pmh(this.g, 0);
@@ -436511,9 +435565,9 @@ _.S8 = function akh() {};
 _.T8 = function bkh() {
   var a;
   for (a = 0; a < oei; a++) {
-    this.w[a] == 1 && $qf($wnd.Math.random() * 10) == 0
+    this.w[a] == 1 && Cast_round_int($wnd.Math.random() * 10) == 0
       ? (this.w[a] = 24)
-      : this.w[a] == 4 && $qf($wnd.Math.random() * 8) == 0 && (this.w[a] = 12);
+      : this.w[a] == 4 && Cast_round_int($wnd.Math.random() * 8) == 0 && (this.w[a] = 12);
   }
 };
 _.c9 = function ckh() {
@@ -436533,13 +435587,13 @@ _.L8 = function ikh(a) {
 _.O8 = function jkh() {
   var a, b, c, d, e, f, g;
   for (c = 0; c < 5; c++) {
-    f = 2 + $qf($wnd.Math.random() * 13);
-    a = 18 + $qf($wnd.Math.random() * 5);
+    f = 2 + Cast_round_int($wnd.Math.random() * 13);
+    a = 18 + Cast_round_int($wnd.Math.random() * 5);
     Eph(this, 2 + c * 4, f, 4, a - f + 1, 1);
     c == 2 && (this.s = 11 + (f - 1) * 32);
     for (d = 0; d < 4; d++) {
-      if ($qf($wnd.Math.random() * 2) == 0) {
-        g = f + 1 + $qf($wnd.Math.random() * (a - 1 - (f + 1) + 1));
+      if (Cast_round_int($wnd.Math.random() * 2) == 0) {
+        g = f + 1 + Cast_round_int($wnd.Math.random() * (a - 1 - (f + 1) + 1));
         this.w[c * 4 + d + g * 32] = 12;
       }
     }
@@ -436548,7 +435602,7 @@ _.O8 = function jkh() {
   Eph(this, 14, 14, 5, 5, 4);
   Eph(this, 15, 15, 3, 3, 1);
   this.r =
-    16 + $qf($wnd.Math.random() * 0) + (16 + $qf($wnd.Math.random() * 0)) * 32;
+    16 + Cast_round_int($wnd.Math.random() * 0) + (16 + Cast_round_int($wnd.Math.random() * 0)) * 32;
   this.w[this.r] = 7;
   e = Dlh(Eii, 6);
   for (b = 0; b < oei; b++) {
@@ -436563,8 +435617,8 @@ _.R8 = function kkh() {
     do {
       b =
         15 +
-        $qf($wnd.Math.random() * 3) +
-        (16 + $qf($wnd.Math.random() * 2)) * 32;
+        Cast_round_int($wnd.Math.random() * 3) +
+        (16 + Cast_round_int($wnd.Math.random() * 2)) * 32;
     } while (b == this.r || this.w[b] == 29);
     gkh(this, a, b).d = (XYg(), VYg);
   }
@@ -436573,7 +435627,7 @@ _.S8 = function lkh() {};
 _.T8 = function mkh() {
   var a;
   for (a = 0; a < oei; a++) {
-    this.w[a] == 1 && $qf($wnd.Math.random() * 10) == 0 && (this.w[a] = 24);
+    this.w[a] == 1 && Cast_round_int($wnd.Math.random() * 10) == 0 && (this.w[a] = 24);
   }
 };
 _.E9 = function nkh(a) {
@@ -436606,7 +435660,7 @@ _.a9 = function pkh(a, b) {
     Vjg();
     c = new gGg();
     do {
-      c.K = $qf($wnd.Math.random() * oei);
+      c.K = Cast_round_int($wnd.Math.random() * oei);
     } while (!Hgh[c.K] || (Fjg(), Dungeon.visible)[c.K]);
     Kuh(c);
     fGg(c);
@@ -436685,12 +435739,12 @@ _.T8 = function Ckh() {
       for (c = 0; c < zgh.length; c++) {
         ((bph(), aph)[this.w[b + zgh[c]]] & 1) > 0 && ++a;
       }
-      $qf($wnd.Math.random() * 80) < a && (this.w[b] = 24);
+      Cast_round_int($wnd.Math.random() * 80) < a && (this.w[b] = 24);
     } else
       this.w[b] == 4 &&
         this.w[b - 1] != 12 &&
         this.w[b - 32] != 12 &&
-        $qf($wnd.Math.random() * 4) == 0 &&
+        Cast_round_int($wnd.Math.random() * 4) == 0 &&
         (this.w[b] = 12);
   }
   while (true) {
@@ -436811,7 +435865,7 @@ _.S8 = function Ukh() {};
 _.T8 = function Vkh() {
   var a;
   for (a = 0; a < oei; a++) {
-    this.w[a] == 1 && $qf($wnd.Math.random() * 10) == 0 && (this.w[a] = 24);
+    this.w[a] == 1 && Cast_round_int($wnd.Math.random() * 10) == 0 && (this.w[a] = 24);
   }
 };
 _.c9 = function Wkh() {
@@ -436859,7 +435913,7 @@ _.O8 = function blh() {
   var a, b, c, d, e, f, g, h, i, j, k, l, m, n;
   jih(this);
   k = 0;
-  d = $qf($wnd.Math.sqrt(fQh(this.j.a)));
+  d = Cast_round_int($wnd.Math.sqrt(fQh(this.j.a)));
   do {
     c = 0;
     do {
@@ -436935,9 +435989,9 @@ _.S8 = function dlh() {};
 _.T8 = function elh() {
   var a, b;
   for (a = 0; a < oei; a++) {
-    this.w[a] == 1 && $qf($wnd.Math.random() * 10) == 0
+    this.w[a] == 1 && Cast_round_int($wnd.Math.random() * 10) == 0
       ? (this.w[a] = 24)
-      : this.w[a] == 4 && $qf($wnd.Math.random() * 8) == 0
+      : this.w[a] == 4 && Cast_round_int($wnd.Math.random() * 8) == 0
         ? (this.w[a] = 12)
         : this.w[a] == 16 && (this.w[a] = 5);
   }
@@ -437004,10 +436058,10 @@ _.GZ = function olh() {
     a.K = this.a.c9();
     if (Dungeon.hero.A > 0 && a.K != -1) {
       Kuh(a);
-      cmg && a.e5(Dungeon.hero.K);
+      Statistics_amuletObtained && a.e5(Dungeon.hero.K);
     }
   }
-  Sjf(this, (Fjg(), Dungeon.nightMode) || cmg ? 25 : 50);
+  Sjf(this, (Fjg(), Dungeon.nightMode) || Statistics_amuletObtained ? 25 : 50);
   return true;
 };
 var WPf = Class_createForClass(MMj, "Level/1", uMi, iHf);
@@ -437111,14 +436165,14 @@ _.T8 = function Llh() {
   for (f = 0; f < 32; f++) {
     this.w[f] == 4 &&
       (this.w[f + 32] == 1 || this.w[f + 32] == 14) &&
-      $qf($wnd.Math.random() * 4) == 0 &&
+      Cast_round_int($wnd.Math.random() * 4) == 0 &&
       (this.w[f] = 12);
   }
   for (d = 32; d < 992; d++) {
     this.w[d] == 4 &&
       this.w[d - 32] == 4 &&
       (this.w[d + 32] == 1 || this.w[d + 32] == 14) &&
-      $qf($wnd.Math.random() * 2) == 0 &&
+      Cast_round_int($wnd.Math.random() * 2) == 0 &&
       (this.w[d] = 12);
   }
   while (true) {
@@ -437255,14 +436309,14 @@ _.T8 = function dmh() {
   for (d = 0; d < 32; d++) {
     this.w[d] == 4 &&
       (this.w[d + 32] == 1 || this.w[d + 32] == 14) &&
-      $qf($wnd.Math.random() * 6) == 0 &&
+      Cast_round_int($wnd.Math.random() * 6) == 0 &&
       (this.w[d] = 12);
   }
   for (b = 32; b < 992; b++) {
     this.w[b] == 4 &&
       this.w[b - 32] == 4 &&
       (this.w[b + 32] == 1 || this.w[b + 32] == 14) &&
-      $qf($wnd.Math.random() * 3) == 0 &&
+      Cast_round_int($wnd.Math.random() * 3) == 0 &&
       (this.w[b] = 12);
   }
   while (true) {
@@ -437363,9 +436417,9 @@ _.R9 = function Rmh(a) {
 _.S9 = function Smh() {
   return new knh(
     (((this.g + this.i) / 2) | 0) +
-      (((this.i - this.g) & 1) == 1 ? $qf($wnd.Math.random() * 2) : 0),
+      (((this.i - this.g) & 1) == 1 ? Cast_round_int($wnd.Math.random() * 2) : 0),
     (((this.j + this.f) / 2) | 0) +
-      (((this.f - this.j) & 1) == 1 ? $qf($wnd.Math.random() * 2) : 0),
+      (((this.f - this.j) & 1) == 1 ? Cast_round_int($wnd.Math.random() * 2) : 0),
   );
 };
 _.T9 = function Tmh(a) {
@@ -437442,8 +436496,8 @@ _.cab = function pnh(a) {
   return hnh(this, a);
 };
 _.dab = function qnh(a) {
-  this.b = $qf(this.b * a);
-  this.c = $qf(this.c * a);
+  this.b = Cast_round_int(this.b * a);
+  this.c = Cast_round_int(this.c * a);
   return this;
 };
 _.eab = function rnh(a, b) {
@@ -437505,7 +436559,7 @@ _.O8 = function soh() {
   var a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q;
   jih(this);
   o = 0;
-  f = $qf($wnd.Math.sqrt(fQh(this.j.a)));
+  f = Cast_round_int($wnd.Math.sqrt(fQh(this.j.a)));
   do {
     d = 0;
     do {
@@ -437564,7 +436618,7 @@ _.O8 = function soh() {
     e =
       ((q = a.a.length),
       q > 0
-        ? y8h(a.a, a.a.length)[q > 0 ? $qf($wnd.Math.random() * q) : 0]
+        ? y8h(a.a, a.a.length)[q > 0 ? Cast_round_int($wnd.Math.random() * q) : 0]
         : null);
     Nmh(e, this.i);
     e.e = Ynh;
@@ -437680,14 +436734,14 @@ _.T8 = function Moh() {
   for (c = 0; c < 32; c++) {
     this.w[c] == 4 &&
       this.w[c + 32] == 63 &&
-      $qf($wnd.Math.random() * 4) == 0 &&
+      Cast_round_int($wnd.Math.random() * 4) == 0 &&
       (this.w[c] = 12);
   }
   for (d = 32; d < 992; d++) {
     this.w[d] == 4 &&
       this.w[d - 32] == 4 &&
       this.w[d + 32] == 63 &&
-      $qf($wnd.Math.random() * 2) == 0 &&
+      Cast_round_int($wnd.Math.random() * 2) == 0 &&
       (this.w[d] = 12);
   }
   for (b = 33; b < 991; b++) {
@@ -437697,7 +436751,7 @@ _.T8 = function Moh() {
         (this.w[b - 1] == 4 ? 1 : 0) +
         (this.w[b + 32] == 4 ? 1 : 0) +
         (this.w[b - 32] == 4 ? 1 : 0);
-      $qf($wnd.Math.random() * 16) < a * a && (this.w[b] = 24);
+      Cast_round_int($wnd.Math.random() * 16) < a * a && (this.w[b] = 24);
     }
   }
   while (true) {
@@ -437820,9 +436874,9 @@ _.hab = function Kph(a, b) {
   Fph(a, b, 1, Hjg((Fjg(), Dungeon.depth) + 1) ? 15 : 0);
   c = new knh(
     (((b.g + b.i) / 2) | 0) +
-      (((b.i - b.g) & 1) == 1 ? $qf($wnd.Math.random() * 2) : 0),
+      (((b.i - b.g) & 1) == 1 ? Cast_round_int($wnd.Math.random() * 2) : 0),
     (((b.j + b.f) / 2) | 0) +
-      (((b.f - b.j) & 1) == 1 ? $qf($wnd.Math.random() * 2) : 0),
+      (((b.f - b.j) & 1) == 1 ? Cast_round_int($wnd.Math.random() * 2) : 0),
   );
   d = ((e = ((g = new $_h(b.a).a.Ocb().Pd()), new d0h(g)).a.Sd()), e.Beb());
   if (d.b == b.g || d.b == b.i) {
@@ -437855,31 +436909,31 @@ _.hab = function Mph(a, b) {
   c.b == b.g
     ? (i = new knh(
         b.i - 1,
-        $qf($wnd.Math.random() * 2) == 0 ? b.j + 1 : b.f - 1,
+        Cast_round_int($wnd.Math.random() * 2) == 0 ? b.j + 1 : b.f - 1,
       ))
     : c.b == b.i
       ? (i = new knh(
           b.g + 1,
-          $qf($wnd.Math.random() * 2) == 0 ? b.j + 1 : b.f - 1,
+          Cast_round_int($wnd.Math.random() * 2) == 0 ? b.j + 1 : b.f - 1,
         ))
       : c.c == b.j
         ? (i = new knh(
-            $qf($wnd.Math.random() * 2) == 0 ? b.g + 1 : b.i - 1,
+            Cast_round_int($wnd.Math.random() * 2) == 0 ? b.g + 1 : b.i - 1,
             b.f - 1,
           ))
         : c.c == b.f &&
           (i = new knh(
-            $qf($wnd.Math.random() * 2) == 0 ? b.g + 1 : b.i - 1,
+            Cast_round_int($wnd.Math.random() * 2) == 0 ? b.g + 1 : b.i - 1,
             b.j + 1,
           ));
   !!i && Hph(a, i.b, i.c, 35);
-  f = 3 + ($qf($wnd.Math.random() * 4) == 0 ? 1 : 0);
+  f = 3 + (Cast_round_int($wnd.Math.random() * 4) == 0 ? 1 : 0);
   for (e = 0; e < f; e++) {
     do {
       h = Pmh(b, 0);
     } while (a.w[h] != 1 || Obc(a.u, h) != null);
     a.V8(
-      $qf($wnd.Math.random() * 6) == 0
+      Cast_round_int($wnd.Math.random() * 6) == 0
         ? SWg(new TWg())
         : IXg(cUh(aqf(Vpf(dMf, 1), aMi, 117, 0, [(XXg(), NXg), WXg]))),
       h,
@@ -437935,9 +436989,9 @@ _.hab = function Sph(a, b) {
   Eph(a, b.g + 1, b.j + 1, b.i - b.g + 1 - 2, b.f - b.j + 1 - 2, 1);
   c = new knh(
     (((b.g + b.i) / 2) | 0) +
-      (((b.i - b.g) & 1) == 1 ? $qf($wnd.Math.random() * 2) : 0),
+      (((b.i - b.g) & 1) == 1 ? Cast_round_int($wnd.Math.random() * 2) : 0),
     (((b.j + b.f) / 2) | 0) +
-      (((b.f - b.j) & 1) == 1 ? $qf($wnd.Math.random() * 2) : 0),
+      (((b.f - b.j) & 1) == 1 ? Cast_round_int($wnd.Math.random() * 2) : 0),
   );
   d = c.b;
   e = c.c;
@@ -438000,10 +437054,10 @@ _.hab = function Zph(a, b) {
     ((d = ((i = new $_h(b.a).a.Ocb().Pd()), new d0h(i)).a.Sd()), d.Beb()),
     (Dnh(), Anh),
   );
-  if ($qf($wnd.Math.random() * 2) == 0) {
+  if (Cast_round_int($wnd.Math.random() * 2) == 0) {
     a.V8(new cZg(), Pmh(b, 0));
   } else {
-    c = $qf($wnd.Math.random() * 5) == 0 ? 2 : 1;
+    c = Cast_round_int($wnd.Math.random() * 5) == 0 ? 2 : 1;
     for (f = 0; f < c; f++) {
       j = Pmh(b, 0);
       a.w[j] = 2;
@@ -438031,28 +437085,28 @@ _.hab = function _ph(a, b) {
   d.b == b.g
     ? (j = new knh(
         b.i - 1,
-        $qf($wnd.Math.random() * 2) == 0 ? b.j + 1 : b.f - 1,
+        Cast_round_int($wnd.Math.random() * 2) == 0 ? b.j + 1 : b.f - 1,
       ))
     : d.b == b.i
       ? (j = new knh(
           b.g + 1,
-          $qf($wnd.Math.random() * 2) == 0 ? b.j + 1 : b.f - 1,
+          Cast_round_int($wnd.Math.random() * 2) == 0 ? b.j + 1 : b.f - 1,
         ))
       : d.c == b.j
         ? (j = new knh(
-            $qf($wnd.Math.random() * 2) == 0 ? b.g + 1 : b.i - 1,
+            Cast_round_int($wnd.Math.random() * 2) == 0 ? b.g + 1 : b.i - 1,
             b.f - 1,
           ))
         : d.c == b.f &&
           (j = new knh(
-            $qf($wnd.Math.random() * 2) == 0 ? b.g + 1 : b.i - 1,
+            Cast_round_int($wnd.Math.random() * 2) == 0 ? b.g + 1 : b.i - 1,
             b.j + 1,
           ));
   Hph(a, j.b, j.c, 42);
   c = new tng();
   sng(c, j.b + 32 * j.c, 1);
   aQh(a.o, kHf, c);
-  g = 2 + $qf($wnd.Math.random() * 2);
+  g = 2 + Cast_round_int($wnd.Math.random() * 2);
   for (f = 0; f < g; f++) {
     do {
       i = Pmh(b, 0);
@@ -438090,7 +437144,7 @@ _.hab = function cqh(a, b) {
   }
   !!c && a.w[c.b + c.c * 32] == 1 && Hph(a, c.b, c.c, 35);
   !!d && a.w[d.b + d.c * 32] == 1 && Hph(a, d.b, d.c, 35);
-  h = 2 + $qf($wnd.Math.random() * 2);
+  h = 2 + Cast_round_int($wnd.Math.random() * 2);
   for (g = 0; g < h; g++) {
     do {
       j = Pmh(b, 0);
@@ -438108,9 +437162,9 @@ _.hab = function hqh(b, c) {
   Eph(b, c.g + 1, c.j + 1, c.i - c.g + 1 - 2, c.f - c.j + 1 - 2, 1);
   d = new knh(
     (((c.g + c.i) / 2) | 0) +
-      (((c.i - c.g) & 1) == 1 ? $qf($wnd.Math.random() * 2) : 0),
+      (((c.i - c.g) & 1) == 1 ? Cast_round_int($wnd.Math.random() * 2) : 0),
     (((c.j + c.f) / 2) | 0) +
-      (((c.f - c.j) & 1) == 1 ? $qf($wnd.Math.random() * 2) : 0),
+      (((c.f - c.j) & 1) == 1 ? Cast_round_int($wnd.Math.random() * 2) : 0),
   );
   Hph(b, d.b, d.c, 34);
   h = aUh(eqh);
@@ -438218,21 +437272,21 @@ _.hab = function nqh(a, b) {
   c.b == b.g
     ? (i = new knh(
         b.i - 1,
-        $qf($wnd.Math.random() * 2) == 0 ? b.j + 1 : b.f - 1,
+        Cast_round_int($wnd.Math.random() * 2) == 0 ? b.j + 1 : b.f - 1,
       ))
     : c.b == b.i
       ? (i = new knh(
           b.g + 1,
-          $qf($wnd.Math.random() * 2) == 0 ? b.j + 1 : b.f - 1,
+          Cast_round_int($wnd.Math.random() * 2) == 0 ? b.j + 1 : b.f - 1,
         ))
       : c.c == b.j
         ? (i = new knh(
-            $qf($wnd.Math.random() * 2) == 0 ? b.g + 1 : b.i - 1,
+            Cast_round_int($wnd.Math.random() * 2) == 0 ? b.g + 1 : b.i - 1,
             b.f - 1,
           ))
         : c.c == b.f &&
           (i = new knh(
-            $qf($wnd.Math.random() * 2) == 0 ? b.g + 1 : b.i - 1,
+            Cast_round_int($wnd.Math.random() * 2) == 0 ? b.g + 1 : b.i - 1,
             b.j + 1,
           ));
   Hph(a, i.b, i.c, 3);
@@ -438241,10 +437295,10 @@ _.hab = function nqh(a, b) {
     h = Pmh(b, 0);
   }
   a.V8(new C3g(), h).d = (XYg(), VYg);
-  $qf($wnd.Math.random() * 5) == 0
+  Cast_round_int($wnd.Math.random() * 5) == 0
     ? a.V8(IXg((XXg(), SXg)), h)
     : a.V8(IXg(cUh(aqf(Vpf(dMf, 1), aMi, 117, 0, [(XXg(), WXg), NXg]))), h);
-  f = 1 + $qf($wnd.Math.random() * 2);
+  f = 1 + Cast_round_int($wnd.Math.random() * 2);
   for (e = 0; e < f; e++) {
     a.V8(oqh(a), h);
   }
@@ -438274,7 +437328,7 @@ _.hab = function qqh(a, b) {
   }
   h = i + j * 32;
   a.V8(rqh(a), h).d =
-    $qf($wnd.Math.random() * 3) == 0 ? (XYg(), OYg) : (XYg(), RYg);
+    Cast_round_int($wnd.Math.random() * 3) == 0 ? (XYg(), OYg) : (XYg(), RYg);
   a.w[h] = 11;
   Qgh(a, new B4g());
   for (e = 0; e < 3; e++) {
@@ -438367,8 +437421,8 @@ _.hab = function Dqh(a, b) {
     tnh(c, (Dnh(), Anh));
   }
   Fjg();
-  if (!Hjg(Dungeon.depth) && $qf($wnd.Math.random() * 5) == 0) {
-    switch ($qf($wnd.Math.random() * 6)) {
+  if (!Hjg(Dungeon.depth) && Cast_round_int($wnd.Math.random() * 5) == 0) {
+    switch (Cast_round_int($wnd.Math.random() * 6)) {
       case 0:
         if (a.t != (tlh(), qlh)) {
           if (
@@ -438428,9 +437482,9 @@ _.hab = function Lqh(a, b) {
   Eph(a, b.g + 1, b.j + 1, b.i - b.g + 1 - 2, b.f - b.j + 1 - 2, 1);
   c = new knh(
     (((b.g + b.i) / 2) | 0) +
-      (((b.i - b.g) & 1) == 1 ? $qf($wnd.Math.random() * 2) : 0),
+      (((b.i - b.g) & 1) == 1 ? Cast_round_int($wnd.Math.random() * 2) : 0),
     (((b.j + b.f) / 2) | 0) +
-      (((b.f - b.j) & 1) == 1 ? $qf($wnd.Math.random() * 2) : 0),
+      (((b.f - b.j) & 1) == 1 ? Cast_round_int($wnd.Math.random() * 2) : 0),
   );
   d = c.b;
   e = c.c;
@@ -438462,7 +437516,7 @@ _.hab = function Nqh(a, b) {
   var c, d, e, f, g;
   Eph(a, b.g, b.j, b.i - b.g + 1, b.f - b.j + 1, 4);
   Eph(a, b.g + 1, b.j + 1, b.i - b.g + 1 - 2, b.f - b.j + 1 - 2, 14);
-  e = 3 + $qf($wnd.Math.random() * 2);
+  e = 3 + Cast_round_int($wnd.Math.random() * 2);
   for (d = 0; d < e; d++) {
     do {
       g = Pmh(b, 0);
@@ -438512,7 +437566,7 @@ _.hab = function Qqh(a, b) {
     Eph(a, b.g + 1, j, b.i - b.g - 1, 1, e);
   }
   g = i + j * 32;
-  if ($qf($wnd.Math.random() * 3) == 0) {
+  if (Cast_round_int($wnd.Math.random() * 3) == 0) {
     e == 0 && (a.w[g] = 1);
     a.V8(Rqh(a), g).d = (XYg(), OYg);
   } else {
@@ -438531,14 +437585,14 @@ _.hab = function Tqh(a, b) {
     a,
     new knh(
       (((b.g + b.i) / 2) | 0) +
-        (((b.i - b.g) & 1) == 1 ? $qf($wnd.Math.random() * 2) : 0),
+        (((b.i - b.g) & 1) == 1 ? Cast_round_int($wnd.Math.random() * 2) : 0),
       (((b.j + b.f) / 2) | 0) +
-        (((b.f - b.j) & 1) == 1 ? $qf($wnd.Math.random() * 2) : 0),
+        (((b.f - b.j) & 1) == 1 ? Cast_round_int($wnd.Math.random() * 2) : 0),
     ),
     35,
   );
-  d = $qf($wnd.Math.random() * 2) == 0 ? (XYg(), OYg) : (XYg(), RYg);
-  g = 2 + $qf($wnd.Math.random() * 2);
+  d = Cast_round_int($wnd.Math.random() * 2) == 0 ? (XYg(), OYg) : (XYg(), RYg);
+  g = 2 + Cast_round_int($wnd.Math.random() * 2);
   for (f = 0; f < g; f++) {
     do {
       i = Pmh(b, 0);
@@ -438550,7 +437604,7 @@ _.hab = function Tqh(a, b) {
       do {
         i = Pmh(b, 0);
       } while (a.w[i] != 1);
-      a.V8(new fYg(1 + $qf($wnd.Math.random() * 3)), i);
+      a.V8(new fYg(1 + Cast_round_int($wnd.Math.random() * 3)), i);
     }
   }
   tnh(
@@ -438567,13 +437621,13 @@ _.hab = function Vqh(a, b) {
   h = a.t == (tlh(), plh) ? 14 : 1;
   c = new knh(
     (((b.g + b.i) / 2) | 0) +
-      (((b.i - b.g) & 1) == 1 ? $qf($wnd.Math.random() * 2) : 0),
+      (((b.i - b.g) & 1) == 1 ? Cast_round_int($wnd.Math.random() * 2) : 0),
     (((b.j + b.f) / 2) | 0) +
-      (((b.f - b.j) & 1) == 1 ? $qf($wnd.Math.random() * 2) : 0),
+      (((b.f - b.j) & 1) == 1 ? Cast_round_int($wnd.Math.random() * 2) : 0),
   );
   if (
     b.i - b.g > b.f - b.j ||
-    (b.i - b.g == b.f - b.j && $qf($wnd.Math.random() * 2) == 0)
+    (b.i - b.g == b.f - b.j && Cast_round_int($wnd.Math.random() * 2) == 0)
   ) {
     i = b.i - 1;
     o = b.g + 1;
@@ -438644,7 +437698,7 @@ _.hab = function Xqh(a, b) {
   d = ((b.g + b.i) / 2) | 0;
   e = ((b.j + b.f) / 2) | 0;
   c = d + e * 32;
-  switch ($qf($wnd.Math.random() * 3)) {
+  switch (Cast_round_int($wnd.Math.random() * 3)) {
     case 0:
       a.V8(IXg(cUh(aqf(Vpf(dMf, 1), aMi, 117, 0, [(XXg(), VXg), SXg]))), c).d =
         (XYg(), TYg);
@@ -438656,7 +437710,7 @@ _.hab = function Xqh(a, b) {
         h = IXg(cUh(aqf(Vpf(dMf, 1), aMi, 117, 0, [VXg, SXg])));
       } while (g.Peb == h.Peb);
       a.V8(g, c).d = (XYg(), PYg);
-      a.V8(h, c + (Pgh(), zgh)[$qf($wnd.Math.random() * 8)]).d = PYg;
+      a.V8(h, c + (Pgh(), zgh)[Cast_round_int($wnd.Math.random() * 8)]).d = PYg;
       Qgh(a, new z3g());
       break;
     case 2:
@@ -438827,7 +437881,7 @@ _.h8 = function osh(a) {
   !!a && (hog(a, gRf).a = a.B);
   if ((Fjg(), Dungeon.visible)[this.c]) {
     zeg(dNg(this.c), (vSg(), uSg), Sni, 8);
-    r9f((g9f(), f9f), 1, xii);
+    r9f((g9f(), Camera_main), 1, xii);
   }
 };
 _.K3 = function psh() {
@@ -439061,9 +438115,9 @@ _.K3 = function mth() {
   return M9i;
 };
 var wRf = Class_createForClass(uNj, "Sungrass/Seed", 916, pRf);
-Runtime_defineClass(156, 216, { 20: 1, 30: 1, 216: 1, 156: 1 }, Ath);
+Runtime_defineClass(156, 216, { 20: 1, 30: 1, 216: 1, 156: 1 }, PixelScene);
 _.j0 = function Eth() {
-  zth(this);
+  PixelScene_$create(this);
 };
 _.C$ = function Hth() {
   G6f(qag.b, this.w);
@@ -439071,12 +438125,12 @@ _.C$ = function Hth() {
   cTh(qag.b.d.b);
 };
 _.qab = function Ith() {
-  wth ? (wth = false) : _ag(this, new Cwh(Pbi, false));
+  PixelScene_noFade ? (PixelScene_noFade = false) : Group_$add(this, new Cwh(Pbi, false));
 };
 _.rab = function Jth(a, b) {
-  _ag(this, new Cwh(a, b));
+  Group_$add(this, new Cwh(a, b));
 };
-var nth = 0,
+var PixelScene_defaultZoom = 0,
   oth,
   pth,
   qth,
@@ -439085,44 +438139,44 @@ var nth = 0,
   tth,
   uth = 0,
   vth = 0,
-  wth = false,
-  xth = 0,
-  yth;
+  PixelScene_noFade = false,
+  PixelScene_scale = 0,
+  PixelScene_uiCamera;
 var URf = Class_createForClass(WLj, N_i, 156, mGf);
 Runtime_defineClass(997, 156, { 20: 1, 30: 1, 216: 1, 997: 1, 156: 1 }, Lth);
 _.j0 = function AboutScene_create() {
   var a, b, c, d, e, f;
-  zth(this);
+  PixelScene_$create(this);
   e = Fth(N9i, 8);
-  e.b = $wnd.Math.min((g9f(), f9f).p, 120);
-  H8f(e);
-  _ag(this, e);
-  e.gb = $qf(((f9f.p - e.fb * e.db.a) / 2) * nth) / nth;
-  e.hb = $qf(((f9f.a - e.$ * e.db.b) / 2) * nth) / nth;
+  e.b = $wnd.Math.min((g9f(), Camera_main).p, 120);
+  BitmapTextMultiline_$measure(e);
+  Group_$add(this, e);
+  e.gb = Cast_round_int(((Camera_main.p - e.fb * e.db.a) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  e.hb = Cast_round_int(((Camera_main.a - e.$ * e.db.b) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
   d = Fth(O9i, 8);
-  d.b = $wnd.Math.min(f9f.p, 120);
-  H8f(d);
-  C7f(d, 1, 1, ILj);
-  _ag(this, d);
+  d.b = $wnd.Math.min(Camera_main.p, 120);
+  BitmapTextMultiline_$measure(d);
+  Visual_$hardlight(d, 1, 1, ILj);
+  Group_$add(this, d);
   d.gb = e.gb;
   d.hb = e.hb + e.$ * e.db.b;
   c = new Oth(d);
-  _ag(this, c);
+  Group_$add(this, c);
   f = lGh((hGh(), gGh));
-  f.gb = $qf(((f9f.p - f.fb) / 2) * nth) / nth;
+  f.gb = Cast_round_int(((Camera_main.p - f.fb) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
   f.hb = e.hb - f.$ - 8;
-  _ag(this, f);
+  Group_$add(this, f);
   NOg(KOg(new OOg(7, 64), 1122867, true), f, 0).V = 20;
   a = new Archs();
-  ofg(a, f9f.p, f9f.a);
+  Component_$setSize(a, Camera_main.p, Camera_main.a);
   abg(this, a);
   b = new UEh();
-  mfg(b, f9f.p - b.B, 0);
-  _ag(this, b);
-  wth ? (wth = false) : _ag(this, new Cwh(Pbi, false));
+  Component_$setPos(b, Camera_main.p - b.B, 0);
+  Group_$add(this, b);
+  PixelScene_noFade ? (PixelScene_noFade = false) : Group_$add(this, new Cwh(Pbi, false));
 };
 _.e1 = function AboutScene_onBackPressed() {
-  wth = true;
+  PixelScene_noFade = true;
   qag.i = sSf;
   qag.e = true;
 };
@@ -439135,39 +438189,39 @@ var yRf = Class_createForClass(WLj, "AboutScene/1", pLi, sGf);
 Runtime_defineClass(VGi, 156, { 20: 1, 30: 1, 216: 1, 1278: 1, 156: 1 }, Rth);
 _.j0 = function Sth() {
   var a, b, c, d;
-  zth(this);
+  PixelScene_$create(this);
   d = null;
   if (!Qth) {
     d = Fth(R9i, 8);
     d.b = 120;
-    H8f(d);
-    _ag(this, d);
+    BitmapTextMultiline_$measure(d);
+    Group_$add(this, d);
   }
   this.a = new Z9f(RGj);
-  _ag(this, this.a);
+  Group_$add(this, this.a);
   a = new Vth();
-  ofg(a, 120, 18);
-  _ag(this, a);
+  Component_$setSize(a, 120, 18);
+  Group_$add(this, a);
   b = new Xth();
-  ofg(b, 120, 18);
-  _ag(this, b);
+  Component_$setSize(b, 120, 18);
+  Group_$add(this, b);
   if (Qth) {
     c = this.a.$ + 8 + a.A + 2 + b.A;
-    this.a.gb = $qf((((g9f(), f9f).p - this.a.fb) / 2) * nth) / nth;
-    this.a.hb = $qf(((f9f.a - c) / 2) * nth) / nth;
-    mfg(a, (f9f.p - a.B) / 2, this.a.hb + this.a.$ + 8);
-    mfg(b, a.C, a.D + a.A + 2);
+    this.a.gb = Cast_round_int((((g9f(), Camera_main).p - this.a.fb) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+    this.a.hb = Cast_round_int(((Camera_main.a - c) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+    Component_$setPos(a, (Camera_main.p - a.B) / 2, this.a.hb + this.a.$ + 8);
+    Component_$setPos(b, a.C, a.D + a.A + 2);
   } else {
     c = this.a.$ + 8 + d.$ * d.db.b + 8 + a.A + 2 + b.A;
-    this.a.gb = $qf((((g9f(), f9f).p - this.a.fb) / 2) * nth) / nth;
-    this.a.hb = $qf(((f9f.a - c) / 2) * nth) / nth;
-    d.gb = $qf(((f9f.p - d.fb * d.db.a) / 2) * nth) / nth;
+    this.a.gb = Cast_round_int((((g9f(), Camera_main).p - this.a.fb) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+    this.a.hb = Cast_round_int(((Camera_main.a - c) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+    d.gb = Cast_round_int(((Camera_main.p - d.fb * d.db.a) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
     d.hb = this.a.hb + this.a.$ + 8;
-    mfg(a, (f9f.p - a.B) / 2, d.hb + d.$ * d.db.b + 8);
-    mfg(b, a.C, a.D + a.A + 2);
+    Component_$setPos(a, (Camera_main.p - a.B) / 2, d.hb + d.$ * d.db.b + 8);
+    Component_$setPos(b, a.C, a.D + a.A + 2);
   }
   NOg(KOg(new OOg(8, 48), 16768443, true), this.a, 0).V = 30;
-  wth ? (wth = false) : _ag(this, new Cwh(Pbi, false));
+  PixelScene_noFade ? (PixelScene_noFade = false) : Group_$add(this, new Cwh(Pbi, false));
 };
 _.e1 = function Tth() {
   xvh = (dwh(), Zvh);
@@ -439181,7 +438235,7 @@ _.ri = function Uth() {
     this.b = 0.5 + $wnd.Math.random() * 4.5;
     a = jbg(this, SKf);
     hRg(a, 0, this.a.gb + 10.5, this.a.hb + 5.5, 101);
-    _ag(this, a);
+    Group_$add(this, a);
   }
 };
 _.b = 0;
@@ -439191,7 +438245,7 @@ Runtime_defineClass(yMi, 53, YLj, Vth);
 _.a2 = function AmuletScene$1_onClick() {
   Dungeon_win(nJj);
   Jjg((Fjg(), Dungeon.hero).j, true);
-  Yag(Qth ? sSf : WRf);
+  Game_switchScene(Qth ? sSf : "RankingsScene");
 };
 var ARf = Class_createForClass(WLj, "AmuletScene/1", yMi, iUf);
 Runtime_defineClass(zMi, 53, YLj, Xth);
@@ -439204,74 +438258,74 @@ var BRf = Class_createForClass(WLj, "AmuletScene/2", zMi, iUf);
 Runtime_defineClass(996, 156, { 20: 1, 30: 1, 216: 1, 996: 1, 156: 1 }, Zth);
 _.j0 = function BadgesScene_create() {
   var a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r;
-  zth(this);
-  Ndg((Jdg(), Idg), SHj, true);
-  Qdg(Idg, 1);
-  yth.nb = false;
-  r = (g9f(), f9f).p;
-  f = f9f.a;
+  PixelScene_$create(this);
+  Music_$play((Jdg(), Idg), SHj, true);
+  Music_$volume(Idg, 1);
+  PixelScene_uiCamera.nb = false;
+  r = (g9f(), Camera_main).p;
+  f = Camera_main.a;
   a = new Archs();
-  ofg(a, r, f);
-  _ag(this, a);
-  n = $qf($wnd.Math.min(r, (tag > pag ? 224 : 128) * 3)) - 16;
-  m = $qf($wnd.Math.min(f, (tag > pag ? 160 : 224) * 3)) - 32;
+  Component_$setSize(a, r, f);
+  Group_$add(this, a);
+  n = Cast_round_int($wnd.Math.min(r, (Game_width > Game_height ? 224 : 128) * 3)) - 16;
+  m = Cast_round_int($wnd.Math.min(f, (Game_width > Game_height ? 160 : 224) * 3)) - 32;
   o = $wnd.Math.sqrt((n * m) / 27);
-  k = $qf($wnd.Math.ceil(n / o));
-  l = $qf($wnd.Math.ceil(m / o));
+  k = Cast_round_int($wnd.Math.ceil(n / o));
+  l = Cast_round_int($wnd.Math.ceil(m / o));
   o = $wnd.Math.min((n / k) | 0, (m / l) | 0);
   j = (r - o * k) / 2;
   q = (f - o * l) / 2;
-  p = Gth(S9i, 9);
-  C7f(p, 1, 1, ILj);
-  p8f(p);
-  p.gb = $qf(((r - p.fb * p.db.a) / 2) * nth) / nth;
-  p.hb = $qf(((q - p.g.b * p.db.b) / 2) * nth) / nth;
-  _ag(this, p);
-  pgg();
-  c = mgg(true);
+  p = PixelScene_createText(S9i, 9);
+  Visual_$hardlight(p, 1, 1, ILj);
+  BitmapText_$measure(p);
+  p.gb = Cast_round_int(((r - p.fb * p.db.a) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  p.hb = Cast_round_int(((q - p.g.b * p.db.b) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  Group_$add(this, p);
+  Badges_loadGlobal();
+  c = Badges_filtered(true);
   for (g = 0; g < l; g++) {
     for (i = 0; i < k; i++) {
       h = g * k + i;
       b = h < c.a.length ? (V8h(h, c.a.length), c.a[h]) : null;
       e = new duh(b);
-      mfg(e, j + i * o + (o - e.B) / 2, q + g * o + (o - e.A) / 2);
-      _ag(this, e);
+      Component_$setPos(e, j + i * o + (o - e.B) / 2, q + g * o + (o - e.A) / 2);
+      Group_$add(this, e);
     }
   }
   d = new UEh();
-  mfg(d, f9f.p - d.B, 0);
-  _ag(this, d);
-  wth ? (wth = false) : _ag(this, new Cwh(Pbi, false));
+  Component_$setPos(d, Camera_main.p - d.B, 0);
+  Group_$add(this, d);
+  PixelScene_noFade ? (PixelScene_noFade = false) : Group_$add(this, new Cwh(Pbi, false));
   jgg();
-  ggg = new buh(this);
+  Badges_loadingListener = new buh(this);
 };
 _.C$ = function _th() {
   Badges_saveGlobal();
-  (jgg(), (ggg = null));
+  (jgg(), (Badges_loadingListener = null));
   G6f(qag.b, this.w);
   ebg(this);
   cTh(qag.b.d.b);
 };
 _.e1 = function auh() {
-  wth = true;
+  PixelScene_noFade = true;
   qag.i = sSf;
   qag.e = true;
 };
 var FRf = Class_createForClass(WLj, g_i, 996, URf);
 Runtime_defineClass(qLi, 1, pLj, buh);
 _.t5 = function cuh() {
-  qag.g == this.a && ((wth = true), (qag.i = FRf), (qag.e = true));
+  qag.g == this.a && ((PixelScene_noFade = true), (qag.i = FRf), (qag.e = true));
 };
 var DRf = Class_createForClass(WLj, "BadgesScene/1", qLi, WXf);
 Runtime_defineClass(917, 46, { 20: 1, 30: 1, 46: 1, 36: 1, 917: 1 }, duh);
 _.UC = function euh() {
   Gfg(this);
-  this.b.gb = $qf((this.C + (this.B - this.b.C_()) / 2) * nth) / nth;
-  this.b.hb = $qf((this.D + (this.A - this.b.p_()) / 2) * nth) / nth;
+  this.b.gb = Cast_round_int((this.C + (this.B - this.b.C_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.b.hb = Cast_round_int((this.D + (this.A - this.b.p_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
 };
 _.a2 = function fuh() {
   ieg((eeg(), deg), UHj, Ini, KLj);
-  _ag(qag.g, new RJh(this.a));
+  Group_$add(qag.g, new RJh(this.a));
 };
 _.ri = function guh() {
   Ifg(this);
@@ -439283,7 +438337,7 @@ _.yz = function muh() {
   huh(this);
 };
 _.m1 = function nuh(a) {
-  this.c ? (this.c = false) : juh(this, dkg(this.p, $qf(a.a.a), $qf(a.a.b)));
+  this.c ? (this.c = false) : juh(this, dkg(this.p, Cast_round_int(a.a.a), Cast_round_int(a.a.b)));
 };
 _.n1 = function ouh(a) {
   var b;
@@ -439311,7 +438365,7 @@ _.o1 = function puh(a) {
       kuh(this, this.kb.s - 1);
       return true;
     case 14:
-      kuh(this, nth);
+      kuh(this, PixelScene_defaultZoom);
       return true;
   }
   b = true;
@@ -439362,7 +438416,7 @@ _.o1 = function puh(a) {
 _.p1 = function quh(a) {
   switch (a.b) {
     case 129:
-      this.g = kuh(this, $qf($wnd.Math.round(this.g)));
+      this.g = kuh(this, Cast_round_int($wnd.Math.round(this.g)));
       return true;
     default:
       return false;
@@ -439373,7 +438427,7 @@ _.q1 = function ruh(a) {
   if (B6f) {
     this.g = kuh(this, this.g);
   } else {
-    kuh(this, $qf($wnd.Math.round(this.g)));
+    kuh(this, Cast_round_int($wnd.Math.round(this.g)));
     this.g = FRh(vth, this.g, uth);
   }
   return true;
@@ -439385,9 +438439,9 @@ _.t1 = function tuh(a) {
   var b;
   if (this.i && (a == this.q || a == this.a)) {
     this.i = false;
-    b = $qf($wnd.Math.round(this.kb.s));
+    b = Cast_round_int($wnd.Math.round(this.kb.s));
     t9f(this.kb, b);
-    PixelDungeon_zoom($qf(b - nth));
+    PixelDungeon_zoom(Cast_round_int(b - PixelScene_defaultZoom));
     this.c = true;
     a == this.q && (this.q = this.a);
     this.a = null;
@@ -439434,30 +438488,30 @@ _.zab = function Tuh(a) {
 };
 _.j0 = function Wuh() {
   var a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q;
-  Ndg((Jdg(), Idg), "game.mp3", true);
-  Qdg(Idg, 1);
+  Music_$play((Jdg(), Idg), "game.mp3", true);
+  Music_$volume(Idg, 1);
   PixelDungeon_lastClass((Fjg(), Dungeon.hero).j.f);
-  zth(this);
-  t9f((g9f(), f9f), nth + qlg((olg(), nlg), o_i, 0));
+  PixelScene_$create(this);
+  t9f((g9f(), Camera_main), PixelScene_defaultZoom + qlg((olg(), nlg), o_i, 0));
   yuh = this;
   this.s = new nbg();
-  _ag(this, this.s);
+  Group_$add(this, this.s);
   this.v = new Zcg(512, 512, Dungeon.level.k9());
   this.v.a = true;
-  _ag(this.s, this.v);
+  Group_$add(this.s, this.v);
   this.p = new nbg();
-  _ag(this.s, this.p);
+  Group_$add(this.s, this.p);
   this.t = new ekg();
-  _ag(this.s, this.t);
+  Group_$add(this.s, this.t);
   Dungeon.level.L8(this);
   this.n = new nbg();
-  _ag(this, this.n);
+  Group_$add(this, this.n);
   for (o = Nbc(Dungeon.level.C); hcc(o); ) {
     n = icc(o);
     Euh(this, n.b);
   }
   this.g = new nbg();
-  _ag(this, this.g);
+  Group_$add(this, this.g);
   for (g = Nbc(Dungeon.level.u); hcc(g); ) {
     f = icc(g);
     Cuh(this, f.b);
@@ -439466,7 +438520,7 @@ _.j0 = function Wuh() {
   this.b = new nbg();
   this.d = new nbg();
   this.k = new nbg();
-  _ag(this, this.k);
+  Group_$add(this, this.k);
   for (
     k = ((m = new Q_h(Dungeon.level.B.a).a.Ocb().Pd()), new W_h(m));
     k.a.Rd();
@@ -439474,12 +438528,12 @@ _.j0 = function Wuh() {
   ) {
     j = ((e = k.a.Sd()), e.Aeb());
     Duh(this, j);
-    cmg && j.e5(Dungeon.hero.K);
+    Statistics_amuletObtained && j.e5(Dungeon.hero.K);
   }
-  _ag(this, this.c);
-  _ag(this, this.b);
+  Group_$add(this, this.c);
+  Group_$add(this, this.b);
   this.f = new nbg();
-  _ag(this, this.f);
+  Group_$add(this, this.f);
   for (
     c = ((l = new $_h(Dungeon.level.o).a.Ocb().Pd()), new d0h(l));
     c.a.Rd();
@@ -439487,44 +438541,44 @@ _.j0 = function Wuh() {
   ) {
     b = ((e = c.a.Sd()), e.Beb());
     b.c = null;
-    !b.c && _ag(this.f, new aNg(b));
+    !b.c && Group_$add(this.f, new aNg(b));
   }
   this.e = new qkg(32, 32);
   pkg(this.e, Dungeon.visible, Dungeon.level.F, Dungeon.level.A);
-  _ag(this, this.e);
+  Group_$add(this, this.e);
   Fuh(this, plg(nlg, qRi, false));
   this.q = new nbg();
-  _ag(this, this.q);
+  Group_$add(this, this.q);
   this.r = new nbg();
-  _ag(this, this.r);
-  _ag(this, this.d);
+  Group_$add(this, this.r);
+  Group_$add(this, this.d);
   this.i = new lBh();
   gBh(this.i, Dungeon.hero.K);
   jBh(this.i);
-  _ag(this.k, this.i);
-  _ag(this, new xFh());
-  _ag(this, (wuh = new luh(this.t)));
+  Group_$add(this.k, this.i);
+  Group_$add(this, new xFh());
+  Group_$add(this, (wuh = new luh(this.t)));
   q = new aIh();
-  q.kb = yth;
-  ofg(q, yth.p, 0);
-  _ag(this, q);
+  q.kb = PixelScene_uiCamera;
+  Component_$setSize(q, PixelScene_uiCamera.p, 0);
+  Group_$add(this, q);
   this.u = new xIh();
-  this.u.kb = yth;
-  nfg(this.u, 0, yth.a - this.u.A, yth.p, this.u.A);
-  _ag(this, this.u);
+  this.u.kb = PixelScene_uiCamera;
+  Component_$setRect(this.u, 0, PixelScene_uiCamera.a - this.u.A, PixelScene_uiCamera.p, this.u.A);
+  Group_$add(this, this.u);
   a = new IDh();
-  a.kb = yth;
-  mfg(a, yth.p - a.B, this.u.D - a.A);
-  _ag(this, a);
+  a.kb = PixelScene_uiCamera;
+  Component_$setPos(a, PixelScene_uiCamera.p - a.B, this.u.D - a.A);
+  Group_$add(this, a);
   this.j = new dFh();
-  this.j.kb = yth;
-  nfg(this.j, 0, this.u.D, a.C, 0);
-  _ag(this, this.j);
+  this.j.kb = PixelScene_uiCamera;
+  Component_$setRect(this.j, 0, this.u.D, a.C, 0);
+  Group_$add(this, this.j);
   this.a = new EEh();
-  this.a.kb = yth;
+  this.a.kb = PixelScene_uiCamera;
   this.a.gb = 1;
   this.a.hb = q.D + q.A + 1;
-  _ag(this, this.a);
+  Group_$add(this, this.a);
   switch (xvh.f) {
     case 3:
       Ebh(Dungeon.hero, Dungeon.level.r);
@@ -439555,7 +438609,7 @@ _.j0 = function Wuh() {
       }
       Dungeon.hero.A > 0 && Dungeon.depth != 22 && Qgg();
   }
-  d = Obc(ujg, Dungeon.depth);
+  d = Obc(Dungeon.droppedItems, Dungeon.depth);
   if (d) {
     for (i = new G1h(d); i.a < i.c.a.length; ) {
       h = F1h(i);
@@ -439566,11 +438620,11 @@ _.j0 = function Wuh() {
           ? ahh(Dungeon.level, h, p)
           : Dungeon.level.V8(h, p);
     }
-    Vbc(ujg, Dungeon.depth);
+    Vbc(Dungeon.droppedItems, Dungeon.depth);
   }
-  f9f.o = this.i;
+  Camera_main.o = this.i;
   if (xvh != (dwh(), awh)) {
-    if (Dungeon.depth < fmg) {
+    if (Dungeon.depth < Statistics_deepestFloor) {
       sJh();
       uJh(
         "@@ Welcome back to the level %d of Pixel Dungeon!",
@@ -439607,7 +438661,7 @@ _.j0 = function Wuh() {
         );
     }
     Rqf(Dungeon.level, 180) &&
-      Dungeon.level.k > 3 + $qf($wnd.Math.random() * 2) &&
+      Dungeon.level.k > 3 + Cast_round_int($wnd.Math.random() * 2) &&
       (sJh(),
       uJh(
         "** The atmosphere hints that this floor hides many secrets.",
@@ -439621,7 +438675,7 @@ _.j0 = function Wuh() {
         aqf(Vpf(WXf, 1), E9h, 1, 5, []),
       ));
     xvh = awh;
-    wth ? (wth = false) : _ag(this, new Cwh(Pbi, false));
+    PixelScene_noFade ? (PixelScene_noFade = false) : Group_$add(this, new Cwh(Pbi, false));
   }
   gvh(xuh);
 };
@@ -439633,7 +438687,7 @@ _.C$ = function Xuh() {
   cTh(qag.b.d.b);
 };
 _.e1 = function GameScene_onBackPressed() {
-  Uuh() || _ag(this, new fMh());
+  Uuh() || Group_$add(this, new fMh());
 };
 _.f1 = function cvh() {
   (Fjg(), Dungeon.hero).q && hvh(null, (SKh(), IKh), null);
@@ -439669,7 +438723,7 @@ var wuh, xuh, yuh;
 var KRf = Class_createForClass(WLj, "GameScene", 918, URf);
 Runtime_defineClass(AMi, 1, XLj, mvh);
 _.m7 = function nvh(a) {
-  B6f ? $uh(a) : hvg((Fjg(), Dungeon.hero), a.a) && lvg(Dungeon.hero);
+  B6f ? GameScene_examineCell(a) : hvg((Fjg(), Dungeon.hero), a.a) && lvg(Dungeon.hero);
 };
 _.n7 = function ovh() {
   return null;
@@ -439678,17 +438732,17 @@ var IRf = Class_createForClass(WLj, "GameScene/1", AMi, WXf);
 Runtime_defineClass(695, 36, wNj, pvh);
 _.T1 = function qvh() {
   this.a = ajg((kjg(), ijg));
-  _ag(this, this.a);
+  Group_$add(this, this.a);
   this.b = new qIh(this, lGh((hGh(), NFh)));
-  _ag(this, this.b);
-  this.c = Gth(null, 8);
-  _ag(this, this.c);
+  Group_$add(this, this.b);
+  this.c = PixelScene_createText(null, 8);
+  Group_$add(this, this.c);
 };
 _.UC = function rvh() {
   this.a.gb = this.C;
   this.a.hb = this.D;
   this.a.i0(this.B, this.A);
-  mfg(
+  Component_$setPos(
     this.b,
     this.a.gb + O7f(this.a) - ((Wbg(this.a) / 2) | 0) - 2 - this.b.B,
     this.D + (this.A - this.b.A) / 2,
@@ -439699,7 +438753,7 @@ _.UC = function rvh() {
 };
 _.Cab = function svh() {};
 _.I_ = function tvh(a) {
-  q8f(this.c, a);
+  BitmapText_$text(this.c, a);
   this.c.G_();
 };
 var tUf = Class_createForClass(uLj, "Toast", 695, LGf);
@@ -439714,7 +438768,7 @@ _.Dab = function Ivh() {
 };
 _.j0 = function Jvh() {
   var a;
-  zth(this);
+  PixelScene_$create(this);
   a = "";
   switch (xvh.f) {
     case 0:
@@ -439735,11 +438789,11 @@ _.j0 = function Jvh() {
     case 5:
       a = Y9i;
   }
-  this.b = Gth(a, 9);
+  this.b = PixelScene_createText(a, 9);
   this.b.G_();
-  this.b.gb = ((g9f(), f9f).p - O7f(this.b)) / 2;
-  this.b.hb = (f9f.a - E7f(this.b)) / 2;
-  _ag(this, this.b);
+  this.b.gb = ((g9f(), Camera_main).p - O7f(this.b)) / 2;
+  this.b.hb = (Camera_main.a - E7f(this.b)) / 2;
+  Group_$add(this, this.b);
   this.c = (mwh(), jwh);
   this.e = Dii;
   this.d = cMg(new Rvh(this));
@@ -439749,7 +438803,7 @@ _.Eab = function Kvh() {
   Cvh();
 };
 _.Fab = function Lvh() {
-  Dvh();
+  InterlevelScene_$fall();
 };
 _.e1 = function Mvh() {};
 _.Gab = function Nvh() {
@@ -439759,7 +438813,7 @@ _.Hab = function Ovh() {
   Fvh();
 };
 _.Iab = function Pvh() {
-  Gvh();
+  InterlevelScene_$returnTo();
 };
 _.ri = function Qvh() {
   var a;
@@ -439780,12 +438834,12 @@ _.ri = function Qvh() {
     case 2:
       x7f(this.b, a);
       (xvh == (dwh(), Zvh) || (xvh == $vh && (Fjg(), Dungeon.depth) == 1)) &&
-        Qdg((Jdg(), Idg), a);
+        Music_$volume((Jdg(), Idg), a);
       (this.e -= oag) <= 0 && ((qag.i = KRf), (qag.e = true));
       break;
     case 1:
       if (this.a != null) {
-        _ag(this, new Wvh(this.a));
+        Group_$add(this, new Wvh(this.a));
         this.a = null;
       }
   }
@@ -439816,10 +438870,10 @@ _.bm = function Svh() {
         Fvh();
         break;
       case 4:
-        Gvh();
+        InterlevelScene_$returnTo();
         break;
       case 5:
-        Dvh();
+        InterlevelScene_$fall();
     }
     (Fjg(), Dungeon.depth) % 5 == 0 &&
       geg((eeg(), deg), aqf(Vpf(cYf, 1), Rci, 2, 6, [tIj]));
@@ -439835,7 +438889,7 @@ _.bm = function Svh() {
   }
 };
 var LRf = Class_createForClass(WLj, "InterlevelScene/1", DMi, WXf);
-Runtime_defineClass(312, 63, { 20: 1, 30: 1, 63: 1, 312: 1, 82: 1 }, Tvh, Uvh);
+Runtime_defineClass(312, 63, { 20: 1, 30: 1, 63: 1, 312: 1, 82: 1 }, Tvh, WndTitledMessage);
 var vWf = Class_createForClass(wLj, F3i, 312, EUf);
 Runtime_defineClass(453, 312, xNj, Vvh);
 var lVf = Class_createForClass(wLj, "WndError", 453, vWf);
@@ -439857,9 +438911,9 @@ var ORf = Class_createForEnum(WLj, "InterlevelScene/Phase", 560, GXf, pwh, owh);
 var qwh;
 Runtime_defineClass(IGi, 156, { 20: 1, 30: 1, 216: 1, 1279: 1, 156: 1 }, swh);
 _.j0 = function twh() {
-  zth(this);
-  _ag(this, new zwh());
-  wth ? (wth = false) : _ag(this, new Cwh(Pbi, false));
+  PixelScene_$create(this);
+  Group_$add(this, new zwh());
+  PixelScene_noFade ? (PixelScene_noFade = false) : Group_$add(this, new Cwh(Pbi, false));
 };
 var RRf = Class_createForClass(WLj, F_i, IGi, URf);
 Runtime_defineClass(552, 63, yNj, wwh);
@@ -439912,8 +438966,8 @@ var SRf = Class_createForClass(WLj, "PixelScene/Fader", 197, _Ff);
 Runtime_defineClass(740, 322, { 322: 1, 20: 1, 740: 1 }, Fwh);
 _.A_ = function PixelCamera_updateMatrix() {
   var a, b;
-  a = Bth(this, this.e.a + this.k);
-  b = Bth(this, this.e.b + this.n);
+  a = PixelScene_align(this, this.e.a + this.k);
+  b = PixelScene_align(this, this.e.b + this.n);
   this.b[0] = this.s * e9f;
   this.b[5] = -this.s * d9f;
   this.b[12] = -1 + this.q * e9f - a * this.b[0];
@@ -439926,120 +438980,55 @@ Runtime_defineClass(
   { 20: 1, 30: 1, 216: 1, 156: 1, 999: 1 },
   RankingsScene,
 );
-
-_.j0 = function RankingsScene_create() {
-  var a, b, c, d, e, f, g, h, i, j, k, l, m, n, o;
-  zth(this);
-  Ndg((Jdg(), Idg), SHj, true);
-  Qdg(Idg, 1);
-  yth.nb = false;
-  n = (g9f(), f9f).p;
-  b = f9f.a;
-  this.a = new Archs();
-  ofg(this.a, n, b);
-  _ag(this, this.a);
-  loadRankings((Jlg(), rankings));
-  if (rankings.b.a.length > 0) {
-    i = tag > pag ? 22 : 28;
-    d = (n - $wnd.Math.min(180, n)) / 2 + 4;
-    k = $qf(((b - i * rankings.b.a.length) / 2) * nth) / nth;
-    j = Gth(aaj, 9);
-    C7f(j, 1, 1, ILj);
-    p8f(j);
-    j.gb = $qf(((n - j.fb * j.db.a) / 2) * nth) / nth;
-    j.hb = $qf((k - j.$ * j.db.b - 4) * nth) / nth;
-    _ag(this, j);
-    e = 0;
-    for (g = new G1h(rankings.b); g.a < g.c.a.length; ) {
-      f = F1h(g);
-      h = new Kwh(e, e == rankings.a, f);
-      nfg(h, d, k + e * i, n - d * 2, i);
-      _ag(this, h);
-      ++e;
-    }
-    if (rankings.c >= 6) {
-      c = Gth(baj, 8);
-      C7f(c, 0.8, 0.8, 0.8);
-      p8f(c);
-      _ag(this, c);
-      o = Gth("" + rankings.d, 8);
-      C7f(o, 1, 1, ILj);
-      p8f(o);
-      _ag(this, o);
-      l = Gth("/" + rankings.c, 8);
-      C7f(l, 0.8, 0.8, 0.8);
-      p8f(l);
-      l.gb = $qf(((n - l.fb * l.db.a) / 2) * nth) / nth;
-      l.hb = $qf((k + e * i + 4) * nth) / nth;
-      _ag(this, l);
-      m = c.fb * c.db.a + o.fb * o.db.a + l.fb * l.db.a;
-      c.gb = $qf(((n - m) / 2) * nth) / nth;
-      o.gb = c.gb + c.fb * c.db.a;
-      l.gb = o.gb + o.fb * o.db.a;
-      c.hb = o.hb = l.hb = $qf((k + e * i + 4) * nth) / nth;
-    }
-  } else {
-    j = Gth(caj, 8);
-    C7f(j, 0.8, 0.8, 0.8);
-    p8f(j);
-    j.gb = $qf(((n - j.fb * j.db.a) / 2) * nth) / nth;
-    j.hb = $qf(((b - j.$ * j.db.b) / 2) * nth) / nth;
-    _ag(this, j);
-  }
-  a = new UEh();
-  mfg(a, f9f.p - a.B, 0);
-  _ag(this, a);
-  wth ? (wth = false) : _ag(this, new Cwh(Pbi, false));
-};
-
-_.e1 = function RankingsScene_onBackPressed() {
-  wth = true;
-  qag.i = sSf;
-  qag.e = true;
-};
-var WRf = Class_createForClass(WLj, T_i, 999, URf);
-Runtime_defineClass(923, 46, { 20: 1, 30: 1, 46: 1, 36: 1, 923: 1 }, Kwh);
+// TODO:
+// _.e1 = function RankingsScene_onBackPressed() {
+//     PixelScene_noFade = true;
+//     qag.i = sSf;
+//     qag.e = true;
+// };
+Runtime_defineClass(923, 46, { 20: 1, 30: 1, 46: 1, 36: 1, 923: 1 }, RankingsScene$Record);
 _.T1 = function RankingsScene$Record_createChildren() {
   this.k = new Tfg(this);
-  _ag(this, this.k);
+  Group_$add(this, this.k);
   this.f = new UNg(13, null);
-  _ag(this, this.f);
+  Group_$add(this, this.f);
   this.d = new t8f(qth);
-  _ag(this, this.d);
+  Group_$add(this, this.d);
   this.b = Fth(null, 9);
-  _ag(this, this.b);
+  Group_$add(this, this.b);
   this.a = new X9f();
-  _ag(this, this.a);
+  Group_$add(this, this.a);
 };
 _.UC = function Mwh() {
   Gfg(this);
   this.f.gb = this.C;
   this.f.hb = this.D + (this.A - this.f.$) / 2;
-  this.d.gb = $qf((this.f.gb + (this.f.fb - O7f(this.d)) / 2) * nth) / nth;
-  this.d.hb = $qf((this.f.hb + (this.f.$ - E7f(this.d)) / 2 + 1) * nth) / nth;
+  this.d.gb = Cast_round_int((this.f.gb + (this.f.fb - O7f(this.d)) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.d.hb = Cast_round_int((this.f.hb + (this.f.$ - E7f(this.d)) / 2 + 1) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
   !!this.c && I7f(this.c, z7f(this.f));
-  this.a.gb = $qf((this.C + this.B - this.a.fb) * nth) / nth;
+  this.a.gb = Cast_round_int((this.C + this.B - this.a.fb) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
   this.a.hb = this.f.hb;
   this.b.gb = this.f.gb + this.f.fb + 4;
-  this.b.b = $qf(this.a.gb - this.b.gb);
-  H8f(this.b);
+  this.b.b = Cast_round_int(this.a.gb - this.b.gb);
+  BitmapTextMultiline_$measure(this.b);
   this.b.hb = this.d.hb + this.d.D_() - F8f(this.b);
 };
 _.a2 = function RankingsScene$Record_onClick() {
-  this.e.b.length > 0
-    ? _ag(this.mb, new MNh(this.e.b))
-    : _ag(this.mb, new Vvh(daj));
+    return; // TODO: implement
+  this.rec.gameFile.length > 0
+    ? Group_$add(this.mb, new WndRanking(this.rec.gameFile))
+    : Group_$add(this.mb, new Vvh(daj));
 };
 var VRf = Class_createForClass(WLj, "RankingsScene/Record", 923, JGf);
 Runtime_defineClass(998, 156, { 20: 1, 30: 1, 216: 1, 156: 1, 998: 1 }, Twh);
 _.j0 = function StartScene_create() {
   var a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, A;
-  zth(this);
-  pgg();
-  yth.nb = false;
-  w = (g9f(), f9f).p;
-  j = f9f.a;
-  if (tag > pag) {
+  PixelScene_$create(this);
+  Badges_loadGlobal();
+  PixelScene_uiCamera.nb = false;
+  w = (g9f(), Camera_main).p;
+  j = Camera_main.a;
+  if (Game_width > Game_height) {
     A = 224;
     k = 124;
   } else {
@@ -440050,69 +439039,69 @@ _.j0 = function StartScene_create() {
   v = (j - k) / 2;
   b = j - v;
   a = new Archs();
-  ofg(a, w, j);
-  _ag(this, a);
+  Component_$setSize(a, w, j);
+  Group_$add(this, a);
   u = QMg((WMg(), VMg));
-  u.gb = $qf(((w - u.fb * u.db.a) / 2) * nth) / nth;
-  u.hb = $qf(v * nth) / nth;
-  _ag(this, u);
+  u.gb = Cast_round_int(((w - u.fb * u.db.a) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  u.hb = Cast_round_int(v * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  Group_$add(this, u);
   this.c = m;
   this.d = b - 24;
   this.b = new cxh(this);
-  _ag(this, this.b);
+  Group_$add(this, this.b);
   this.a = new gxh();
-  _ag(this, this.a);
+  Group_$add(this, this.a);
   d = this.d - u.hb - u.$ * u.db.b;
   i = aqf(Vpf(vIf, 1), Tnj, 285, 0, [(Xwg(), Vwg), Rwg, Twg, Pwg]);
   for (g = 0, h = i.length; g < h; ++g) {
     f = i[g];
     q = new vxh(this, f);
     aQh(Pwh, f, q);
-    _ag(this, q);
+    Group_$add(this, q);
   }
-  if (tag > pag) {
+  if (Game_width > Game_height) {
     s = A / 4;
     r = $wnd.Math.min(d, s);
     v = u.hb + u.$ + (d - r) / 2;
     for (l = 0; l < i.length; l++) {
       q = ZPh(Pwh, i[l]);
-      nfg(q, m + l * s, v, s, r);
+      Component_$setRect(q, m + l * s, v, s, r);
     }
     e = new kxh(this);
-    mfg(e, ((w / 2) | 0) - e.B / 2, v + r - e.A / 2);
-    _ag(this, e);
+    Component_$setPos(e, ((w / 2) | 0) - e.B / 2, v + r - e.A / 2);
+    Group_$add(this, e);
   } else {
     s = A / 2;
     r = $wnd.Math.min(d / 2, s * KLj);
     v = u.hb + u.$ * u.db.b + d / 2 - r;
     for (l = 0; l < i.length; l++) {
       q = ZPh(Pwh, i[l]);
-      nfg(q, m + (l % 2) * s, v + ((l / 2) | 0) * r, s, r);
+      Component_$setRect(q, m + (l % 2) * s, v + ((l / 2) | 0) * r, s, r);
     }
     e = new kxh(this);
-    mfg(e, ((w / 2) | 0) - e.B / 2, v + r - e.A / 2);
-    _ag(this, e);
+    Component_$setPos(e, ((w / 2) | 0) - e.B / 2, v + r - e.A / 2);
+    Group_$add(this, e);
   }
   this.f = new nbg();
-  _ag(this, this.f);
-  if (!(this.e = ngg((Kig(), nhg)))) {
+  Group_$add(this, this.f);
+  if (!(this.e = Badges_isUnlocked((Kig(), nhg)))) {
     t = Fth(laj, 9);
-    t.b = $qf(A);
-    H8f(t);
+    t.b = Cast_round_int(A);
+    BitmapTextMultiline_$measure(t);
     p = b - 24 + (24 - t.$ * t.db.b) / 2;
     for (o = new G1h(R8f(new S8f(t))); o.a < o.c.a.length; ) {
       n = F1h(o);
       n.G_();
-      C7f(n, 1, 1, 0);
-      n.gb = $qf((((w / 2) | 0) - (n.fb * n.db.a) / 2) * nth) / nth;
-      n.hb = $qf(p * nth) / nth;
-      _ag(this.f, n);
+      Visual_$hardlight(n, 1, 1, 0);
+      n.gb = Cast_round_int((((w / 2) | 0) - (n.fb * n.db.a) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+      n.hb = Cast_round_int(p * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+      Group_$add(this.f, n);
       p += n.$ * n.db.b;
     }
   }
   c = new UEh();
-  mfg(c, f9f.p - c.B, 0);
-  _ag(this, c);
+  Component_$setPos(c, Camera_main.p - c.B, 0);
+  Group_$add(this, c);
   Owh = null;
   Swh(
     this,
@@ -440120,19 +439109,19 @@ _.j0 = function StartScene_create() {
       qlg((olg(), nlg), Onj, 0)
     ],
   );
-  wth ? (wth = false) : _ag(this, new Cwh(Pbi, false));
+  PixelScene_noFade ? (PixelScene_noFade = false) : Group_$add(this, new Cwh(Pbi, false));
   jgg();
-  ggg = new ixh(this);
+  Badges_loadingListener = new ixh(this);
 };
 _.C$ = function StartScene_destroy() {
   Badges_saveGlobal();
-  (jgg(), (ggg = null));
+  (jgg(), (Badges_loadingListener = null));
   G6f(qag.b, this.w);
   ebg(this);
   cTh(qag.b.d.b);
 };
 _.e1 = function StartScene_onBackPressed() {
-  wth = true;
+  PixelScene_noFade = true;
   qag.i = sSf;
   qag.e = true;
 };
@@ -440152,18 +439141,18 @@ var dSf = Class_createForClass(WLj, a0i, 998, URf);
 Runtime_defineClass(448, 53, zNj, $wh);
 _.T1 = function _wh() {
   O$g(this);
-  this.b = Gth(null, 6);
-  _ag(this, this.b);
+  this.b = PixelScene_createText(null, 6);
+  Group_$add(this, this.b);
 };
 _.UC = function axh() {
   R$g(this);
   if (this.b.k.length > 0) {
     this.g.hb =
-      $qf((this.D + (this.A - E7f(this.g) - this.b.D_()) / 2) * nth) / nth;
-    this.b.gb = $qf((this.C + (this.B - O7f(this.b)) / 2) * nth) / nth;
-    this.b.hb = $qf((this.g.hb + E7f(this.g)) * nth) / nth;
+      Cast_round_int((this.D + (this.A - E7f(this.g) - this.b.D_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+    this.b.gb = Cast_round_int((this.C + (this.B - O7f(this.b)) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+    this.b.hb = Cast_round_int((this.g.hb + E7f(this.g)) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
   } else {
-    this.g.hb = $qf((this.D + (this.A - this.g.D_()) / 2) * nth) / nth;
+    this.g.hb = Cast_round_int((this.D + (this.A - this.g.D_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
   }
 };
 _.Lab = function StartScene$GameButton_secondary(a, b) {
@@ -440173,7 +439162,7 @@ var cSf = Class_createForClass(WLj, "StartScene/GameButton", 448, iUf);
 Runtime_defineClass(HMi, 448, zNj, cxh);
 _.a2 = function dxh() {
   xkg((Qwh(), Owh))
-    ? _ag(this.a, new exh(this, aqf(Vpf(cYf, 1), Rci, 2, 6, [jaj, kaj])))
+    ? Group_$add(this.a, new exh(this, aqf(Vpf(cYf, 1), Rci, 2, 6, [jaj, kaj])))
     : Rwh();
 };
 var YRf = Class_createForClass(WLj, "StartScene/1", HMi, cSf);
@@ -440191,27 +439180,27 @@ _.a2 = function hxh() {
 var ZRf = Class_createForClass(WLj, "StartScene/2", tLi, cSf);
 Runtime_defineClass(JMi, 1, pLj, ixh);
 _.t5 = function jxh() {
-  qag.g == this.a && ((wth = true), (qag.i = dSf), (qag.e = true));
+  qag.g == this.a && ((PixelScene_noFade = true), (qag.i = dSf), (qag.e = true));
 };
 var $Rf = Class_createForClass(WLj, "StartScene/3", JMi, WXf);
 Runtime_defineClass(924, 46, { 20: 1, 30: 1, 46: 1, 36: 1, 924: 1 }, kxh);
 _.T1 = function lxh() {
   this.k = new Tfg(this);
-  _ag(this, this.k);
+  Group_$add(this, this.k);
   this.a = lGh(qlg((olg(), nlg), Pnj, 0) > 0 ? (hGh(), LFh) : (hGh(), KFh));
-  _ag(this, this.a);
+  Group_$add(this, this.a);
 };
-_.UC = function mxh() {
+_.UC = function StartScene$ChallengeButton_layout() {
   Gfg(this);
-  this.a.gb = $qf(this.C * nth) / nth;
-  this.a.hb = $qf(this.D * nth) / nth;
+  this.a.gb = Cast_round_int(this.C * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.a.hb = Cast_round_int(this.D * PixelScene_defaultZoom) / PixelScene_defaultZoom;
 };
-_.a2 = function nxh() {
-  ngg((Kig(), Dig))
-    ? _ag(this.b, new sxh(this, qlg((olg(), nlg), Pnj, 0)))
-    : _ag(this.b, new ENh(maj));
+_.a2 = function StartScene$ChallengeButton_onClick() {
+  Badges_isUnlocked((Kig(), Dig))
+    ? Group_$add(this.b, new sxh(this, qlg((olg(), nlg), Pnj, 0)))
+    : Group_$add(this.b, new ENh(maj));
 };
-_.c2 = function oxh() {
+_.c2 = function StartScene$ChallengeButton_onTouchDown() {
   ieg((eeg(), deg), UHj, 1, 1);
 };
 var aSf = Class_createForClass(WLj, "StartScene/ChallengeButton", 924, JGf);
@@ -440233,23 +439222,23 @@ var _Rf = Class_createForClass(WLj, "StartScene/ChallengeButton/1", GMi, aVf);
 Runtime_defineClass(qHi, 46, { 20: 1, 30: 1, 46: 1, 36: 1, 1280: 1 }, vxh);
 _.T1 = function wxh() {
   this.k = new Tfg(this);
-  _ag(this, this.k);
+  Group_$add(this, this.k);
   this.a = new Z9f(_Gj);
-  _ag(this, this.a);
-  this.f = Gth(null, 9);
-  _ag(this, this.f);
+  Group_$add(this, this.a);
+  this.f = PixelScene_createText(null, 9);
+  Group_$add(this, this.f);
   this.d = new Meg(this.a);
-  _ag(this, this.d);
+  Group_$add(this, this.d);
 };
 _.Mab = function xxh(a) {
   uxh(this, a);
 };
 _.UC = function yxh() {
   Gfg(this);
-  this.a.gb = $qf((this.C + (this.B - this.a.C_()) / 2) * nth) / nth;
+  this.a.gb = Cast_round_int((this.C + (this.B - this.a.C_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
   this.a.hb =
-    $qf((this.D + (this.A - this.a.p_() - E7f(this.f)) / 2) * nth) / nth;
-  this.f.gb = $qf((this.C + (this.B - O7f(this.f)) / 2) * nth) / nth;
+    Cast_round_int((this.D + (this.A - this.a.p_() - E7f(this.f)) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.f.gb = Cast_round_int((this.C + (this.B - O7f(this.f)) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
   this.f.hb = this.a.hb + this.a.p_() + 2;
 };
 _.c2 = function zxh() {
@@ -440276,28 +439265,28 @@ Runtime_defineClass(iWi, 156, { 20: 1, 30: 1, 216: 1, 156: 1, 1027: 1 }, Cxh);
 
 _.j0 = function SurfaceScene_create() {
   var a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v;
-  zth(this);
-  Ndg((Jdg(), Idg), THj, true);
-  Qdg(Idg, 1);
-  yth.nb = false;
-  u = (g9f(), f9f).p;
-  g = f9f.a;
+  PixelScene_$create(this);
+  Music_$play((Jdg(), Idg), THj, true);
+  Music_$volume(Idg, 1);
+  PixelScene_uiCamera.nb = false;
+  u = (g9f(), Camera_main).p;
+  g = Camera_main.a;
   b = new Archs();
   b.c = true;
-  ofg(b, u, g);
-  _ag(this, b);
-  s = $qf((((u - 80) / 2) | 0) * nth) / nth;
-  t = $qf((((g - 112 - 20) / 2) | 0) * nth) / nth;
-  o = h9f(f9f, s, t);
-  this.a = new v9f(o.b, o.c, 80, 112, nth);
+  Component_$setSize(b, u, g);
+  Group_$add(this, b);
+  s = Cast_round_int((((u - 80) / 2) | 0) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  t = Cast_round_int((((g - 112 - 20) / 2) | 0) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  o = h9f(Camera_main, s, t);
+  this.a = new v9f(o.b, o.c, 80, 112, PixelScene_defaultZoom);
   w9f(this.a);
   v = new nbg();
   v.kb = this.a;
-  _ag(this, v);
+  Group_$add(this, v);
   d = !(Fjg(), Dungeon.nightMode);
   q = new Yxh(d);
   vTh(q.db, 80, 112);
-  _ag(v, q);
+  Group_$add(v, q);
   if (!d) {
     for (i = 0; i < 100; i++) {
       p = $wnd.Math.random();
@@ -440305,52 +439294,52 @@ _.j0 = function SurfaceScene_create() {
       r.gb = $wnd.Math.random() * 80 - p / 2;
       r.hb = $wnd.Math.random() * 112 - p / 2;
       r.T = p * (1 - r.hb / 112);
-      _ag(v, r);
+      Group_$add(v, r);
     }
   }
   for (j = 0; j < 5; j++) {
     c = new Mxh((4 - j) * 14.8 + $wnd.Math.random() * 14.8, d);
-    _ag(v, c);
+    Group_$add(v, c);
   }
-  l = $qf((q.fb * q.db.a) / 16 + 1);
+  l = Cast_round_int((q.fb * q.db.a) / 16 + 1);
   for (k = 0; k < l * 4; k++) {
     m = new Oxh(((k - 0.75) * 16) / 4, 113, d);
     m.cb = m.Z = m.X = d ? Ini : xii;
-    _ag(v, m);
+    Group_$add(v, m);
   }
   a = new Kxh(Dungeon.hero.j);
-  a.gb = $qf(((80 - a.fb) / 2) * nth) / nth;
+  a.gb = Cast_round_int(((80 - a.fb) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
   a.hb = 112 - a.$;
-  _ag(v, a);
+  Group_$add(v, a);
   n = new Sxh();
   n.cb = n.Z = n.X = KLj;
   n.gb = 42;
   n.hb = 112 - n.$;
-  _ag(v, n);
-  _ag(v, new Gxh(q, n));
+  Group_$add(v, n);
+  Group_$add(v, new Gxh(q, n));
   for (h = 0; h < l; h++) {
     m = new Oxh((h - 0.5) * 16, 112, d);
     m.cb = m.Z = m.X = d ? 1 : ppi;
-    _ag(v, m);
+    Group_$add(v, m);
   }
   e = new Z9f(aHj);
   U9f(e, V4f(e.O, 0, 0, 88, 125));
   e.gb = s - 4;
   e.hb = t - 9;
-  _ag(this, e);
+  Group_$add(this, e);
   if (d) {
     a.cb = a.Z = a.X = KLj;
     n.cb = n.Z = n.X = KLj;
   } else {
-    C7f(e, 0.8666666666666667, SLj, 1);
+    Visual_$hardlight(e, 0.8666666666666667, SLj, 1);
   }
   f = new Ixh();
-  ofg(f, 72, 20);
-  mfg(f, e.gb + 8, e.hb + e.$ + 4);
-  _ag(this, f);
+  Component_$setSize(f, 72, 20);
+  Component_$setPos(f, e.gb + 8, e.hb + e.$ + 4);
+  Group_$add(this, f);
   jgg();
-  lgg((Kig(), Shg));
-  wth ? (wth = false) : _ag(this, new Cwh(Pbi, false));
+  Badges_displayBadge((Kig(), Shg));
+  PixelScene_noFade ? (PixelScene_noFade = false) : Group_$add(this, new Cwh(Pbi, false));
 };
 _.C$ = function Exh() {
   Badges_saveGlobal();
@@ -440435,18 +439424,18 @@ var kSf = Class_createForClass(WLj, "SurfaceScene/Sky", 928, tGf);
 Runtime_defineClass(730, 156, { 20: 1, 30: 1, 216: 1, 156: 1, 730: 1 }, ayh);
 _.j0 = function TitleScene_create() {
   var a, b, c, d, e, f, g, h, i, j, k, l, m, n;
-  zth(this);
-  Ndg((Jdg(), Idg), SHj, true);
-  Qdg(Idg, 1);
-  yth.nb = false;
-  m = (g9f(), f9f).p;
-  h = f9f.a;
+  PixelScene_$create(this);
+  Music_$play((Jdg(), Idg), SHj, true);
+  Music_$volume(Idg, 1);
+  PixelScene_uiCamera.nb = false;
+  m = (g9f(), Camera_main).p;
+  h = Camera_main.a;
   a = new Archs();
-  ofg(a, m, h);
-  _ag(this, a);
+  Component_$setSize(a, m, h);
+  Group_$add(this, a);
   k = QMg((WMg(), TMg));
-  _ag(this, k);
-  i = k.$ + (tag > pag ? 48 : 96);
+  Group_$add(this, k);
+  i = k.$ + (Game_width > Game_height ? 48 : 96);
   k.gb = (m - k.fb * k.db.a) / 2;
   k.hb = (h - i) / 2;
   _xh(this, k.gb + 18, k.hb + 20);
@@ -440454,37 +439443,37 @@ _.j0 = function TitleScene_create() {
   j = new dyh(QMg(UMg));
   j.gb = k.gb;
   j.hb = k.hb;
-  _ag(this, j);
+  Group_$add(this, j);
   c = new lyh();
-  _ag(this, c);
+  Group_$add(this, c);
   b = new nyh();
-  _ag(this, b);
+  Group_$add(this, b);
   f = new pyh();
-  _ag(this, f);
+  Group_$add(this, f);
   e = new ryh();
-  _ag(this, e);
-  if (tag > pag) {
+  Group_$add(this, e);
+  if (Game_width > Game_height) {
     n = (h + i) / 2 - 48;
-    mfg(e, ((m / 2) | 0) - e.B, n);
-    mfg(c, (m / 2) | 0, n);
-    mfg(f, e.C - f.B, n);
-    mfg(b, c.C + c.B, n);
+    Component_$setPos(e, ((m / 2) | 0) - e.B, n);
+    Component_$setPos(c, (m / 2) | 0, n);
+    Component_$setPos(f, e.C - f.B, n);
+    Component_$setPos(b, c.C + c.B, n);
   } else {
-    mfg(c, ((m / 2) | 0) - c.B, (h + i) / 2 - 48);
-    mfg(b, (m / 2) | 0, (h + i) / 2 - 48);
-    mfg(f, ((m / 2) | 0) - f.B, b.D - 48);
-    mfg(e, (m / 2) | 0, f.D);
+    Component_$setPos(c, ((m / 2) | 0) - c.B, (h + i) / 2 - 48);
+    Component_$setPos(b, (m / 2) | 0, (h + i) / 2 - 48);
+    Component_$setPos(f, ((m / 2) | 0) - f.B, b.D - 48);
+    Component_$setPos(e, (m / 2) | 0, f.D);
   }
   l = new u8f("v " + sag, qth);
-  p8f(l);
-  C7f(l, PLj, PLj, PLj);
+  BitmapText_$measure(l);
+  Visual_$hardlight(l, PLj, PLj, PLj);
   l.gb = m - l.fb * l.db.a;
   l.hb = h - l.$ * l.db.b;
-  _ag(this, l);
+  Group_$add(this, l);
   g = new VGh();
-  mfg(g, 0, 0);
-  _ag(this, g);
-  wth ? (wth = false) : _ag(this, new Cwh(Pbi, false));
+  Component_$setPos(g, 0, 0);
+  Group_$add(this, g);
+  PixelScene_noFade ? (PixelScene_noFade = false) : Group_$add(this, new Cwh(Pbi, false));
 };
 _.Pab = function cyh(a, b) {
   _xh(this, a, b);
@@ -440505,18 +439494,18 @@ var mSf = Class_createForClass(WLj, "TitleScene/1", lFi, dGf);
 Runtime_defineClass(270, 46, CNj, gyh);
 _.T1 = function hyh() {
   this.k = new Tfg(this);
-  _ag(this, this.k);
+  Group_$add(this, this.k);
   this.a = new Z9f(NGj);
-  _ag(this, this.a);
-  this.b = Gth(null, 9);
-  _ag(this, this.b);
+  Group_$add(this, this.a);
+  this.b = PixelScene_createText(null, 9);
+  Group_$add(this, this.b);
 };
 _.UC = function iyh() {
   Gfg(this);
-  this.a.gb = $qf((this.C + (this.B - this.a.C_()) / 2) * nth) / nth;
-  this.a.hb = $qf(this.D * nth) / nth;
-  this.b.gb = $qf((this.C + (this.B - O7f(this.b)) / 2) * nth) / nth;
-  this.b.hb = $qf((this.a.hb + this.a.p_() + 2) * nth) / nth;
+  this.a.gb = Cast_round_int((this.C + (this.B - this.a.C_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.a.hb = Cast_round_int(this.D * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.b.gb = Cast_round_int((this.C + (this.B - O7f(this.b)) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.b.hb = Cast_round_int((this.a.hb + this.a.p_() + 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
 };
 _.c2 = function jyh() {
   y7f(this.a, 1.5);
@@ -440528,29 +439517,29 @@ _.d2 = function kyh() {
 var rSf = Class_createForClass(WLj, "TitleScene/DashboardItem", 270, JGf);
 Runtime_defineClass(gFi, 270, CNj, lyh);
 _.a2 = function myh() {
-  wth = true;
+  PixelScene_noFade = true;
   qag.i = FRf;
   qag.e = true;
 };
 var nSf = Class_createForClass(WLj, "TitleScene/2", gFi, rSf);
 Runtime_defineClass(uKi, 270, CNj, nyh);
 _.a2 = function oyh() {
-  wth = true;
+  PixelScene_noFade = true;
   qag.i = zRf;
   qag.e = true;
 };
 var oSf = Class_createForClass(WLj, "TitleScene/3", uKi, rSf);
 Runtime_defineClass(vKi, 270, CNj, pyh);
 _.a2 = function qyh() {
-  wth = true;
+  PixelScene_noFade = true;
   qag.i = dSf;
   qag.e = true;
 };
 var pSf = Class_createForClass(WLj, "TitleScene/4", vKi, rSf);
 Runtime_defineClass(wKi, 270, CNj, ryh);
-_.a2 = function syh() {
-  wth = true;
-  qag.i = WRf;
+_.a2 = function TitleScene$5_onClick() {
+  PixelScene_noFade = true;
+  qag.i = "RankingsScene";
   qag.e = true;
 };
 var qSf = Class_createForClass(WLj, "TitleScene/5", wKi, rSf);
@@ -440707,7 +439696,7 @@ _.N0 = function Hzh(a) {
     RBh(jbg(this.mb, aTf), this.g.K, this.a, new Lfh(), new sCh(this));
   } else {
     Jyh(this, a);
-    a == this.i && _ag(this.mb, new WBh(this, this));
+    a == this.i && Group_$add(this.mb, new WBh(this, this));
   }
 };
 _.a = 0;
@@ -440764,12 +439753,12 @@ _.ebb = function Qzh(a) {
   this.a = new Beg();
   this.a.e = false;
   xeg(this.a, this.gb + 7, this.hb + 12, 0, 0);
-  _ag(this.mb, this.a);
+  Group_$add(this.mb, this.a);
 };
 _.N0 = function Rzh(a) {
   var b;
   Jyh(this, a);
-  a == this.i && _ag(this.mb, new WBh(this, this));
+  a == this.i && Group_$add(this.mb, new WBh(this, this));
   if (this.nb && !!this.a && a == this.p) {
     zeg(this.a, (gRg(), jRg(110, false)), 0, 3);
     b = zii / shh(this.g.K, (Fjg(), Dungeon.hero).K);
@@ -440807,7 +439796,7 @@ _.N0 = function Wzh(a) {
     Hbg(this, this.p, false);
   } else {
     Jyh(this, a);
-    a == this.i && _ag(this.mb, new WBh(this, this));
+    a == this.i && Group_$add(this.mb, new WBh(this, this));
   }
 };
 _.a = 0;
@@ -440881,7 +439870,7 @@ _.Tab = function uAh() {
 };
 _.N0 = function vAh(a) {
   Jyh(this, a);
-  a == this.i && _ag(this.mb, new WBh(this, this));
+  a == this.i && Group_$add(this.mb, new WBh(this, this));
   a == this.i && zeg(zyh(this), (gRg(), jRg(7, false)), 0, 15);
 };
 var HSf = Class_createForClass(MLj, S0i, wHi, dTf);
@@ -440932,10 +439921,10 @@ _.Rab = function EAh(a) {
 };
 _.N0 = function FAh(a) {
   Jyh(this, a);
-  a == this.i && _ag(this.mb, new WBh(this, this));
+  a == this.i && Group_$add(this.mb, new WBh(this, this));
   a == this.e &&
     ((Fjg(), Dungeon.visible)[this.g.K] || Dungeon.visible[this.a]) &&
-    _ag(
+    Group_$add(
       this.mb,
       new iNg(
         new yTh(this.gb + this.fb / 2, this.hb + this.$ / 2),
@@ -441014,7 +440003,7 @@ _.Tab = function RAh() {
 _.N0 = function SAh(a) {
   a == this.i && zeg(zyh(this), (DSg(), CSg), 0, 4);
   Jyh(this, a);
-  a == this.i && _ag(this.mb, new WBh(this, this));
+  a == this.i && Group_$add(this.mb, new WBh(this, this));
 };
 var OSf = Class_createForClass(MLj, Y0i, AHi, dTf);
 Runtime_defineClass(
@@ -441070,7 +440059,7 @@ _.dbb = function nBh(a, b, c) {
 _.fbb = function oBh(a, b) {
   Iyh(this, a, b);
   this.g.G && Hbg(this, this.a, false);
-  (g9f(), f9f).o = this;
+  (g9f(), Camera_main).o = this;
 };
 _.u6 = function pBh(a) {
   gBh(this, a);
@@ -441116,7 +440105,7 @@ _.N0 = function ABh(a) {
     !!this.mb && gbg(this.mb, this);
   } else {
     Jyh(this, a);
-    a == this.i && _ag(this.mb, new WBh(this, this));
+    a == this.i && Group_$add(this.mb, new WBh(this, this));
   }
 };
 var USf = Class_createForClass(MLj, "ImpSprite", BHi, dTf);
@@ -441232,7 +440221,7 @@ Runtime_defineClass(
 );
 _.N0 = function dCh(a) {
   Jyh(this, a);
-  a == this.i && _ag(this.mb, new WBh(this, this));
+  a == this.i && Group_$add(this.mb, new WBh(this, this));
   a == this.e && fvh(this.g.K);
 };
 var fTf = Class_createForClass(MLj, r1i, EHi, dTf);
@@ -441290,12 +440279,12 @@ _.Rab = function qCh(a) {
 };
 _.N0 = function rCh(a) {
   Jyh(this, a);
-  a == this.i && _ag(this.mb, new WBh(this, this));
+  a == this.i && Group_$add(this.mb, new WBh(this, this));
   if (a == this.e) {
     uTh(this.eb, 0);
     uTh(this.S, 0);
     Myh(this, this.g.K);
-    r9f((g9f(), f9f), 4, zii);
+    r9f((g9f(), Camera_main), 4, zii);
   }
 };
 var jTf = Class_createForClass(MLj, v1i, FHi, dTf);
@@ -441360,11 +440349,11 @@ Runtime_defineClass(
 );
 _.N0 = function FCh(a) {
   Jyh(this, a);
-  a == this.i && _ag(this.mb, new WBh(this, this));
+  a == this.i && Group_$add(this.mb, new WBh(this, this));
   if (this.nb && a == this.p) {
     if (!this.a) {
       this.a = new Qeg();
-      _ag(this.mb, this.a);
+      Group_$add(this.mb, this.a);
     }
     Peg(this.a, this.gb + (this.L ? 0 : 13), this.hb + 7, raj, 1, 0.5);
     this.a.eb.b = -40;
@@ -441468,7 +440457,7 @@ _.N0 = function UCh(a) {
     Hbg(this, this.p, false);
   } else {
     Jyh(this, a);
-    a == this.i && _ag(this.mb, new WBh(this, this));
+    a == this.i && Group_$add(this.mb, new WBh(this, this));
   }
 };
 var xTf = Class_createForClass(MLj, H1i, MHi, dTf);
@@ -441513,7 +440502,7 @@ _.Yab = function aDh() {
 };
 _.ebb = function bDh(a) {
   Hyh(this, a);
-  !this.a && _ag(this.mb, (this.a = new cDh(this)));
+  !this.a && Group_$add(this.mb, (this.a = new cDh(this)));
 };
 var BTf = Class_createForClass(MLj, L1i, FEi, dTf);
 Runtime_defineClass(NHi, 306, { 20: 1, 33: 1, 34: 1, 306: 1, 1322: 1 }, cDh);
@@ -441555,7 +440544,7 @@ Runtime_defineClass(
 _.N0 = function iDh(a) {
   a == this.B && Hbg(this, this.p, false);
   Jyh(this, a);
-  a == this.i && _ag(this.mb, new WBh(this, this));
+  a == this.i && Group_$add(this.mb, new WBh(this, this));
 };
 _.mbb = function jDh(a) {
   gDh(this, a);
@@ -441582,11 +440571,11 @@ _.T1 = function rDh() {
   this.a = new Zcg(1, 1, "arcs1.png");
   this.a.a = true;
   Wcg(this.a, 0, oDh);
-  _ag(this, this.a);
+  Group_$add(this, this.a);
   this.b = new Zcg(1, 1, "arcs2.png");
   this.b.a = true;
   Wcg(this.b, 0, pDh);
-  _ag(this, this.b);
+  Group_$add(this, this.b);
 };
 _.UC = function sDh() {
   Xcg(this.a, this.B, this.A);
@@ -441674,25 +440663,25 @@ var CDh,
   DDh = null;
 var HTf = Class_createForClass(uLj, U1i, 930, rUf);
 Runtime_defineClass(311, 36, DNj, UDh);
-_.Bbb = function VDh() {
+_.Bbb = function ScrollPane_content() {
   return this.b;
 };
-_.T1 = function WDh() {
+_.T1 = function ScrollPane_createChildren() {
   this.c = new OHh(this);
-  _ag(this, this.c);
+  Group_$add(this, this.c);
   this.i = new jag(1, 1, -8683405);
   this.i.T = 0.5;
-  _ag(this, this.i);
+  Group_$add(this, this.i);
 };
-_.C$ = function XDh() {
+_.C$ = function ScrollPane_destroy() {
   ebg(this);
   F9f(this.b.kb);
 };
-_.UC = function YDh() {
+_.UC = function ScrollPane_layout() {
   SDh(this);
 };
-_.Cbb = function ZDh(a, b) {};
-_.Dbb = function $Dh(a, b) {
+_.Cbb = function ScrollPane_onClick(a, b) {};
+_.Dbb = function ScrollPane_scrollTo(a, b) {
   TDh(this, a, b);
 };
 _.d = 0;
@@ -441701,18 +440690,18 @@ _.f = 0;
 _.g = 0;
 var lUf = Class_createForClass(uLj, umi, 311, LGf);
 Runtime_defineClass(931, 311, { 20: 1, 30: 1, 36: 1, 931: 1, 311: 1 }, _Dh);
-_.UC = function aEh() {
+_.UC = function BadgesList_layout() {
   var a, b, c;
   b = 0;
   c = this.a.a.length;
   for (a = 0; a < c; a++) {
-    nfg(U0h(this.a, a), 0, b, this.B, 20);
+    Component_$setRect(U0h(this.a, a), 0, b, this.B, 20);
     b += 20;
   }
-  ofg(this.b, this.B, b);
+  Component_$setSize(this.b, this.B, b);
   SDh(this);
 };
-_.Cbb = function bEh(a, b) {
+_.Cbb = function BadgesList_onClick(a, b) {
   var c, d;
   d = this.a.a.length;
   for (c = 0; c < d; c++) {
@@ -441725,15 +440714,15 @@ var JTf = Class_createForClass(uLj, V1i, 931, lUf);
 Runtime_defineClass(PHi, 36, { 20: 1, 30: 1, 36: 1, 1325: 1 }, dEh);
 _.T1 = function eEh() {
   this.b = new X9f();
-  _ag(this, this.b);
-  this.c = Gth(null, 6);
-  _ag(this, this.c);
+  Group_$add(this, this.b);
+  this.c = PixelScene_createText(null, 6);
+  Group_$add(this, this.c);
 };
 _.UC = function fEh() {
   this.b.gb = this.C;
-  this.b.hb = $qf((this.D + (this.A - this.b.$) / 2) * nth) / nth;
+  this.b.hb = Cast_round_int((this.D + (this.A - this.b.$) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
   this.c.gb = this.b.gb + this.b.fb + 2;
-  this.c.hb = $qf((this.D + (this.A - this.c.D_()) / 2) * nth) / nth;
+  this.c.hb = Cast_round_int((this.D + (this.A - this.c.D_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
 };
 _.Ebb = function gEh(a, b) {
   return cEh(this, a, b);
@@ -441825,11 +440814,11 @@ _.UC = function KEh() {
   var a;
   R$g(this);
   a = (this.A - this.g.D_()) / 2;
-  this.g.gb = Bth(yth, this.C + a);
-  this.g.hb = Bth(yth, this.D + a);
+  this.g.gb = PixelScene_align(PixelScene_uiCamera, this.C + a);
+  this.g.hb = PixelScene_align(PixelScene_uiCamera, this.D + a);
   a = (this.A - this.f.$) / 2;
-  this.f.gb = Bth(yth, this.C + this.B - a - this.f.fb);
-  this.f.hb = Bth(yth, this.D + a);
+  this.f.gb = PixelScene_align(PixelScene_uiCamera, this.C + this.B - a - this.f.fb);
+  this.f.hb = PixelScene_align(PixelScene_uiCamera, this.D + a);
 };
 _.a2 = function LEh() {
   GEh(this, !this.a);
@@ -441843,10 +440832,10 @@ _.ri = function NEh() {
   this.nb ||
     (this.nb = (Fjg(), Dungeon.level).F[this.a] || Dungeon.level.A[this.a]);
   if (this.nb) {
-    b = (g9f(), f9f).e;
+    b = (g9f(), Camera_main).e;
     if (!Ab(b, this.c)) {
       wTh(this.c, b);
-      a = rTh(i9f(f9f), b);
+      a = rTh(i9f(Camera_main), b);
       this.U = $wnd.Math.atan2(this.b.a - a.a, a.b - this.b.b) * saj;
     }
   }
@@ -441862,29 +440851,29 @@ Runtime_defineClass(
 _.T1 = function PEh() {
   uDh(this);
   this.d = new t8f(qth);
-  _ag(this, this.d);
+  Group_$add(this, this.d);
   this.b = lGh((hGh(), ZFh));
-  _ag(this, this.b);
+  Group_$add(this, this.b);
 };
 _.UC = function QEh() {
   vDh(this);
   this.b.gb = this.C + this.B - 10;
   this.b.hb = this.D + (this.A - this.b.$) / 2;
   this.d.gb = this.C + this.B - 11 - O7f(this.d);
-  this.d.hb = $qf((this.D + (this.A - this.d.D_()) / 2) * nth) / nth;
+  this.d.hb = Cast_round_int((this.D + (this.A - this.d.D_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
 };
 _.a2 = function REh() {
   var a;
   if (this.nb) {
     a = yvg((Fjg(), Dungeon.hero), this.a++);
     wFh(vFh, a == vFh.c ? null : a);
-    (g9f(), f9f).o = null;
-    l9f(f9f, a.M);
+    (g9f(), Camera_main).o = null;
+    l9f(Camera_main, a.M);
   }
 };
 _.Hbb = function SEh() {
   this.d.gb = this.C + this.B - 11 - O7f(this.d);
-  this.d.hb = $qf((this.D + (this.A - this.d.D_()) / 2) * nth) / nth;
+  this.d.hb = Cast_round_int((this.D + (this.A - this.d.D_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
 };
 _.ri = function TEh() {
   var a;
@@ -441893,10 +440882,10 @@ _.ri = function TEh() {
     if (a != this.c) {
       this.c = a;
       if ((this.nb = this.c > 0)) {
-        q8f(this.d, "" + this.c);
+        BitmapText_$text(this.d, "" + this.c);
         this.d.G_();
         this.d.gb = this.C + this.B - 11 - O7f(this.d);
-        this.d.hb = $qf((this.D + (this.A - this.d.D_()) / 2) * nth) / nth;
+        this.d.hb = Cast_round_int((this.D + (this.A - this.d.D_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
         this.i = 1;
       }
     }
@@ -441911,9 +440900,9 @@ var RTf = Class_createForClass(uLj, _1i, 933, rUf);
 Runtime_defineClass(385, 46, { 20: 1, 30: 1, 46: 1, 36: 1, 385: 1 }, UEh);
 _.T1 = function VEh() {
   this.k = new Tfg(this);
-  _ag(this, this.k);
+  Group_$add(this, this.k);
   this.a = lGh((hGh(), QFh));
-  _ag(this, this.a);
+  Group_$add(this, this.a);
 };
 _.UC = function WEh() {
   Gfg(this);
@@ -441921,7 +440910,7 @@ _.UC = function WEh() {
   this.a.hb = this.D;
 };
 _.a2 = function ExitButton_onClick() {
-  Rqf(qag.g, 730) ? undefined : ((wth = true), (qag.i = sSf), (qag.e = true));
+  Rqf(qag.g, 730) ? undefined : ((PixelScene_noFade = true), (qag.i = sSf), (qag.e = true));
 };
 _.c2 = function YEh() {
   y7f(this.a, 1.5);
@@ -441962,7 +440951,7 @@ Runtime_defineClass(935, 36, { 20: 1, 30: 1, 36: 1, 935: 1 }, lFh);
 _.T1 = function mFh() {
   this.b = new t8f(qth);
   D7f(this.b, raj);
-  _ag(this, this.b);
+  Group_$add(this, this.b);
   this.nb = false;
 };
 _.UC = function nFh() {
@@ -441979,7 +440968,7 @@ _.ri = function oFh() {
   }
   if ((Fjg(), Dungeon.gold) != this.a) {
     this.a = Dungeon.gold;
-    q8f(this.b, "" + this.a);
+    BitmapText_$text(this.b, "" + this.a);
     this.b.G_();
     this.nb = true;
     this.c = 2;
@@ -441993,9 +440982,9 @@ var VTf = Class_createForClass(uLj, f2i, 935, LGf);
 Runtime_defineClass(700, 36, { 20: 1, 30: 1, 36: 1, 700: 1 }, rFh);
 _.T1 = function sFh() {
   this.a = new jag(1, 1, uaj);
-  _ag(this, this.a);
+  Group_$add(this, this.a);
   this.b = new jag(1, 1, vaj);
-  _ag(this, this.b);
+  Group_$add(this, this.b);
   this.A = 2;
 };
 _.UC = function tFh() {
@@ -442010,10 +440999,10 @@ Runtime_defineClass(936, 36, { 20: 1, 30: 1, 36: 1, 936: 1 }, xFh);
 _.T1 = function yFh() {
   this.a = new Z9f(l5f(uaj));
   this.a.db.b = 2;
-  _ag(this, this.a);
+  Group_$add(this, this.a);
   this.b = new Z9f(l5f(-16724992));
   this.b.db.b = 2;
-  _ag(this, this.b);
+  Group_$add(this, this.b);
 };
 _.Mbb = function zFh() {
   return this.c;
@@ -442134,11 +441123,11 @@ _.T1 = function QGh() {
   uDh(this);
   this.c = new TGh();
   zGh(this.c, false);
-  _ag(this, this.c);
+  Group_$add(this, this.c);
 };
 _.UC = function RGh() {
   vDh(this);
-  nfg(this.c, this.C + 2, this.D + 3, this.B - 2, this.A - 6);
+  Component_$setRect(this.c, this.C + 2, this.D + 3, this.B - 2, this.A - 6);
 };
 _.ri = function SGh() {
   var a, b;
@@ -442180,9 +441169,9 @@ var dUf = Class_createForClass(uLj, "LootIndicator/1", SMi, cUf);
 Runtime_defineClass(938, 46, { 20: 1, 30: 1, 46: 1, 36: 1, 938: 1 }, VGh);
 _.T1 = function WGh() {
   this.k = new Tfg(this);
-  _ag(this, this.k);
+  Group_$add(this, this.k);
   this.a = lGh((hGh(), UFh));
-  _ag(this, this.a);
+  Group_$add(this, this.a);
 };
 _.UC = function XGh() {
   Gfg(this);
@@ -442190,7 +441179,7 @@ _.UC = function XGh() {
   this.a.hb = this.D;
 };
 _.a2 = function YGh() {
-  _ag(this.mb, new AOh(false));
+  Group_$add(this.mb, new AOh(false));
 };
 _.c2 = function ZGh() {
   y7f(this.a, 1.5);
@@ -442209,13 +441198,13 @@ Runtime_defineClass(
 );
 _.T1 = function nHh() {
   this.k = new Tfg(this);
-  _ag(this, this.k);
+  Group_$add(this, this.k);
   this.d = new DHh(this);
   this.d.n = (mWg(), cWg);
-  _ag(this, this.d);
+  Group_$add(this, this.d);
   this.a = lGh((hGh(), bGh));
   this.a.nb = false;
-  _ag(this, this.a);
+  Group_$add(this, this.a);
   this.b = new X9f();
   R9f(this.b, this.a);
 };
@@ -442241,8 +441230,8 @@ _.Rbb = function rHh(a) {
 _.UC = function sHh() {
   Gfg(this);
   kfg(this.d, this);
-  this.a.gb = $qf((this.C + (this.B - this.a.fb) / 2) * nth) / nth;
-  this.a.hb = $qf((this.D + (this.A - this.a.$) / 2) * nth) / nth;
+  this.a.gb = Cast_round_int((this.C + (this.B - this.a.fb) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.a.hb = Cast_round_int((this.D + (this.A - this.a.$) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
 };
 _.a2 = function tHh() {
   hvh(this, (SKh(), MKh), yaj);
@@ -442308,12 +441297,12 @@ Runtime_defineClass(
 _.T1 = function JHh() {
   uDh(this);
   this.a = lGh((hGh(), VFh));
-  _ag(this, this.a);
+  Group_$add(this, this.a);
 };
 _.UC = function KHh() {
   vDh(this);
-  this.a.gb = Bth(yth, this.C + 1 + (this.B - this.a.fb) / 2);
-  this.a.hb = Bth(yth, this.D + (this.A - this.a.$) / 2);
+  this.a.gb = PixelScene_align(PixelScene_uiCamera, this.C + 1 + (this.B - this.a.fb) / 2);
+  this.a.hb = PixelScene_align(PixelScene_uiCamera, this.D + (this.A - this.a.$) / 2);
 };
 _.a2 = function LHh() {
   qvg((Fjg(), Dungeon.hero));
@@ -442336,7 +441325,7 @@ _.m1 = function QHh(a) {
     this.b = false;
     this.d.i.T = 0.5;
   } else {
-    b = p9f(this.d.b.kb, $qf(a.a.a), $qf(a.a.b));
+    b = p9f(this.d.b.kb, Cast_round_int(a.a.a), Cast_round_int(a.a.b));
     this.d.Cbb(b.a, b.b);
   }
 };
@@ -442362,8 +441351,8 @@ var kUf = Class_createForClass(uLj, "ScrollPane/TouchController", aEi, sGf);
 Runtime_defineClass(701, 36, GNj, THh);
 _.T1 = function UHh() {
   this.b = new X9f();
-  _ag(this, this.b);
-  _ag(this, new XHh(this, this.b));
+  Group_$add(this, this.b);
+  Group_$add(this, new XHh(this, this.b));
 };
 _.UC = function VHh() {
   this.b.gb = this.C;
@@ -442385,51 +441374,51 @@ var mUf = Class_createForClass(uLj, "SimpleButton/1", CMi, sGf);
 Runtime_defineClass(941, 36, { 20: 1, 30: 1, 36: 1, 941: 1 }, aIh);
 _.T1 = function bIh() {
   this.t = new _bg(TGj, 80, 0, 48, 0);
-  _ag(this, this.t);
-  _ag(this, new gIh());
+  Group_$add(this, this.t);
+  Group_$add(this, new gIh());
   this.c = new jIh();
-  _ag(this, this.c);
+  Group_$add(this, this.c);
   this.a = mBh((Fjg(), Dungeon.hero).j, this.p);
-  _ag(this, this.a);
+  Group_$add(this, this.a);
   this.b = new Meg(this.a);
   zeg(this.b, (nSg(), mSg), Dii, 0);
   this.b.e = false;
   this.b.n = false;
-  _ag(this, this.b);
+  Group_$add(this, this.b);
   this.e = new MEh(Dungeon.level.s);
-  _ag(this, this.e);
+  Group_$add(this, this.e);
   this.j = new Z9f(UGj);
-  _ag(this, this.j);
+  Group_$add(this, this.j);
   this.i = new Z9f(VGj);
-  _ag(this, this.i);
+  Group_$add(this, this.i);
   this.q = new t8f(qth);
   D7f(this.q, 16772004);
-  _ag(this, this.q);
+  Group_$add(this, this.q);
   this.g = new u8f("" + Dungeon.depth, qth);
   D7f(this.g, naj);
   this.g.G_();
-  _ag(this, this.g);
+  Group_$add(this, this.g);
   tsg(Dungeon.hero.d);
   this.k = new t8f(qth);
   D7f(this.k, naj);
-  _ag(this, this.k);
+  Group_$add(this, this.k);
   this.f = new OEh();
-  _ag(this, this.f);
+  Group_$add(this, this.f);
   this.r = new PGh();
-  _ag(this, this.r);
+  Group_$add(this, this.r);
   this.s = new IHh();
-  _ag(this, this.s);
+  Group_$add(this, this.s);
   this.d = new yEh(Dungeon.hero);
-  _ag(this, this.d);
+  Group_$add(this, this.d);
 };
 _.UC = function cIh() {
   this.A = 32;
   this.t.i0(this.B, this.t.$);
-  this.a.gb = Bth(
+  this.a.gb = PixelScene_align(
     this.kb ? this.kb : this.mb ? this.mb.c_() : null,
     this.t.gb + 15 - this.a.fb / 2,
   );
-  this.a.hb = Bth(
+  this.a.hb = PixelScene_align(
     this.kb ? this.kb : this.mb ? this.mb.c_() : null,
     this.t.hb + 16 - this.a.$ / 2,
   );
@@ -442441,8 +441430,8 @@ _.UC = function cIh() {
   this.g.hb = 6;
   this.k.hb = 6;
   _Hh(this);
-  mfg(this.d, 32, 11);
-  mfg(this.c, this.B - this.c.B, 1);
+  Component_$setPos(this.d, 32, 11);
+  Component_$setPos(this.c, this.B - this.c.B, 1);
 };
 _.Zbb = function dIh() {
   _Hh(this);
@@ -442479,15 +441468,15 @@ _.ri = function eIh() {
       zeg(a, (gRg(), jRg(1, false)), 0, 12);
     }
     this.o = Dungeon.hero.o;
-    q8f(this.q, "" + this.o);
+    BitmapText_$text(this.q, "" + this.o);
     this.q.G_();
-    this.q.gb = $qf((27.5 - O7f(this.q) / 2) * nth) / nth;
-    this.q.hb = $qf((28 - this.q.D_() / 2) * nth) / nth;
+    this.q.gb = Cast_round_int((27.5 - O7f(this.q) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+    this.q.hb = Cast_round_int((28 - this.q.D_() / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
   }
   c = (Xsg(), B3g);
   if (c != this.n) {
     this.n = c;
-    q8f(this.k, "" + this.n);
+    BitmapText_$text(this.k, "" + this.n);
     this.k.G_();
     this.k.gb = this.B - 8 - O7f(this.k) - 18;
   }
@@ -442516,7 +441505,7 @@ _.p1 = function iIh(a) {
       StatusPane$1_$onClick();
       break;
     case 2:
-      ivh(new uLh());
+      ivh(new WndCatalogus());
       break;
     case 3:
       ivh(new cNh());
@@ -442530,9 +441519,9 @@ var oUf = Class_createForClass(uLj, "StatusPane/1", TMi, sGf);
 Runtime_defineClass(942, 46, { 20: 1, 30: 1, 46: 1, 36: 1, 942: 1 }, jIh);
 _.T1 = function kIh() {
   this.k = new Tfg(this);
-  _ag(this, this.k);
+  Group_$add(this, this.k);
   this.a = new $9f(TGj, 114, 3, 12, 11);
-  _ag(this, this.a);
+  Group_$add(this, this.a);
 };
 _.UC = function lIh() {
   Gfg(this);
@@ -442561,14 +441550,14 @@ _.a2 = function rIh() {
 var sUf = Class_createForClass(uLj, "Toast/1", rLi, nUf);
 Runtime_defineClass(922, 36, { 20: 1, 30: 1, 36: 1, 922: 1 }, xIh);
 _.T1 = function yIh() {
-  _ag(this, (this.f = new PIh((mWg(), dWg))));
-  _ag(this, (this.e = new SIh(fWg)));
-  _ag(this, (this.a = new UIh(SVg)));
-  _ag(this, (this.b = new WIh(QVg)));
-  _ag(this, (this.c = new dJh(83, 7, 22, 25, true)));
-  _ag(this, (this.d = new dJh(83, 7, 22, 25, false)));
+  Group_$add(this, (this.f = new PIh((mWg(), dWg))));
+  Group_$add(this, (this.e = new SIh(fWg)));
+  Group_$add(this, (this.a = new UIh(SVg)));
+  Group_$add(this, (this.b = new WIh(QVg)));
+  Group_$add(this, (this.c = new dJh(83, 7, 22, 25, true)));
+  Group_$add(this, (this.d = new dJh(83, 7, 22, 25, false)));
   this.d.nb = dHh != null;
-  _ag(this, (this.i = new aJh()));
+  Group_$add(this, (this.i = new aJh()));
 };
 _.UC = function zIh() {
   vIh(this);
@@ -442593,7 +441582,7 @@ var sIh, tIh;
 var CUf = Class_createForClass(uLj, "Toolbar", 922, LGf);
 Runtime_defineClass(UMi, 1, XLj, DIh);
 _.m7 = function EIh(a) {
-  $uh(a);
+  GameScene_examineCell(a);
 };
 _.n7 = function FIh() {
   return "Select a cell to examine";
@@ -442639,7 +441628,7 @@ Runtime_defineClass(WMi, 236, HNj, WIh);
 _.T1 = function XIh() {
   GIh(this);
   this.a = new lFh();
-  _ag(this, this.a);
+  Group_$add(this, this.a);
 };
 _.UC = function YIh() {
   IIh(this);
@@ -442649,7 +441638,7 @@ _.a2 = function ZIh() {
   ivh(new gKh((Fjg(), Dungeon.hero).d.b, null, (SKh(), IKh), null));
 };
 _.b2 = function $Ih() {
-  ivh(new uLh());
+  ivh(new WndCatalogus());
   return true;
 };
 var yUf = Class_createForClass(uLj, "Toolbar/5", WMi, BUf);
@@ -442688,7 +441677,7 @@ Runtime_defineClass(
 _.T1 = function eJh() {
   GIh(this);
   this.a = new kHh();
-  _ag(this, this.a);
+  Group_$add(this, this.a);
 };
 _.v1 = function fJh(a) {
   eHh(this.a, a);
@@ -442696,12 +441685,12 @@ _.v1 = function fJh(a) {
 };
 _.UC = function gJh() {
   IIh(this);
-  nfg(this.a, this.C + 1, this.D + 2, this.B - 2, this.A - 2);
+  Component_$setRect(this.a, this.C + 1, this.D + 2, this.B - 2, this.A - 2);
 };
 var AUf = Class_createForClass(uLj, "Toolbar/QuickslotTool", 702, BUf);
 Runtime_defineClass(xKi, 164, KKj, hJh);
 _.m1 = function iJh(a) {
-  H7f(this.a.o, $qf(a.a.a), $qf(a.a.b)) || this.a.e1();
+  H7f(this.a.o, Cast_round_int(a.a.a), Cast_round_int(a.a.b)) || this.a.e1();
 };
 var DUf = Class_createForClass(uLj, "Window/1", xKi, sGf);
 Runtime_defineClass(gEi, 1, { 1327: 1 }, jJh);
@@ -442718,12 +441707,12 @@ _.m_ = function KJh(a) {
 };
 _.T1 = function LJh() {
   this.c = new X9f();
-  _ag(this, this.c);
+  Group_$add(this, this.c);
   this.d = Fth(null, 9);
   D7f(this.d, zaj);
-  _ag(this, this.d);
+  Group_$add(this, this.d);
   this.a = new rFh();
-  _ag(this, this.a);
+  Group_$add(this, this.a);
 };
 _.acb = function MJh(a) {
   CJh(this, a);
@@ -442744,14 +441733,14 @@ _.b = 0;
 var IUf = Class_createForClass(wLj, V2i, 194, LGf);
 Runtime_defineClass(703, 63, { 20: 1, 30: 1, 63: 1, 703: 1, 82: 1 }, RJh);
 var JUf = Class_createForClass(wLj, "WndBadge", 703, EUf);
-Runtime_defineClass(240, 63, { 20: 1, 30: 1, 63: 1, 240: 1, 82: 1 }, VJh);
-_.dcb = function WJh(a) {
+Runtime_defineClass(240, 63, { 20: 1, 30: 1, 63: 1, 240: 1, 82: 1 }, WndTabbed);
+_.dcb = function WndTabbed_add(a) {
   return SJh(this, a);
 };
-_.ecb = function XJh(a) {
+_.ecb = function WndTabbed_onClick(a) {
   UJh(this, a);
 };
-_.K5 = function YJh(a) {
+_.K5 = function WndTabbed_onKeyDown(a) {
   var b, c, d;
   if (a.b == 61) {
     c = 0;
@@ -442765,16 +441754,16 @@ _.K5 = function YJh(a) {
     UJh(this, U0h(this.k, c));
   }
 };
-_.X_ = function ZJh(a, b) {
-  TJh(this, a, b);
+_.X_ = function WndTabbed_resize(a, b) {
+  WndTabbed_$resize(this, a, b);
 };
-_.sab = function $Jh(a) {
+_.sab = function WndTabbed_selectI(a) {
   UJh(this, U0h(this.k, a));
 };
-_.fcb = function _Jh(a) {
+_.fcb = function WndTabbed_selectL(a) {
   UJh(this, a);
 };
-_.gcb = function aKh() {
+_.gcb = function WndTabbed_tabHeight() {
   return 25;
 };
 var uWf = Class_createForClass(wLj, "WndTabbed", 240, EUf);
@@ -442885,7 +441874,7 @@ Runtime_defineClass(
 );
 _.T1 = function BKh() {
   this.a = new jag(28, 28, Aaj);
-  _ag(this, this.a);
+  Group_$add(this, this.a);
   vGh(this);
 };
 _.Rbb = function CKh(a) {
@@ -442902,14 +441891,14 @@ _.Rbb = function CKh(a) {
     }
     if (bKh.b.A > 0 && a.b4() && a.v) {
       this.b = Zpf(_Ff, dcj, 228, 3, 0, 1);
-      d = $qf(FRh(0, $qf($wnd.Math.round((3 * a.s) / a.d4(a.u))), 3));
+      d = Cast_round_int(FRh(0, Cast_round_int($wnd.Math.round((3 * a.s) / a.d4(a.u))), 3));
       for (c = 0; c < d; c++) {
         this.b[c] = new jag(2, 2, vaj);
-        _ag(this, this.b[c]);
+        Group_$add(this, this.b[c]);
       }
       for (b = d; b < 3; b++) {
         this.b[b] = new jag(2, 2, uaj);
-        _ag(this, this.b[b]);
+        Group_$add(this, this.b[b]);
       }
     }
     a.XX() == null
@@ -442948,7 +441937,7 @@ _.a2 = function EKh() {
     BHg(this.d);
     this.d.c.T5(this.c);
   } else {
-    B6f ? zKh(this) : _ag(this.d, new _Mh(this.d, this.c));
+    B6f ? zKh(this) : Group_$add(this.d, new _Mh(this.d, this.c));
   }
 };
 _.b2 = function FKh() {
@@ -442996,9 +441985,9 @@ var QUf = Class_createForClass(wLj, "WndBlacksmith/1", XMi, WXf);
 Runtime_defineClass(450, 36, JNj, dLh);
 _.T1 = function eLh() {
   this.b = ajg((kjg(), bjg));
-  _ag(this, this.b);
+  Group_$add(this, this.b);
   this.d = new oLh(this);
-  _ag(this, this.d);
+  Group_$add(this, this.d);
 };
 _.Rbb = function fLh(a) {
   cLh(this, a);
@@ -443007,7 +441996,7 @@ _.UC = function gLh() {
   this.b.gb = this.C;
   this.b.hb = this.D;
   this.b.i0(this.B, this.A);
-  nfg(this.d, this.C + 2, this.D + 2, this.B - 4, this.A - 4);
+  Component_$setRect(this.d, this.C + 2, this.D + 2, this.B - 4, this.A - 4);
 };
 _.a2 = function hLh() {};
 var VUf = Class_createForClass(wLj, "WndBlacksmith/ItemButton", 450, LGf);
@@ -443045,7 +442034,7 @@ Runtime_defineClass(
   546,
   240,
   { 20: 1, 30: 1, 63: 1, 546: 1, 240: 1, 82: 1 },
-  uLh,
+  WndCatalogus,
 );
 _.L5 = function vLh(a) {
   Xqf(a.a) === Xqf((mWg(), RVg)) ? (gbg(this.mb, this), AHg(this)) : undefined;
@@ -443069,14 +442058,14 @@ var XUf = Class_createForClass(wLj, "WndCatalogus/1", $Mi, lUf);
 Runtime_defineClass(231, 241, KNj);
 _.T1 = function ALh() {
   this.k = new Tfg(this);
-  _ag(this, this.k);
-  this.b = Gth(null, 9);
-  _ag(this, this.b);
+  Group_$add(this, this.k);
+  this.b = PixelScene_createText(null, 9);
+  Group_$add(this, this.b);
 };
 _.UC = function BLh() {
   pKh(this);
-  this.b.gb = $qf((this.C + (this.B - O7f(this.b)) / 2) * nth) / nth;
-  this.b.hb = $qf((this.D + (this.A - this.b.D_()) / 2) * nth) / nth - 1;
+  this.b.gb = Cast_round_int((this.C + (this.B - O7f(this.b)) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.b.hb = Cast_round_int((this.D + (this.A - this.b.D_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom - 1;
   this.e || (this.b.hb -= 2);
 };
 _.jcb = function CLh(a) {
@@ -443103,19 +442092,19 @@ var ZUf = Class_createForClass(wLj, "WndCatalogus/3", aNi, sWf);
 Runtime_defineClass(945, 36, { 20: 1, 30: 1, 36: 1, 945: 1 }, ILh);
 _.T1 = function JLh() {
   this.d = new TNg();
-  _ag(this, this.d);
+  Group_$add(this, this.d);
   this.f = new t8f(qth);
   D7f(this.f, zaj);
-  _ag(this, this.f);
-  this.c = Gth(null, 8);
-  _ag(this, this.c);
+  Group_$add(this, this.f);
+  this.c = PixelScene_createText(null, 8);
+  Group_$add(this, this.c);
 };
 _.UC = function KLh() {
-  this.d.hb = $qf((this.D + (this.A - this.d.$) / 2) * nth) / nth;
+  this.d.hb = Cast_round_int((this.D + (this.A - this.d.$) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
   this.f.gb = this.d.gb;
   this.f.hb = this.d.hb;
   this.c.gb = this.d.gb + this.d.fb;
-  this.c.hb = $qf((this.D + (this.A - this.c.D_()) / 2) * nth) / nth;
+  this.c.hb = Cast_round_int((this.D + (this.A - this.c.D_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
 };
 _.Ebb = function LLh(a, b) {
   return HLh(this, a, b);
@@ -443214,9 +442203,9 @@ _.a2 = function WndGame$3_onClick() {
 };
 var oVf = Class_createForClass(wLj, "WndGame/3", iNi, iUf);
 Runtime_defineClass(jNi, 53, YLj, oMh);
-_.a2 = function pMh() {
+_.a2 = function WndGame$4_onClick() {
   xvh = (dwh(), $vh);
-  qag.i = WRf;
+  qag.i = "RankingsScene";
   qag.e = true;
 };
 var pVf = Class_createForClass(wLj, "WndGame/4", jNi, iUf);
@@ -443288,7 +442277,7 @@ var zVf = Class_createForClass(wLj, "WndHero/StatsTab", LHi, cGf);
 Runtime_defineClass(nNi, 53, YLj, LMh);
 _.a2 = function MMh() {
   BHg(this.a.b);
-  ivh(new uLh());
+  ivh(new WndCatalogus());
 };
 var xVf = Class_createForClass(wLj, "WndHero/StatsTab/1", nNi, iUf);
 Runtime_defineClass(oNi, 53, YLj, NMh);
@@ -443340,8 +442329,8 @@ _.UC = function ZMh() {
   this.d.gb = this.c.fb + 2;
   this.d.hb = this.c.$ - this.b.A - 2 - this.d.D_();
   a = this.B - this.c.fb - 2;
-  nfg(this.b, this.c.fb + 2, this.c.$ - this.b.A, a, this.b.A);
-  mfg(this.a, this.d.gb + O7f(this.d) + 2, this.d.hb + this.d.D_() - 7);
+  Component_$setRect(this.b, this.c.fb + 2, this.c.$ - this.b.A, a, this.b.A);
+  Component_$setPos(this.a, this.d.gb + O7f(this.d) + 2, this.d.hb + this.d.D_() - 7);
   this.A = hfg(this.b);
 };
 var EVf = Class_createForClass(wLj, "WndInfoMob/MobTitle", 950, LGf);
@@ -443363,19 +442352,19 @@ _.L5 = function dNh(a) {
 var KVf = Class_createForClass(wLj, t3i, 707, EUf);
 Runtime_defineClass(952, 36, { 20: 1, 30: 1, 36: 1, 952: 1 }, eNh);
 _.T1 = function fNh() {
-  this.b = Gth(null, 9);
-  _ag(this, this.b);
+  this.b = PixelScene_createText(null, 9);
+  Group_$add(this, this.b);
   this.a = new t8f(qth);
-  _ag(this, this.a);
+  Group_$add(this, this.a);
   this.c = lGh((hGh(), PFh));
-  _ag(this, this.c);
+  Group_$add(this, this.c);
 };
 _.UC = function gNh() {
   this.c.gb = this.B - this.c.fb;
   this.a.gb = this.c.gb - 1 - O7f(this.a);
-  this.a.hb = $qf((this.D + (this.A - E7f(this.a)) / 2) * nth) / nth;
+  this.a.hb = Cast_round_int((this.D + (this.A - E7f(this.a)) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
   this.c.hb = this.a.hb - 1;
-  this.b.hb = $qf((this.a.hb + this.a.D_() - this.b.D_()) * nth) / nth;
+  this.b.hb = Cast_round_int((this.a.hb + this.a.D_() - this.b.D_()) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
 };
 var JVf = Class_createForClass(wLj, "WndJournal/ListItem", 952, LGf);
 Runtime_defineClass(953, 63, { 20: 1, 30: 1, 63: 1, 953: 1, 82: 1 }, jNh);
@@ -443413,12 +442402,12 @@ _.b = 0;
 var NVf = Class_createForClass(wLj, "WndKeymap/KeyPair", 954, WXf);
 Runtime_defineClass(RDi, 36, { 20: 1, 30: 1, 36: 1, 1334: 1 }, xNh);
 _.T1 = function yNh() {
-  this.a = Gth(null, 9);
-  _ag(this, this.a);
-  this.c = Gth(null, 9);
-  _ag(this, this.c);
-  this.d = Gth(null, 9);
-  _ag(this, this.d);
+  this.a = PixelScene_createText(null, 9);
+  Group_$add(this, this.a);
+  this.c = PixelScene_createText(null, 9);
+  Group_$add(this, this.c);
+  this.d = PixelScene_createText(null, 9);
+  Group_$add(this, this.d);
 };
 _.wcb = function zNh(a) {
   return sNh(this, a);
@@ -443477,30 +442466,30 @@ Runtime_defineClass(
   955,
   240,
   { 20: 1, 30: 1, 63: 1, 955: 1, 240: 1, 82: 1 },
-  MNh,
+  WndRanking,
 );
-_.zcb = function NNh() {
-  LNh(this);
+_.zcb = function WndRanking_createControls() {
+  WndRanking_$createControls(this);
 };
-_.ri = function ONh() {
+_.ri = function WndRanking_update() {
   mbg(this);
   if (!!this.c && !this.c.a) {
     this.c = null;
     if (this.b == null) {
       kbg(this, this.a);
-      LNh(this);
+      WndRanking_$createControls(this);
     } else {
       gbg(this.mb, this);
       AHg(this);
-      _ag(qag.g, new Vvh(abj));
+      Group_$add(qag.g, new Vvh(abj));
     }
   }
 };
-var cWf = Class_createForClass(wLj, z3i, 955, uWf);
+var cWf = Class_createForClass(wLj, "WndRanking", 955, uWf);
 Runtime_defineClass(vNi, 1, _li, PNh);
-_.bm = function QNh() {
+_.bm = function WndRanking$1_run() {
   try {
-    pgg();
+    Badges_loadGlobal();
     Fjg();
     Dungeon_loadGame(this.b, false);
   } catch (a) {
@@ -443521,7 +442510,7 @@ _.UC = function WNh() {
   TNh(this);
 };
 _.a2 = function XNh() {
-  _ag(qag.g, new _Mh(null, this.c));
+  Group_$add(qag.g, new _Mh(null, this.c));
 };
 _.c2 = function YNh() {
   y7f(this.b, 1.5);
@@ -443549,8 +442538,8 @@ Runtime_defineClass(
 );
 _.T1 = function eOh() {
   SNh(this);
-  this.a = Gth("?", 7);
-  _ag(this, this.a);
+  this.a = PixelScene_createText("?", 7);
+  Group_$add(this, this.a);
 };
 _.UC = function fOh() {
   var a;
@@ -443558,12 +442547,12 @@ _.UC = function fOh() {
   this.a.gb = lfg(this.d) + 2;
   this.a.hb = this.D + (this.A - this.a.D_()) / 2;
   a = xJh(this.c.XX());
-  q8f(this.a, a);
+  BitmapText_$text(this.a, a);
   this.a.G_();
   if (O7f(this.a) > this.B - this.a.gb) {
     do {
       a = IYh(a, 0, a.length - 1);
-      q8f(this.a, a + fmi);
+      BitmapText_$text(this.a, a + fmi);
       this.a.G_();
     } while (O7f(this.a) > this.B - this.a.gb);
   }
@@ -443588,7 +442577,7 @@ _.Ccb = function kOh(a, b, c, d) {
 var bWf = Class_createForClass(wLj, "WndRanking/StatsTab", kDi, cGf);
 Runtime_defineClass(uNi, 53, YLj, lOh);
 _.a2 = function mOh() {
-  _ag(qag.g, new qxh((Fjg(), Dungeon.challenges), false));
+  Group_$add(qag.g, new qxh((Fjg(), Dungeon.challenges), false));
 };
 var aWf = Class_createForClass(wLj, "WndRanking/StatsTab/1", uNi, iUf);
 Runtime_defineClass(956, 63, { 20: 1, 30: 1, 63: 1, 956: 1, 82: 1 }, pOh);
@@ -443602,7 +442591,7 @@ var fWf = Class_createForClass(wLj, B3i, 956, EUf);
 Runtime_defineClass(wNi, 53, YLj, sOh);
 _.a2 = function WndResurrect$1_onClick() {
   BHg(this.a);
-  ++dmg;
+  ++Statistics_ankhsUsed;
   xvh = (dwh(), bwh);
   qag.i = PRf;
   qag.e = true;
@@ -443612,7 +442601,7 @@ Runtime_defineClass(xNi, 53, YLj, uOh);
 
 _.a2 = function WndResurrect$2_onClick() {
   BHg(this.a);
-  submitRanking((Jlg(), rankings), false);
+  Rankings.submit(false);
   mwg(nOh);
 };
 
@@ -443636,32 +442625,32 @@ _.N5 = function xOh(a) {
 };
 var gWf = Class_createForClass(wLj, C3i, 550, VVf);
 Runtime_defineClass(551, 63, { 20: 1, 30: 1, 63: 1, 551: 1, 82: 1 }, AOh);
-_.Dcb = function BOh() {
-  return tag > pag ? pbj : qbj;
+_.Dcb = function WndSettings_orientationText() {
+  return Game_width > Game_height ? pbj : qbj;
 };
-_.Ecb = function COh() {
+_.Ecb = function WndSettings_resolutionText() {
   return qag.d.a ? sbj : rbj;
 };
-_.Fcb = function DOh() {
+_.Fcb = function WndSettings_updateEnabled() {
   yOh(this);
 };
-_.Gcb = function EOh(a) {
+_.Gcb = function WndSettings_zoom(a) {
   zOh(this, a);
 };
 var pWf = Class_createForClass(wLj, D3i, 551, EUf);
 Runtime_defineClass(ENi, 53, YLj, FOh);
 _.a2 = function GOh() {
-  zOh(this.a, (g9f(), f9f).s - 1);
+  zOh(this.a, (g9f(), Camera_main).s - 1);
 };
 var hWf = Class_createForClass(wLj, "WndSettings/1", ENi, iUf);
 Runtime_defineClass(pDi, 53, YLj, HOh);
 _.a2 = function IOh() {
-  zOh(this.a, (g9f(), f9f).s + 1);
+  zOh(this.a, (g9f(), Camera_main).s + 1);
 };
 var iWf = Class_createForClass(wLj, "WndSettings/2", pDi, iUf);
 Runtime_defineClass(FNi, 53, YLj, JOh);
 _.a2 = function KOh() {
-  zOh(this.a, nth);
+  zOh(this.a, PixelScene_defaultZoom);
 };
 var jWf = Class_createForClass(wLj, "WndSettings/3", FNi, iUf);
 Runtime_defineClass(qDi, 265, ENj, LOh);
@@ -443691,7 +442680,7 @@ _.a2 = function SOh() {
 var nWf = Class_createForClass(wLj, "WndSettings/8", rDi, PTf);
 Runtime_defineClass(HNi, 53, YLj, TOh);
 _.a2 = function UOh() {
-  _ag(this.mb, new jNh());
+  Group_$add(this.mb, new jNh());
 };
 var oWf = Class_createForClass(wLj, "WndSettings/9", HNi, iUf);
 Runtime_defineClass(FMi, 164, KKj, VOh);
@@ -444515,7 +443504,7 @@ Runtime_defineClass(722, 119, { 119: 1, 3: 1, 722: 1, 43: 1, 77: 1 }, jVh);
 var oXf = Class_createForClass(D9h, "UnsupportedEncodingException", 722, gXf);
 Runtime_defineClass(391, 1, { 391: 1, 714: 1, 723: 1 });
 _.gZ = function mVh(a) {
-  return nYh(this.a, a);
+  return String_$charAt(this.a, a);
 };
 _.hZ = function nVh() {
   return this.a.length;
@@ -444620,10 +443609,10 @@ _.ceb = function TWh() {
   return this.a;
 };
 _.Mb = function UWh() {
-  return $qf(this.a);
+  return Cast_round_int(this.a);
 };
 _.deb = function VWh() {
-  return $qf(this.a);
+  return Cast_round_int(this.a);
 };
 _.eeb = function WWh() {
   return D$f(this.a);
@@ -446372,13 +445361,13 @@ _.Kb = function g7h(a) {
   }
   return false;
 };
-_.Mb = function h7h() {
+_.Mb = function Locale_hashCode() {
   return l9h(this.b) + l9h(this.c) + l9h(this.d);
 };
-_.Nb = function k7h() {
+_.Nb = function Locale_toString() {
   var a;
   a = this.a;
-  a == null && (a = this.a = j7h(this.c, this.b, this.d));
+  a == null && (a = this.a = Locale_toNewString(this.c, this.b, this.d));
   return a;
 };
 var b7h, c7h, d7h;
@@ -446645,18 +445634,18 @@ a_f("permProps", [
   ],
 ]);
 
-export function loadGame() {
+export async function loadGame() {
+  Rankings.load();
+    window.webxdc.setUpdateListener((update) => {
+        Rankings.onRecord(update.payload);
+        if(update.serial === update.maxSerial) {
+            localStorage.maxSerial = update.maxSerial;
+            Rankings.save();
+        }
+    }, parseInt(localStorage.maxSerial || "0"));
+
   StackTraceCreator_collector = !supportsErrorStack()
     ? new StackTraceCreator$CollectorLegacy()
     : new StackTraceCreator$CollectorModernNoSourceMap();
   onModuleLoad(new HtmlLauncher());
 }
-
-// TODO: sync updates from others
-/*
-window.webxdc.setUpdateListener((update) => {
-    if(update.serial === update.maxSerial) {
-        localStorage.maxSerial = update.maxSerial;
-    }
-}, parseInt(localStorage.maxSerial || "0"));
-*/
