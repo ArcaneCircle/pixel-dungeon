@@ -12884,7 +12884,7 @@ function c5d(a, b) {
 function f5d(a, b) {
   return Gnb(a, b, null);
 }
-function mjf(a, b) {
+function TextureFilm_$height(a, b) {
   return (b.a - b.d) * a.g;
 }
 function TextureFilm_$width(a, b) {
@@ -34105,7 +34105,7 @@ function roc(a, b) {
     e.c = x$f(e.c, b);
   }
 }
-function fbg(a) {
+function Group_$draw(a) {
   var b, c;
   for (c = 0; c < a.F; c++) {
     b = U0h(a.G, c);
@@ -35287,7 +35287,13 @@ function Inf(a) {
   (sYh(a.compatMode, cKj) ? a.documentElement : a.body).style["overflow"] = pai;
 }
 function BitmapText$Font_$get(a, b) {
-  return TextureFilm_$get(a, Character_valueOf(a.a ? String_$charAt(String.fromCharCode(b).toUpperCase(), 0) : b));
+    let character = Character_valueOf(a.a ? String_$charAt(String.fromCharCode(b).toUpperCase(), 0) : b)
+    let letter = TextureFilm_$get(a, character);
+    if (!letter) {
+        character = Character_valueOf(String_$charAt("?", 0));
+        letter = TextureFilm_$get(a, character);
+    }
+  return letter;
 }
 function Luh(a, b) {
   zuh();
@@ -52621,7 +52627,7 @@ function G8f(a, b, c) {
   for (e = 0; e < f; e++) {
     g = BitmapText$Font_$get(a.g, (b9h(e, b.length), b.charCodeAt(e)));
     h += TextureFilm_$width(a.g, g) + (h > 0 ? a.g.e : 0);
-    d = $wnd.Math.max(d, mjf(a.g, g));
+    d = $wnd.Math.max(d, TextureFilm_$height(a.g, g));
   }
   c.a = h;
   c.b = d;
@@ -53185,7 +53191,7 @@ function BitmapText_$measure(a) {
   for (c = 0; c < d; c++) {
     e = BitmapText$Font_$get(a.g, String_$charAt(a.k, c));
     f = TextureFilm_$width(a.g, e);
-    b = mjf(a.g, e);
+    b = TextureFilm_$height(a.g, e);
     a.fb += f + a.g.e;
     b > a.$ && (a.$ = b);
   }
@@ -53410,7 +53416,7 @@ function Game_$render(a) {
   (x4f(), D4f(iGf)).c = null;
   rf(dc, 0, 0, Game_width, Game_height);
   dc.d.clear(Vii);
-  fbg(a.g);
+  Group_$draw(a.g);
 }
 function Fmg(a, b) {
   var c, d;
@@ -63487,8 +63493,10 @@ function RankingsScene$Record(pos, latest, rec) {
   BitmapText_$text(this.d, "" + (pos + 1));
   this.d.G_();
 
-    BitmapText_$text(this.b, rec.info);
-    BitmapTextMultiline_$measure(this.b);
+  const name = rec.playerName.slice(0, 15);
+  BitmapText_$text(this.b, `${name}: ${rec.info}`);
+  BitmapTextMultiline_$measure(this.b);
+
   if (rec.win) {
     SNg(this.f, 87, null);
     D7f(this.d, eaj);
@@ -79353,7 +79361,7 @@ function zjf(a, b, c, d, e) {
     }
   }
   cQh((Uk(), Tk), rXh(k.n));
-  a.c = a.b = mjf(a, ZPh(a.f, Character_valueOf((b9h(0, e.length), e.charCodeAt(0)))));
+  a.c = a.b = TextureFilm_$height(a, ZPh(a.f, Character_valueOf((b9h(0, e.length), e.charCodeAt(0)))));
 }
 function YMe() {
   if (Bnd) return Bnd;
@@ -420250,7 +420258,7 @@ _.AZ = function tjf(a) {
   return TextureFilm_$get(this, a);
 };
 _.BZ = function ujf(a) {
-  return mjf(this, a);
+  return TextureFilm_$height(this, a);
 };
 _.CZ = function vjf(a) {
   return TextureFilm_$width(this, a);
@@ -421518,7 +421526,7 @@ _.D_ = function v8f() {
 _.C$ = function w8f() {
   o8f(this);
 };
-_.jj = function x8f() {
+_.jj = function BitmapText_draw() {
   var a;
   r8f(this);
   a = (x4f(), D4f(iGf));
@@ -421551,7 +421559,7 @@ _.A_ = function D8f() {
   r8f(this);
 };
 
-_.J_ = function E8f() {
+_.J_ = function BitmapText_updateVertices() {
   var a, b, c, d, e;
   this.fb = 0;
   this.$ = 0;
@@ -421567,7 +421575,7 @@ _.J_ = function E8f() {
     d = BitmapText$Font_$get(this.g, String_$charAt(this.k, b));
     !d && (d = null);
     e = TextureFilm_$width(this.g, d);
-    a = mjf(this.g, d);
+    a = TextureFilm_$height(this.g, d);
     this.n[0] = this.fb;
     this.n[1] = 0;
     this.n[2] = d.b;
@@ -421632,7 +421640,7 @@ _.J_ = function O8f() {
       for (d = 0; d < e; d++) {
         i = BitmapText$Font_$get(this.g, (b9h(d, l.length), l.charCodeAt(d)));
         k = TextureFilm_$width(this.g, i);
-        a = mjf(this.g, i);
+        a = TextureFilm_$height(this.g, i);
         if (this.a == null || this.a[h]) {
           this.n[0] = n.g + j;
           this.n[1] = n.i;
@@ -421865,7 +421873,7 @@ _.qc = function Lag() {
   jeg((eeg(), deg));
 };
 _.jj = function Mag() {
-  fbg(this.g);
+  Group_$draw(this.g);
 };
 _.TB = function Nag() {};
 _.m0 = function Oag() {
@@ -421944,7 +421952,7 @@ _.C$ = function ubg() {
   ebg(this);
 };
 _.jj = function vbg() {
-  fbg(this);
+  Group_$draw(this);
 };
 _.z0 = function wbg(a) {
   return gbg(this, a);
@@ -422331,10 +422339,10 @@ _.C1 = function Ceg(a, b) {
 _.jj = function Deg() {
   if (this.k) {
     Ie(dc, 1);
-    fbg(this);
+    Group_$draw(this);
     Ie(dc, 771);
   } else {
-    fbg(this);
+    Group_$draw(this);
   }
 };
 _.D1 = function Eeg(a) {
@@ -427970,7 +427978,7 @@ var gKf = Class_createForClass(ELj, "DeathRay", 674, dGf);
 Runtime_defineClass(305, 30, { 20: 1, 30: 1, 305: 1 }, qNg);
 _.jj = function rNg() {
   Ie(dc, 1);
-  fbg(this);
+  Group_$draw(this);
   Ie(dc, 771);
 };
 _.ri = function sNg() {
@@ -428141,7 +428149,7 @@ _.T1 = function xOg() {
 };
 _.jj = function yOg() {
   Ie(dc, 1);
-  fbg(this);
+  Group_$draw(this);
   Ie(dc, 771);
 };
 _.UC = function zOg() {
@@ -428312,7 +428320,7 @@ var wKf = Class_createForClass(ELj, "IceBlock", 842, bGf);
 Runtime_defineClass(530, 30, { 20: 1, 30: 1, 530: 1 }, uPg);
 _.jj = function vPg() {
   Ie(dc, 1);
-  fbg(this);
+  Group_$draw(this);
   Ie(dc, 771);
 };
 _.ri = function wPg() {
@@ -428338,7 +428346,7 @@ var xKf = Class_createForClass(ELj, "Identification/Speck", 676, AGf);
 Runtime_defineClass(347, 30, { 20: 1, 30: 1, 347: 1 }, zPg);
 _.jj = function APg() {
   Ie(dc, 1);
-  fbg(this);
+  Group_$draw(this);
   Ie(dc, 771);
 };
 _.ri = function BPg() {
@@ -435818,7 +435826,7 @@ var RPf = Class_createForClass(MMj, "HallsLevel/FireParticle", fFi, zGf);
 Runtime_defineClass(883, 30, { 20: 1, 30: 1, 883: 1 }, Nkh);
 _.jj = function Okh() {
   Ie(dc, 1);
-  fbg(this);
+  Group_$draw(this);
   Ie(dc, 771);
 };
 _.ri = function Pkh() {
