@@ -1,190 +1,228 @@
 import { Dungeon } from "./dungeon.ts";
+import { Statistics } from "~/com/watabou/pixeldungeon/statistics.ts";
 
 const PixelDungeon = {
-    landscape: () => Game_width > Game_height,
-    fullscreen: function (a) {
-        var b, c, d, e;
-        c = (olg(), nlg);
-        d = qag.d;
-        if (a) {
-            !c.a && (c.a = td(ac, ZIj));
-            qg(c.a, WIj, true);
-            !c.a && (c.a = td(ac, ZIj));
-            lg(c.a);
-            eMg(d, Knf($doc), Jnf($doc));
-            d.a = true;
-        } else {
-            e = (!c.a && (c.a = td(ac, ZIj)), ng(c.a, XIj, 480));
-            b = (!c.a && (c.a = td(ac, ZIj)), ng(c.a, YIj, 800));
-            !c.a && (c.a = td(ac, ZIj));
-            qg(c.a, WIj, false);
-            !c.a && (c.a = td(ac, ZIj));
-            lg(c.a);
-            Of(fc, e, b);
-            d.a = false;
-        }
+  landscape: () => Game_width > Game_height,
+  fullscreen: function (a) {
+    var b, c, d, e;
+    c = (olg(), nlg);
+    d = qag.d;
+    if (a) {
+      !c.a && (c.a = td(ac, ZIj));
+      qg(c.a, WIj, true);
+      !c.a && (c.a = td(ac, ZIj));
+      lg(c.a);
+      eMg(d, Knf($doc), Jnf($doc));
+      d.a = true;
+    } else {
+      e = (!c.a && (c.a = td(ac, ZIj)), ng(c.a, XIj, 480));
+      b = (!c.a && (c.a = td(ac, ZIj)), ng(c.a, YIj, 800));
+      !c.a && (c.a = td(ac, ZIj));
+      qg(c.a, WIj, false);
+      !c.a && (c.a = td(ac, ZIj));
+      lg(c.a);
+      Of(fc, e, b);
+      d.a = false;
     }
-}
+  },
+};
 
 function RankingsScene() {
-	this.DEFAULT_COLOR	= 0xCCCCCC;
-	
-	this.TXT_TITLE		= "Top Rankings";
-	this.TXT_TOTAL		= "Games played: ";
-	this.TXT_NO_GAMES	= "No games have been played yet.";
+  this.DEFAULT_COLOR = 0xcccccc;
 
-	this.TXT_NO_INFO	= "No additional information";
-	
-	this.ROW_HEIGHT_L	= 22;
-	this.ROW_HEIGHT_P	= 28;
-	
-	this.MAX_ROW_WIDTH = 180;
-	
-	this.GAP	= 4;
-	
-	this.archs = null;
+  this.TXT_TITLE = "Top Rankings";
+  this.TXT_TOTAL = "Games played: ";
+  this.TXT_NO_GAMES = "No games have been played yet.";
 
-    PixelScene.call(this); // super()
+  this.TXT_NO_INFO = "No additional information";
 
-    this.add = function(gizmo) {
-        Group_$add(this, gizmo);
+  this.ROW_HEIGHT_L = 22;
+  this.ROW_HEIGHT_P = 28;
+
+  this.MAX_ROW_WIDTH = 180;
+
+  this.GAP = 4;
+
+  this.archs = null;
+
+  PixelScene.call(this); // super()
+
+  this.add = function (gizmo) {
+    Group_$add(this, gizmo);
+  };
+
+  this.fadeIn = function () {
+    PixelScene_noFade
+      ? (PixelScene_noFade = false)
+      : this.add(new Cwh(Pbi, false));
+  };
+
+  this.align = function (pos) {
+    return Math.floor(pos * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  };
+
+  this.create = function () {
+    PixelScene_$create(this);
+
+    Music_$play((Jdg(), Idg), SHj, true);
+    Music_$volume(Idg, 1);
+
+    PixelScene_uiCamera.nb = false;
+
+    const w = (g9f(), Camera_main).p;
+    const h = Camera_main.a;
+
+    this.archs = new Archs();
+    Component_$setSize(this.archs, w, h);
+    this.add(this.archs);
+
+    if (Rankings.records.length > 0) {
+      const rowHeight = PixelDungeon.landscape()
+        ? this.ROW_HEIGHT_L
+        : this.ROW_HEIGHT_P;
+      const left = (w - Math.min(this.MAX_ROW_WIDTH, w)) / 2 + this.GAP;
+      const top = this.align((h - rowHeight * Rankings.records.length) / 2);
+      const title = PixelScene_createText(this.TXT_TITLE, 9);
+      Visual_$hardlight(title, 1, 1, ILj);
+      BitmapText_$measure(title);
+      title.gb = this.align((w - title.fb * title.db.a) / 2);
+      title.hb = this.align(top - title.$ * title.db.b - this.GAP);
+      this.add(title);
+      let pos = 0;
+      const selfId = window.webxdc.selfAddr;
+      for (const rec of Rankings.records) {
+        const row = new RankingsScene$Record(pos, rec.playerId === selfId, rec);
+        Component_$setRect(
+          row,
+          left,
+          top + pos * rowHeight,
+          w - left * 2,
+          rowHeight,
+        );
+        this.add(row);
+        ++pos;
+      }
+      if (Rankings.totalNumber >= Rankings.TABLE_SIZE) {
+        const label = PixelScene_createText(this.TXT_TOTAL, 8);
+        Visual_$hardlight(
+          label,
+          this.DEFAULT_COLOR,
+          this.DEFAULT_COLOR,
+          this.DEFAULT_COLOR,
+        );
+        BitmapText_$measure(label);
+        this.add(label);
+
+        const won = PixelScene_createText("" + Rankings.wonNumber, 8);
+        Visual_$hardlight(won, 1, 1, ILj);
+        BitmapText_$measure(won);
+        this.add(won);
+
+        const total = PixelScene_createText("/" + Rankings.totalNumber, 8);
+        Visual_$hardlight(
+          total,
+          this.DEFAULT_COLOR,
+          this.DEFAULT_COLOR,
+          this.DEFAULT_COLOR,
+        );
+        BitmapText_$measure(total);
+        total.gb = this.align((w - total.fb * total.db.a) / 2);
+        total.hb = this.align(top + pos * rowHeight + this.GAP);
+        this.add(total);
+
+        const tw =
+          label.fb * label.db.a + won.fb * won.db.a + total.fb * total.db.a;
+        label.gb = this.align((w - tw) / 2);
+        won.gb = label.gb + label.fb * label.db.a;
+        total.gb = won.gb + won.fb * won.db.a;
+        label.hb =
+          won.hb =
+          total.hb =
+            this.align(top + pos * rowHeight + this.GAP);
+      }
+    } else {
+      const title = PixelScene_createText(this.TXT_NO_GAMES, 8);
+      Visual_$hardlight(
+        title,
+        this.DEFAULT_COLOR,
+        this.DEFAULT_COLOR,
+        this.DEFAULT_COLOR,
+      );
+      BitmapText_$measure(title);
+      title.gb = this.align((w - title.fb * title.db.a) / 2);
+      title.hb = this.align((h - title.$ * title.db.b) / 2);
+      this.add(title);
     }
 
-    this.fadeIn = function() {
-        PixelScene_noFade ? (PixelScene_noFade = false) : this.add(new Cwh(Pbi, false));
-    }
+    const btnExit = new UEh();
+    Component_$setPos(btnExit, Camera_main.p - btnExit.B, 0);
+    this.add(btnExit);
 
-    this.align = function(pos) {
-        return Math.floor(pos * PixelScene_defaultZoom) / PixelScene_defaultZoom;
-    }
-
-    this.create = function() {
-        PixelScene_$create(this);
-
-        Music_$play((Jdg(), Idg), SHj, true);
-        Music_$volume(Idg, 1);
-
-        PixelScene_uiCamera.nb = false;
-
-        const w = (g9f(), Camera_main).p;
-        const h = Camera_main.a;
-
-        this.archs = new Archs();
-        Component_$setSize(this.archs, w, h);
-        this.add(this.archs);
-
-        if (Rankings.records.length > 0) {
-            const rowHeight = PixelDungeon.landscape() ? this.ROW_HEIGHT_L : this.ROW_HEIGHT_P;
-            const left = (w - Math.min(this.MAX_ROW_WIDTH, w)) / 2 + this.GAP;
-            const top = this.align((h - rowHeight * Rankings.records.length) / 2)
-            const title = PixelScene_createText(this.TXT_TITLE, 9);
-            Visual_$hardlight(title, 1, 1, ILj);
-            BitmapText_$measure(title);
-            title.gb = this.align((w - title.fb * title.db.a) / 2);
-            title.hb = this.align(top - title.$ * title.db.b - this.GAP);
-            this.add(title);
-            let pos = 0;
-            const selfId = window.webxdc.selfAddr;
-            for (const rec of Rankings.records) {
-                const row = new RankingsScene$Record(pos, rec.playerId === selfId, rec);
-                Component_$setRect(row, left, top + pos * rowHeight, w - left * 2, rowHeight);
-                this.add(row);
-                ++pos;
-            }
-            if (Rankings.totalNumber >= Rankings.TABLE_SIZE) {
-                const label = PixelScene_createText(this.TXT_TOTAL, 8);
-                Visual_$hardlight(label, this.DEFAULT_COLOR, this.DEFAULT_COLOR, this.DEFAULT_COLOR);
-                BitmapText_$measure(label);
-                this.add(label);
-
-                const won = PixelScene_createText("" + Rankings.wonNumber, 8);
-                Visual_$hardlight(won, 1, 1, ILj);
-                BitmapText_$measure(won);
-                this.add(won);
-
-                const total = PixelScene_createText("/" + Rankings.totalNumber, 8);
-                Visual_$hardlight(total, this.DEFAULT_COLOR, this.DEFAULT_COLOR, this.DEFAULT_COLOR);
-                BitmapText_$measure(total);
-                total.gb = this.align((w - total.fb * total.db.a) / 2);
-                total.hb = this.align(top + pos * rowHeight + this.GAP);
-                this.add(total);
-
-                const tw = label.fb * label.db.a + won.fb * won.db.a + total.fb * total.db.a;
-                label.gb = this.align((w - tw) / 2);
-                won.gb = label.gb + label.fb * label.db.a;
-                total.gb = won.gb + won.fb * won.db.a;
-                label.hb = won.hb = total.hb = this.align(top + pos * rowHeight + this.GAP);
-            }
-        } else {
-            const title = PixelScene_createText(this.TXT_NO_GAMES, 8);
-            Visual_$hardlight(title, this.DEFAULT_COLOR, this.DEFAULT_COLOR, this.DEFAULT_COLOR);
-            BitmapText_$measure(title);
-            title.gb = this.align((w - title.fb * title.db.a) / 2);
-            title.hb = this.align((h - title.$ * title.db.b) / 2);
-            this.add(title);
-        }
-
-        const btnExit = new UEh();
-        Component_$setPos(btnExit, Camera_main.p - btnExit.B, 0);
-        this.add(btnExit);
-
-        this.fadeIn();
-    }
+    this.fadeIn();
+  };
 }
 
 const Rankings = {
-    TABLE_SIZE: 6,
-    Record: function () {
-		this.info = "";
-		this.win = false;
-		
-		this.heroClass = null;
-		this.armorTier = 0;
-		
-		this.score = 0;
-    },
-    score: function (win) {
-        return (Statistics_goldCollected + Dungeon.hero.o * Statistics_deepestFloor * 100) * (win ? 2 : 1);
-    },
-    save: function() {
-        this.records.sort((a, b) => a.score - b.score);
-        this.records.splice(this.TABLE_SIZE);
-        localStorage.records = JSON.stringify(this.records);
-        localStorage.totalNumber =this.totalNumber;
-        localStorage.wonNumber = this.wonNumber;
-    },
-    load: function() {
-        this.records = JSON.parse(localStorage.records || "[]");
-        this.totalNumber = parseInt(localStorage.totalNumber|| "0");
-        this.wonNumber = parseInt(localStorage.wonNumber|| "0");
-    },
-    submit: function(win) {
-        const gameFile = yJh(_Ij, aqf(Vpf(WXf, 1), E9h, 1, 5, [HXh(AUh)]));
-        try {Dungeon_saveGame(gameFile);} catch (a) {console.error(a)}
-        Badges_validateGamesPlayed();
+  TABLE_SIZE: 6,
+  Record: function () {
+    this.info = "";
+    this.win = false;
 
-        // TODO: set other game data that is saved via gameFile
-        const rec = {
-            info: (Fjg(), Dungeon.resultDescription),
-            win,
-            heroClass: Dungeon.hero.j,
-            armorTier:xvg(Dungeon.hero),
-            score: this.score(win),
-            playerId: window.webxdc.selfAddr,
-            playerName:window.webxdc.selfName,
-        };
-        const info = `${rec.playerName}: ${rec.info}`;
-        window.webxdc.sendUpdate({ payload: rec, info });
-    },
-    onRecord: function(record) {
-        this.records.push(record);
-        const selfId = window.webxdc.selfAddr;
-        if (record.playerId === selfId) {
-            ++this.totalNumber;
-            if (record.win) ++this.wonNumber;
-        }
+    this.heroClass = null;
+    this.armorTier = 0;
+
+    this.score = 0;
+  },
+  score: function (win) {
+    return (
+      (Statistics.goldCollected +
+        Dungeon.hero.o * Statistics.deepestFloor * 100) *
+      (win ? 2 : 1)
+    );
+  },
+  save: function () {
+    this.records.sort((a, b) => b.score - a.score);
+    this.records.splice(this.TABLE_SIZE);
+    localStorage.records = JSON.stringify(this.records);
+    localStorage.totalNumber = this.totalNumber;
+    localStorage.wonNumber = this.wonNumber;
+  },
+  load: function () {
+    this.records = JSON.parse(localStorage.records || "[]");
+    this.totalNumber = parseInt(localStorage.totalNumber || "0");
+    this.wonNumber = parseInt(localStorage.wonNumber || "0");
+  },
+  submit: function (win) {
+    const gameFile = yJh(_Ij, aqf(Vpf(WXf, 1), E9h, 1, 5, [HXh(AUh)]));
+    try {
+      Dungeon_saveGame(gameFile);
+    } catch (a) {
+      console.error(a);
     }
-}
+    Badges_validateGamesPlayed();
+
+    // TODO: set other game data that is saved via gameFile
+    const rec = {
+      info: (Fjg(), Dungeon.resultDescription),
+      win,
+      heroClass: Dungeon.hero.j,
+      armorTier: xvg(Dungeon.hero),
+      score: this.score(win),
+      playerId: window.webxdc.selfAddr,
+      playerName: window.webxdc.selfName,
+    };
+    const info = `${rec.playerName}: ${rec.info}`;
+    window.webxdc.sendUpdate({ payload: rec, info });
+  },
+  onRecord: function (record) {
+    this.records.push(record);
+    const selfId = window.webxdc.selfAddr;
+    if (record.playerId === selfId) {
+      ++this.totalNumber;
+      if (record.win) ++this.wonNumber;
+    }
+  },
+};
 
 var $wnd = window;
 var $sendStats = console.log;
@@ -342,7 +380,6 @@ function Akg() {}
 function Ckg() {}
 function Xkg() {}
 function bmg() {}
-function omg() {}
 function Ong() {}
 function Ewg() {}
 function Azg() {}
@@ -788,44 +825,8 @@ function vAe(a) {
 function WBe(a) {
   Ffg = a;
 }
-function WCe(a) {
-  Statistics_goldCollected = a;
-}
-function XCe(a) {
-  Statistics_deepestFloor = a;
-}
-function YCe(a) {
-  Statistics_enemiesSlain = a;
-}
-function ZCe(a) {
-  Statistics_foodEaten = a;
-}
-function $Ce(a) {
-  Statistics_potionsCooked = a;
-}
 function uCe(a) {
   Sig = a;
-}
-function aDe(a) {
-  Statistics_piranhasKilled = a;
-}
-function bDe(a) {
-  Statistics_nightHunt = a;
-}
-function cDe(a) {
-  Statistics_ankhsUsed = a;
-}
-function dDe(a) {
-  Statistics_duration = a;
-}
-function eDe(a) {
-  Statistics_qualifiedForNoKilling = a;
-}
-function fDe(a) {
-  Statistics_completedWithNoKilling = a;
-}
-function gDe(a) {
-  Statistics_amuletObtained = a;
 }
 function pqe(a) {
   Rlb = a;
@@ -5496,7 +5497,7 @@ function Ame(a) {
   return jkg(a);
 }
 function nme(a) {
-  return Hjg(a);
+  return Dungeon_bossLevel(a);
 }
 function _me(a) {
   return Zjf(a);
@@ -5547,7 +5548,7 @@ function EPg() {
   Beg.call(this);
 }
 function $fg() {
-  Jfg.call(this);
+  Button.call(this);
 }
 function PixelScene() {
   Jcg.call(this);
@@ -5558,25 +5559,25 @@ function fjh() {
 function wih() {
   jhh.call(this);
 }
-function Lth() {
+function AboutScene() {
   PixelScene.call(this);
 }
-function Rth() {
+function AmuletScene() {
   PixelScene.call(this);
 }
-function Zth() {
+function BadgesScene() {
   PixelScene.call(this);
 }
-function Hvh() {
+function InterlevelScene() {
   PixelScene.call(this);
 }
-function swh() {
+function IntroScene() {
   PixelScene.call(this);
 }
-function Cxh() {
+function SurfaceScene() {
   PixelScene.call(this);
 }
-function ayh() {
+function TitleScene() {
   PixelScene.call(this);
 }
 function Azh() {
@@ -5592,7 +5593,7 @@ function xQh() {
   pQh.call(this);
 }
 function rFh() {
-  pfg.call(this);
+  Component.call(this);
 }
 function lTh() {
   dTh.call(this);
@@ -8818,7 +8819,7 @@ function Fqg() {
 }
 function wOg() {
   vOg();
-  pfg.call(this);
+  Component.call(this);
 }
 function oUg() {
   kUg();
@@ -8933,7 +8934,7 @@ function ryh() {
 }
 function AGh() {
   uGh();
-  Jfg.call(this);
+  Button.call(this);
 }
 function TGh() {
   uGh();
@@ -12998,11 +12999,11 @@ function pyh() {
   gyh.call(this, "Play", 0);
 }
 function lFh() {
-  pfg.call(this);
+  Component.call(this);
   this.a = 0;
 }
 function xFh() {
-  pfg.call(this);
+  Component.call(this);
   vFh = this;
 }
 function Ayh(a) {
@@ -13291,7 +13292,7 @@ function Jbg() {
   X9f.call(this);
   Gbg(this);
 }
-function pfg() {
+function Component() {
   nbg.call(this);
   this.T1();
 }
@@ -13359,7 +13360,7 @@ function kLh(a) {
 }
 function rKh(a) {
   this.f = a;
-  Jfg.call(this);
+  Button.call(this);
 }
 function $Uh(a) {
   this.a = a;
@@ -13389,7 +13390,7 @@ function o8h() {
   h8h.call(this, "Range", 2);
 }
 function HJh() {
-  pfg.call(this);
+  Component.call(this);
   AJh(this);
 }
 function Cn(a, b) {
@@ -13855,7 +13856,7 @@ function kfg(a, b) {
   Component_$setRect(a, b.C, b.D, b.B, b.A);
 }
 function gCh(a, b) {
-  U9f(a, TextureFilm_$get(eCh, rXh(b)));
+  Image_$frame(a, TextureFilm_$get(eCh, rXh(b)));
 }
 function inh(a, b, c) {
   a.b = b;
@@ -15361,8 +15362,8 @@ function r0f() {
   this.a = new Zof();
   this.b = null;
 }
-function Jfg() {
-  pfg.call(this);
+function Button() {
+  Component.call(this);
   this.n = null;
 }
 function Ixh() {
@@ -15446,7 +15447,7 @@ function g4h(a) {
   this.a = a;
 }
 function dLh() {
-  pfg.call(this);
+  Component.call(this);
   this.c = null;
 }
 function qMh() {
@@ -15543,7 +15544,9 @@ function Ze(a, b, c, d) {
 function d9h(b, c, d) {
   try {
     b[c] = d;
-  } catch (a) {console.error(a)}
+  } catch (a) {
+    console.error(a);
+  }
 }
 function gL(a, b) {
   var c;
@@ -15948,11 +15951,11 @@ function RKg() {
   OKg = null;
 }
 function Archs() {
-  pfg.call(this);
+  Component.call(this);
   this.c = false;
 }
 function kHh() {
-  Jfg.call(this);
+  Button.call(this);
   this.e = false;
 }
 function Zof() {
@@ -17493,8 +17496,9 @@ function _oc(a, b) {
   return b != null && $oc(a, Cb(b));
 }
 function Cpc(a, b, c) {
+  // com.badlogic.gwtref.client.Field::$set
   Hkf();
-  qpc(a.c).w.pZ(a, b, c);
+  CachedTypeLookup_$getType(a.c).w.pZ(a, b, c);
 }
 function uNc(a, b, c, d) {
   Fph(a, b, c, d);
@@ -18556,7 +18560,7 @@ function Doc(a, b) {
   });
 }
 function Apc(a, b) {
-  return (Hkf(), qpc(a.c).w.kZ(a, b));
+  return (Hkf(), CachedTypeLookup_$getType(a.c).w.kZ(a, b));
 }
 function al(a) {
   a.c = 0;
@@ -20176,7 +20180,7 @@ function mnc(a, b, c) {
   !a.a && (a.a = new aac());
   V9b(a.a, b, 0, c);
 }
-function qpc(a) {
+function CachedTypeLookup_$getType(a) {
   !a.b && !!a.a && (a.b = Kkf(a.a));
   return a.b;
 }
@@ -20805,7 +20809,7 @@ function q1f(a) {
   o1f.call(this, (tYh("span", a.tagName), a));
 }
 function S$g(a) {
-  Jfg.call(this);
+  Button.call(this);
   BitmapText_$text(this.g, a);
   this.g.G_();
 }
@@ -20886,7 +20890,7 @@ function Juh(a) {
 }
 function jCh(a) {
   iCh.call(this);
-  U9f(this, TextureFilm_$get(eCh, rXh(a)));
+  Image_$frame(this, TextureFilm_$get(eCh, rXh(a)));
 }
 function Bundle() {
   HQh();
@@ -21036,7 +21040,7 @@ function o5b() {
 function NYh(a) {
   return String.fromCharCode.apply(null, a);
 }
-function Soc(a, b) {
+function ArrayReflection_newInstance(a, b) {
   var c;
   return (Hkf(), (c = Kkf(a)), c.w.oZ(c, b));
 }
@@ -22203,7 +22207,7 @@ function q6f(a, b) {
 function w$d(a) {
   return (p_(), $wnd.Math.log(a) / $wnd.Math.log(2));
 }
-function Hjg(a) {
+function Dungeon_bossLevel(a) {
   Fjg();
   return a == 5 || a == 10 || a == 15 || a == 20 || a == 25;
 }
@@ -22533,12 +22537,12 @@ function q9g() {
   this.w = "Scroll of Lullaby";
 }
 function UEh() {
-  Jfg.call(this);
+  Button.call(this);
   this.B = this.a.fb;
   this.A = this.a.$;
 }
 function VGh() {
-  Jfg.call(this);
+  Button.call(this);
   this.B = this.a.fb;
   this.A = this.a.$;
 }
@@ -22833,7 +22837,9 @@ function bbc(b) {
   if (!(kpi in b)) {
     try {
       throw b;
-    } catch (a) {console.error(a)}
+    } catch (a) {
+      console.error(a);
+    }
   }
   return b;
 }
@@ -22856,7 +22862,12 @@ function kkg(a) {
   return new yTh(((a % 32) + 0.5) * 16, (((a / 32) | 0) + 0.5) * 16);
 }
 function D7f(a, b) {
-  Visual_$hardlight(a, (b >> 16) / 255, ((b >> 8) & 255) / 255, (b & 255) / 255);
+  Visual_$hardlight(
+    a,
+    (b >> 16) / 255,
+    ((b >> 8) & 255) / 255,
+    (b & 255) / 255,
+  );
 }
 function Y8h(a, b) {
   if (a < 0 || a > b) {
@@ -28009,7 +28020,7 @@ function aJh() {
   this.ib = this.nb = false;
 }
 function jIh() {
-  Jfg.call(this);
+  Button.call(this);
   this.B = this.a.fb + 4;
   this.A = this.a.$ + 4;
 }
@@ -28574,14 +28585,14 @@ function p6h(a) {
   this.a = new Array();
 }
 function THh(a) {
-  pfg.call(this);
+  Component.call(this);
   R9f(this.b, a);
   this.B = a.fb;
   this.A = a.$;
 }
 function dFh() {
   _Eh();
-  pfg.call(this);
+  Component.call(this);
   lUh((sJh(), rJh), this);
   cFh(this);
 }
@@ -28970,7 +28981,12 @@ function U0f(a, b, c) {
   ulf(b, a);
 }
 function eqe(a, b, c) {
-  return (mj(), (Cast_round_int(a * 31) << 11) | (Cast_round_int(b * 63) << 5) | Cast_round_int(c * 31));
+  return (
+    mj(),
+    (Cast_round_int(a * 31) << 11) |
+      (Cast_round_int(b * 63) << 5) |
+      Cast_round_int(c * 31)
+  );
 }
 function L$d(a, b, c, d, e, f, g, h, i, j, k) {
   return a._q(b, c, d, e, f, g, h, i, j, k);
@@ -29088,7 +29104,7 @@ function Q6h(a) {
 }
 function L6b(a, b) {
   var c;
-  c = Oqf(Soc(b, a.i));
+  c = Oqf(ArrayReflection_newInstance(b, a.i));
   kZh(a.d, 0, c, 0, a.i);
   return c;
 }
@@ -30711,7 +30727,12 @@ function rZd(a, b, c, d, e, f) {
   return (r$(), Cast_round_int(LXh((c - a) * (f - b) - (d - b) * (e - a))));
 }
 function kqe(a, b, c) {
-  return (mj(), (Cast_round_int(a * 255) << 16) | (Cast_round_int(b * 255) << 8) | Cast_round_int(c * 255));
+  return (
+    mj(),
+    (Cast_round_int(a * 255) << 16) |
+      (Cast_round_int(b * 255) << 8) |
+      Cast_round_int(c * 255)
+  );
 }
 function p9f(a, b, c) {
   return new yTh((b - a.q) / a.s + a.e.a, (c - a.r) / a.s + a.e.b);
@@ -30748,10 +30769,10 @@ function P5g(a, b) {
   QQh(b, OXi, a.g);
   SQh(b, NXi, a.j);
 }
-function pDg(a, b) {
+function Piranha_$die(a, b) {
   (Fjg(), Dungeon.level).V8(new j3g(), a.K).c.q6();
   Rxg(a);
-  ++Statistics_piranhasKilled;
+  ++Statistics.piranhasKilled;
   Rgg();
 }
 function Game_$pause(a) {
@@ -31268,7 +31289,7 @@ function s2f(a, b) {
 function jkg(a) {
   var b;
   b = new Z9f(bkg.j);
-  U9f(b, TextureFilm_$get(bkg.k, rXh(a)));
+  Image_$frame(b, TextureFilm_$get(bkg.k, rXh(a)));
   return b;
 }
 function Zog(a) {
@@ -31331,7 +31352,7 @@ function r7h(a, b) {
 }
 function xIh() {
   uIh();
-  pfg.call(this);
+  Component.call(this);
   this.g = true;
   tIh = this;
   this.A = this.b.A;
@@ -32793,7 +32814,7 @@ function Uyh() {
   this.H = this;
 }
 function dEh(a) {
-  pfg.call(this);
+  Component.call(this);
   this.a = a;
   R9f(this.b, CMg(a.b));
   BitmapText_$text(this.c, a.a);
@@ -33325,7 +33346,7 @@ function Game_$switchScene(a) {
   oag = 0;
   rag = 1;
 }
-function U9f(a, b) {
+function Image_$frame(a, b) {
   a.N = b;
   a.fb = (b.c - b.b) * a.O.g;
   a.$ = (b.a - b.d) * a.O.d;
@@ -33969,7 +33990,12 @@ function Ejf(a, b, c) {
 }
 function KOg(a, b, c) {
   a.f = c;
-  Visual_$hardlight(a, (b >> 16) / 255, ((b >> 8) & 255) / 255, (b & 255) / 255);
+  Visual_$hardlight(
+    a,
+    (b >> 16) / 255,
+    ((b >> 8) & 255) / 255,
+    (b & 255) / 255,
+  );
   return a;
 }
 function zCg(a, b) {
@@ -34008,7 +34034,7 @@ function Ibh() {
 }
 function Kxh(a) {
   Z9f.call(this, _Gj);
-  U9f(this, TextureFilm_$get(new rjf(this.O, 24, 28), rXh(a.f)));
+  Image_$frame(this, TextureFilm_$get(new rjf(this.O, 24, 28), rXh(a.f)));
 }
 function BQh(a) {
   zQh(this);
@@ -34157,7 +34183,8 @@ function v2f(a) {
   return a.a;
 }
 function Bpc(a, b) {
-  if (a.b != null && b >= 0 && b < a.b.length) return qpc(a.b[b]);
+  if (a.b != null && b >= 0 && b < a.b.length)
+    return CachedTypeLookup_$getType(a.b[b]);
   return null;
 }
 function N0f(a, b) {
@@ -34214,7 +34241,7 @@ function nih(a) {
   }
 }
 function yEh(a) {
-  pfg.call(this);
+  Component.call(this);
   this.c = new xUh();
   this.a = a;
   a == (Fjg(), Dungeon.hero) && (wEh = this);
@@ -34278,10 +34305,18 @@ function vbb(a, b) {
   );
 }
 function h9f(a, b, c) {
-  return new knh(Cast_round_int((b - a.e.a) * a.s + a.q), Cast_round_int((c - a.e.b) * a.s + a.r));
+  return new knh(
+    Cast_round_int((b - a.e.a) * a.s + a.q),
+    Cast_round_int((c - a.e.b) * a.s + a.r),
+  );
 }
 function XTh(a, b) {
-  return a + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * (b - a + 1)) / 2);
+  return (
+    a +
+    Cast_round_int(
+      (($wnd.Math.random() + $wnd.Math.random()) * (b - a + 1)) / 2,
+    )
+  );
 }
 function G6b(a, b) {
   a.YV(b);
@@ -34410,7 +34445,9 @@ function Iug(a) {
 }
 function Kdg(a, b) {
   a.a = b;
-  !!a.d && a.d.d && !b ? Pdg(a) : !(!!a.d && a.d.d) && b && Music_$play(a, a.c, a.b);
+  !!a.d && a.d.d && !b
+    ? Pdg(a)
+    : !(!!a.d && a.d.d) && b && Music_$play(a, a.c, a.b);
 }
 function FPg(a, b, c, d) {
   var e;
@@ -34542,7 +34579,10 @@ function C8(a, b) {
 function hqe(a, b, c, d) {
   return (
     mj(),
-    (Cast_round_int(a * 15) << 12) | (Cast_round_int(b * 15) << 8) | (Cast_round_int(c * 15) << 4) | Cast_round_int(d * 15)
+    (Cast_round_int(a * 15) << 12) |
+      (Cast_round_int(b * 15) << 8) |
+      (Cast_round_int(c * 15) << 4) |
+      Cast_round_int(d * 15)
   );
 }
 function lgc() {
@@ -34552,7 +34592,7 @@ function lgc() {
 function Qgg() {
   jgg();
   var a;
-  if (!Y5h(Badges_local, (Kig(), kig)) && Statistics_completedWithNoKilling) {
+  if (!Y5h(Badges_local, (Kig(), kig)) && Statistics.completedWithNoKilling) {
     a = kig;
     X5h(Badges_local, a);
     Badges_displayBadge(a);
@@ -35111,7 +35151,7 @@ function seh(a, b, c) {
   this.f = 8 + this.c * 2;
 }
 function JIh(a, b, c, d, e) {
-  Jfg.call(this);
+  Button.call(this);
   T9f(this.b, a, b, c, d);
   this.B = c;
   this.A = d;
@@ -35287,12 +35327,14 @@ function Inf(a) {
   (sYh(a.compatMode, cKj) ? a.documentElement : a.body).style["overflow"] = pai;
 }
 function BitmapText$Font_$get(a, b) {
-    let character = Character_valueOf(a.a ? String_$charAt(String.fromCharCode(b).toUpperCase(), 0) : b)
-    let letter = TextureFilm_$get(a, character);
-    if (!letter) {
-        character = Character_valueOf(String_$charAt("?", 0));
-        letter = TextureFilm_$get(a, character);
-    }
+  let character = Character_valueOf(
+    a.a ? String_$charAt(String.fromCharCode(b).toUpperCase(), 0) : b,
+  );
+  let letter = TextureFilm_$get(a, character);
+  if (!letter) {
+    character = Character_valueOf(String_$charAt("?", 0));
+    letter = TextureFilm_$get(a, character);
+  }
   return letter;
 }
 function Luh(a, b) {
@@ -35326,7 +35368,7 @@ function Badges_saveGlobal() {
 function Pgg() {
   jgg();
   var a;
-  if (!Y5h(Badges_local, (Kig(), jig)) && Statistics_nightHunt >= 15) {
+  if (!Y5h(Badges_local, (Kig(), jig)) && Statistics.nightHunt >= 15) {
     a = jig;
     X5h(Badges_local, a);
     Badges_displayBadge(a);
@@ -35423,7 +35465,9 @@ function XWh(a) {
 function _Th(a) {
   var b;
   b = a.Qd();
-  return b > 0 ? a.VV()[b > 0 ? Cast_round_int($wnd.Math.random() * b) : 0] : null;
+  return b > 0
+    ? a.VV()[b > 0 ? Cast_round_int($wnd.Math.random() * b) : 0]
+    : null;
 }
 function xl(a) {
   if (a.c == 0) return;
@@ -35736,19 +35780,6 @@ function rfh() {
   this.t = 106;
   this.f = 10;
   this.B = false;
-}
-function Statistics_reset() {
-  Statistics_goldCollected = 0;
-  Statistics_deepestFloor = 0;
-  Statistics_enemiesSlain = 0;
-  Statistics_foodEaten = 0;
-  Statistics_potionsCooked = 0;
-  Statistics_piranhasKilled = 0;
-  Statistics_nightHunt = 0;
-  Statistics_ankhsUsed = 0;
-  Statistics_duration = 0;
-  Statistics_qualifiedForNoKilling = false;
-  Statistics_amuletObtained = false;
 }
 function PGh() {
   xDh.call(this, 2061772);
@@ -36335,7 +36366,7 @@ function Rgg() {
   jgg();
   var a;
   a = null;
-  if (!Y5h(Badges_local, (Kig(), lig)) && Statistics_piranhasKilled >= 6) {
+  if (!Y5h(Badges_local, (Kig(), lig)) && Statistics.piranhasKilled >= 6) {
     a = lig;
     X5h(Badges_local, a);
   }
@@ -36716,7 +36747,7 @@ function pC(a, b, c, d) {
   this.e = new V6b(d);
 }
 function IJh(a, b) {
-  pfg.call(this);
+  Component.call(this);
   AJh(this);
   kbg(this, this.c);
   Group_$add(this, (this.c = a));
@@ -36724,8 +36755,14 @@ function IJh(a, b) {
 }
 function Huh(a, b) {
   b.kb = PixelScene_uiCamera;
-  b.gb = PixelScene_align(PixelScene_uiCamera, (PixelScene_uiCamera.p - b.fb) / 2);
-  b.hb = PixelScene_align(PixelScene_uiCamera, (PixelScene_uiCamera.a - b.$) / 3);
+  b.gb = PixelScene_align(
+    PixelScene_uiCamera,
+    (PixelScene_uiCamera.p - b.fb) / 2,
+  );
+  b.hb = PixelScene_align(
+    PixelScene_uiCamera,
+    (PixelScene_uiCamera.a - b.$) / 3,
+  );
   Group_$add(a, b);
 }
 function AEb(a, b) {
@@ -37061,7 +37098,7 @@ function Yxg(a, b) {
   }
 }
 function sRg(a, b) {
-  U9f(a, TextureFilm_$get(qRg, rXh(b)));
+  Image_$frame(a, TextureFilm_$get(qRg, rXh(b)));
   vTh(a.ab, a.fb / 2, a.$ / 2);
   a.c = (BRg(), yRg);
   a.a = zii;
@@ -37805,7 +37842,7 @@ function yBb(a) {
   this.b = a.b;
 }
 function aIh() {
-  pfg.call(this);
+  Component.call(this);
   this.p = 0;
   this.o = -1;
   this.n = -1;
@@ -38115,7 +38152,7 @@ function CMg(a) {
   var b;
   b = new Z9f(PGj);
   !xMg && (xMg = new rjf(b.O, 16, 16));
-  U9f(b, TextureFilm_$get(xMg, rXh(a)));
+  Image_$frame(b, TextureFilm_$get(xMg, rXh(a)));
   return b;
 }
 function kcd() {
@@ -38160,7 +38197,7 @@ function eTg() {
 }
 function xNh(a, b, c) {
   this.f = a;
-  pfg.call(this);
+  Component.call(this);
   this.b = b;
   this.e = c;
   BitmapText_$text(this.a, b.a);
@@ -38168,7 +38205,7 @@ function xNh(a, b, c) {
   vNh(this);
 }
 function xDh(a) {
-  Jfg.call(this);
+  Button.call(this);
   this.i = 0;
   this.j = (a >> 16) / 255;
   this.g = ((a >> 8) & 255) / 255;
@@ -38691,7 +38728,7 @@ function i$h(a) {
   return a;
 }
 function SNg(a, b, c) {
-  U9f(a, TextureFilm_$get(LNg, rXh(b)));
+  Image_$frame(a, TextureFilm_$get(LNg, rXh(b)));
   !(a.i = c) && ((a.cb = a.Z = a.X = a.T = 1), (a.bb = a.Y = a.W = a.R = 0));
   return a;
 }
@@ -39501,7 +39538,7 @@ function dqh(a) {
 }
 function kxh(a) {
   this.b = a;
-  Jfg.call(this);
+  Button.call(this);
   this.B = this.a.fb;
   this.A = this.a.$;
   this.a.T = Badges_isUnlocked((Kig(), Dig)) ? 1 : 0.5;
@@ -40427,7 +40464,7 @@ function Fvh() {
   var a;
   _jf();
   Fjg();
-  if (Hjg(Dungeon.depth)) {
+  if (Dungeon_bossLevel(Dungeon.depth)) {
     rvg(Dungeon.hero, Dungeon.depth);
     --Dungeon.depth;
     a = Dungeon_newLevel();
@@ -40515,7 +40552,7 @@ function Bnf(b) {
     var d = c.nodeName;
     return c;
   } catch (a) {
-    console.error(a)
+    console.error(a);
     return null;
   }
 }
@@ -40737,7 +40774,7 @@ function Y7b(a) {
 function D6b(a, b) {
   var c, d;
   c = a.d;
-  d = Oqf(Soc(Cb(c).c, b));
+  d = Oqf(ArrayReflection_newInstance(Cb(c).c, b));
   kZh(c, 0, d, 0, $wnd.Math.min(a.i, d.length));
   a.d = d;
   return d;
@@ -41018,7 +41055,7 @@ function ZJb(a) {
   this.a = a.a;
 }
 function UDh(a) {
-  pfg.call(this);
+  Component.call(this);
   this.b = a;
   abg(this, a);
   this.B = a.B;
@@ -41030,7 +41067,8 @@ function yYb(a) {
   return (
     ((a.d.c / 2) | 0) +
     (a.T.length != 0 &&
-    (String_$charAt(a.T, a.T.length - 1) == 10 || String_$charAt(a.T, a.T.length - 1) == 13)
+    (String_$charAt(a.T, a.T.length - 1) == 10 ||
+      String_$charAt(a.T, a.T.length - 1) == 13)
       ? 1
       : 0)
   );
@@ -41259,7 +41297,7 @@ function InterlevelScene_$fall() {
   var a;
   _jf();
   Dungeon_saveLevel();
-  if ((Fjg(), Dungeon.depth) >= Statistics_deepestFloor) {
+  if ((Fjg(), Dungeon.depth) >= Statistics.deepestFloor) {
     a = Dungeon_newLevel();
   } else {
     ++Dungeon.depth;
@@ -41624,7 +41662,7 @@ function Hbg(a, b, c) {
   a.D = 0;
   a.F = false;
   a.G = 0;
-  !!b && U9f(a, b.b[a.D]);
+  !!b && Image_$frame(a, b.b[a.D]);
 }
 function zpc(a, b, c, d, e, f, g, h) {
   upc();
@@ -41954,7 +41992,12 @@ function J8f(a, b) {
   u8f.call(this, a, b);
   this.d = TextureFilm_$width(
     b,
-    TextureFilm_$get(b, Character_valueOf(b.a ? String_$charAt(String.fromCharCode(32).toUpperCase(), 0) : 32)),
+    TextureFilm_$get(
+      b,
+      Character_valueOf(
+        b.a ? String_$charAt(String.fromCharCode(32).toUpperCase(), 0) : 32,
+      ),
+    ),
   );
 }
 function fQg() {
@@ -42101,7 +42144,8 @@ function c7(a) {
 function rbc(a, b, c) {
   var d;
   d = a.a;
-  a.c + 1 >= d.length && (d = Bbc(a, $wnd.Math.max(8, Cast_round_int(a.c * Noi))));
+  a.c + 1 >= d.length &&
+    (d = Bbc(a, $wnd.Math.max(8, Cast_round_int(a.c * Noi))));
   d[a.c] = b;
   d[a.c + 1] = c;
   a.c += 2;
@@ -42466,7 +42510,7 @@ function F_f(b) {
     $wnd[b].removeItem(c);
     return true;
   } catch (a) {
-      console.error(a);
+    console.error(a);
     return false;
   }
 }
@@ -42705,7 +42749,7 @@ function Ab(a, b) {
             : md(a, b);
 }
 function gyh(a, b) {
-  Jfg.call(this);
+  Button.call(this);
   this.a.f0(V4f(this.a.O, b * 32, 0, (b + 1) * 32, 32));
   BitmapText_$text(this.b, a);
   this.b.G_();
@@ -43267,7 +43311,7 @@ function mBh(a, b) {
   c = new Z9f(_wg(a));
   d = V4f(c.O, 1, 0, 12, 15);
   d = fUh(d, e.b, e.d);
-  U9f(c, d);
+  Image_$frame(c, d);
   return c;
 }
 function iIb(a) {
@@ -43953,7 +43997,11 @@ function gp(a) {
   }
 }
 function SJh(a, b) {
-  Component_$setPos(b, a.k.a.length == 0 ? -a.o.e + 1 : lfg(U0h(a.k, a.k.a.length - 1)), a.p);
+  Component_$setPos(
+    b,
+    a.k.a.length == 0 ? -a.o.e + 1 : lfg(U0h(a.k, a.k.a.length - 1)),
+    a.p,
+  );
   b.jcb(false);
   Group_$add(a, b);
   T0h(a.k, b);
@@ -44392,7 +44440,11 @@ function Guh(a, b) {
   if (b != null) {
     a.o = new uvh(b);
     a.o.kb = PixelScene_uiCamera;
-    Component_$setPos(a.o, (PixelScene_uiCamera.p - a.o.B) / 2, PixelScene_uiCamera.a - 60);
+    Component_$setPos(
+      a.o,
+      (PixelScene_uiCamera.p - a.o.B) / 2,
+      PixelScene_uiCamera.a - 60,
+    );
     Group_$add(a, a.o);
   }
 }
@@ -44469,7 +44521,12 @@ function u5b() {
   if (l5b.i == 0) Ve(dc, 3089);
   else {
     b = w6b(l5b);
-    CN(Cast_round_int(b.d), Cast_round_int(b.e), Cast_round_int(b.c), Cast_round_int(b.b));
+    CN(
+      Cast_round_int(b.d),
+      Cast_round_int(b.e),
+      Cast_round_int(b.c),
+      Cast_round_int(b.b),
+    );
   }
   return a;
 }
@@ -44564,7 +44621,7 @@ function iRg() {
   gRg();
   X9f.call(this);
   this.O = m5f(cHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   !fRg && (fRg = new rjf(this.O, 7, 7));
   uTh(this.ab, 3.5);
 }
@@ -44801,7 +44858,7 @@ function nZ(a, b) {
 function vpc(a, b, c) {
   if (a.r.length != (c != null ? c.length : 0))
     throw w$f(new _Wh("Parameter mismatch"));
-  return (Hkf(), qpc(a.a).w.nZ(a, b, c));
+  return (Hkf(), CachedTypeLookup_$getType(a.a).w.nZ(a, b, c));
 }
 function Mnc(a, b, c) {
   var d, e;
@@ -45458,7 +45515,10 @@ function qDg() {
 function mFg() {
   kFg();
   byg.call(this);
-  this.I = (Fjg(), Dungeon.depth) == Statistics_deepestFloor ? "Tengu" : "memory of Tengu";
+  this.I =
+    (Fjg(), Dungeon.depth) == Statistics.deepestFloor
+      ? "Tengu"
+      : "memory of Tengu";
   this.u = xTf;
   this.A = this.B = 120;
   this.d = 20;
@@ -45527,7 +45587,11 @@ function uSb(b, c, d, e, f) {
 function Qcc(a) {
   var b, c;
   this.c = a;
-  c = $oc(bCf, qpc(a.a.r).d) || $oc(RZf, qpc(a.a.r).d) ? 1 : 0;
+  c =
+    $oc(bCf, CachedTypeLookup_$getType(a.a.r).d) ||
+    $oc(RZf, CachedTypeLookup_$getType(a.a.r).d)
+      ? 1
+      : 0;
   this.b = ((b = Bpc(a.a, c)), b ? b.d : null);
   this.a = epc(a, EXf);
 }
@@ -45758,7 +45822,12 @@ function Gzg() {
 function kPg(a, b, c) {
   hPg();
   jPg.call(this);
-  Visual_$hardlight(this, (b >> 16) / 255, ((b >> 8) & 255) / 255, (b & 255) / 255);
+  Visual_$hardlight(
+    this,
+    (b >> 16) / 255,
+    ((b >> 8) & 255) / 255,
+    (b & 255) / 255,
+  );
   x7f(this, (this.c = c));
   uTh(this.db, (this.d = a) / 64);
 }
@@ -46132,7 +46201,7 @@ function hIg() {
   geg((eeg(), deg), aqf(Vpf(cYf, 1), Rci, 2, 6, [EIj]));
 }
 function UNh(a) {
-  Jfg.call(this);
+  Button.call(this);
   this.c = a;
   this.d.Rbb(a);
   if (a.p && a.q) {
@@ -46386,7 +46455,7 @@ function nN(a, b, c, d) {
   }
 }
 function duh(a) {
-  Jfg.call(this);
+  Button.call(this);
   this.a = a;
   this.ib = !!a;
   this.b = this.ib ? CMg(a.b) : new Z9f(QGj);
@@ -46614,7 +46683,7 @@ function KNg(a) {
   uTh(this.db, TTh(1, this.b));
 }
 function eNh(a, b) {
-  pfg.call(this);
+  Component.call(this);
   BitmapText_$text(this.b, a.a);
   this.b.G_();
   BitmapText_$text(this.a, "" + b);
@@ -46874,35 +46943,40 @@ function p6b(a, b) {
   var c;
   if (b < 0) throw w$f(new _Wh(Ooi + b));
   c = a.i + b;
-  c > a.d.length && D6b(a, $wnd.Math.max($wnd.Math.max(8, c), Cast_round_int(a.i * Noi)));
+  c > a.d.length &&
+    D6b(a, $wnd.Math.max($wnd.Math.max(8, c), Cast_round_int(a.i * Noi)));
   return a.d;
 }
 function H9b(a, b) {
   var c;
   if (b < 0) throw w$f(new _Wh(Ooi + b));
   c = a.c + b;
-  c > a.a.length && J9b(a, $wnd.Math.max($wnd.Math.max(8, c), Cast_round_int(a.c * Noi)));
+  c > a.a.length &&
+    J9b(a, $wnd.Math.max($wnd.Math.max(8, c), Cast_round_int(a.c * Noi)));
   return a.a;
 }
 function Gmc(a, b) {
   var c;
   if (b < 0) throw w$f(new _Wh(Ooi + b));
   c = a.c + b;
-  c > a.a.length && Jmc(a, $wnd.Math.max($wnd.Math.max(8, c), Cast_round_int(a.c * Noi)));
+  c > a.a.length &&
+    Jmc(a, $wnd.Math.max($wnd.Math.max(8, c), Cast_round_int(a.c * Noi)));
   return a.a;
 }
 function Iac(a, b) {
   var c;
   if (b < 0) throw w$f(new _Wh(Ooi + b));
   c = a.c + b;
-  c > a.a.length && Mac(a, $wnd.Math.max($wnd.Math.max(8, c), Cast_round_int(a.c * Noi)));
+  c > a.a.length &&
+    Mac(a, $wnd.Math.max($wnd.Math.max(8, c), Cast_round_int(a.c * Noi)));
   return a.a;
 }
 function ubc(a, b) {
   var c;
   if (b < 0) throw w$f(new _Wh(Ooi + b));
   c = a.c + b;
-  c > a.a.length && Bbc(a, $wnd.Math.max($wnd.Math.max(8, c), Cast_round_int(a.c * Noi)));
+  c > a.a.length &&
+    Bbc(a, $wnd.Math.max($wnd.Math.max(8, c), Cast_round_int(a.c * Noi)));
   return a.a;
 }
 
@@ -47000,7 +47074,10 @@ function Meg(a) {
 function gGg() {
   eGg();
   byg.call(this);
-  this.I = (Fjg(), Dungeon.depth) == Statistics_deepestFloor ? "Yog-Dzewa" : "echo of Yog-Dzewa";
+  this.I =
+    (Fjg(), Dungeon.depth) == Statistics.deepestFloor
+      ? "Yog-Dzewa"
+      : "echo of Yog-Dzewa";
   this.u = FTf;
   this.A = this.B = 300;
   this.d = 50;
@@ -47311,7 +47388,10 @@ function Wif(a, b, c, d) {
 }
 function HOg() {
   Z9f.call(this, bHj);
-  U9f(this, Cast_round_int($wnd.Math.random() * 2) == 0 ? (vOg(), sOg) : (vOg(), tOg));
+  Image_$frame(
+    this,
+    Cast_round_int($wnd.Math.random() * 2) == 0 ? (vOg(), sOg) : (vOg(), tOg),
+  );
   vTh(this.ab, this.fb / 2, this.$ / 2);
   vTh(this.S, 0, DOg);
 }
@@ -47322,7 +47402,9 @@ function GMh(a, b, c) {
   Group_$add(a, d);
   d = PixelScene_createText(c, 8);
   BitmapText_$measure(d);
-  d.gb = Cast_round_int(64.99999761581421 * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  d.gb =
+    Cast_round_int(64.99999761581421 * PixelScene_defaultZoom) /
+    PixelScene_defaultZoom;
   d.hb = a.a;
   Group_$add(a, d);
   a.a += 5 + d.g.b * d.db.b;
@@ -47398,11 +47480,11 @@ function Game_$step(game) {
   if (game.e) {
     game.e = false;
     try {
-        if (game.i === "RankingsScene") {
-            game.f = new RankingsScene();
-        } else {
-            game.f = apc(game.i);
-        }
+      if (game.i === "RankingsScene") {
+        game.f = new RankingsScene();
+      } else {
+        game.f = apc(game.i);
+      }
       Game_$switchScene(game);
     } catch (a) {
       a = v$f(a);
@@ -47642,7 +47724,9 @@ function iOh(a, b, c, d) {
   Group_$add(a, e);
   e = PixelScene_createText(c, 7);
   BitmapText_$measure(e);
-  e.gb = Cast_round_int(72.79999732971191 * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  e.gb =
+    Cast_round_int(72.79999732971191 * PixelScene_defaultZoom) /
+    PixelScene_defaultZoom;
   e.hb = d;
   Group_$add(a, e);
   return d + 4 + e.g.b * e.db.b;
@@ -47842,7 +47926,11 @@ function ENh(a) {
   BitmapTextMultiline_$measure(b);
   b.gb = b.hb = 4;
   Group_$add(this, b);
-  DHg(this, Cast_round_int(b.fb * b.db.a) + 8, Cast_round_int(b.$ * b.db.b) + 8);
+  DHg(
+    this,
+    Cast_round_int(b.fb * b.db.a) + 8,
+    Cast_round_int(b.$ * b.db.b) + 8,
+  );
 }
 function B$h(a, b, c) {
   var d, e;
@@ -48530,7 +48618,8 @@ function byg() {
 function vBg() {
   tBg();
   byg.call(this);
-  this.I = (Fjg(), Dungeon.depth) == Statistics_deepestFloor ? "Goo" : "spawn of Goo";
+  this.I =
+    (Fjg(), Dungeon.depth) == Statistics.deepestFloor ? "Goo" : "spawn of Goo";
   this.A = this.B = 80;
   this.d = 10;
   this.n = 12;
@@ -48653,7 +48742,7 @@ function aPh(a, b) {
     c = (Fjg(), Dungeon.hero);
     b = ctg(b, c.d.b);
     d = b.h4();
-    cYg(new fYg(d), c);
+    Gold_$doPickUp(new fYg(d), c);
     uJh(Bbj, aqf(Vpf(WXf, 1), E9h, 1, 5, [b.XX(), rXh(d)]));
   }
 }
@@ -48788,7 +48877,7 @@ function dDg() {
   this.s = 0.08299999684095383;
 }
 function pvh(a) {
-  pfg.call(this);
+  Component.call(this);
   BitmapText_$text(this.c, a);
   this.c.G_();
   this.B = O7f(this.c) + this.b.B + Wbg(this.a) + 6;
@@ -48993,7 +49082,7 @@ function luh(a) {
   this.b = (PixelScene_defaultZoom * 16) / 2;
 }
 function DFh(a) {
-  pfg.call(this);
+  Component.call(this);
   this.c = Yci;
   this.a = zaj;
   this.d = Fth(null, a);
@@ -49093,7 +49182,8 @@ function Wjg(a, b) {
 function hAg() {
   gAg();
   byg.call(this);
-  this.I = (Fjg(), Dungeon.depth) == Statistics_deepestFloor ? "DM-300" : "DM-350";
+  this.I =
+    (Fjg(), Dungeon.depth) == Statistics.deepestFloor ? "DM-300" : "DM-350";
   this.u = HSf;
   this.A = this.B = 200;
   this.d = 30;
@@ -49752,7 +49842,7 @@ function SBg() {
   PBg();
   byg.call(this);
   this.I =
-    (Fjg(), Dungeon.depth) == Statistics_deepestFloor
+    (Fjg(), Dungeon.depth) == Statistics.deepestFloor
       ? "King of Dwarves"
       : "undead King of Dwarves";
   this.u = YSf;
@@ -49945,18 +50035,6 @@ function Mbb(a, b, c) {
   f = J_[Cast_round_int(b * Egi) & cdi];
   return Kbb(a, d * g, f * g, e);
 }
-function rmg(a) {
-  PQh(a, gEj, Statistics_goldCollected);
-  PQh(a, vGj, Statistics_deepestFloor);
-  PQh(a, iEj, Statistics_enemiesSlain);
-  PQh(a, jEj, Statistics_foodEaten);
-  PQh(a, kEj, Statistics_potionsCooked);
-  PQh(a, oJj, Statistics_piranhasKilled);
-  PQh(a, lEj, Statistics_nightHunt);
-  PQh(a, mEj, Statistics_ankhsUsed);
-  OQh(a, Nfi, Statistics_duration);
-  VQh(a, nEj, Statistics_amuletObtained);
-}
 function _Ng(a, b, c) {
   var d, e, f, g, h, i, j;
   d = m5f(zHj).i;
@@ -50081,7 +50159,7 @@ function _Oh(a) {
   }
   dtg(a, b.d.b);
   c = a.h4();
-  cYg(new fYg(c), b);
+  Gold_$doPickUp(new fYg(c), b);
   uJh(Bbj, aqf(Vpf(WXf, 1), E9h, 1, 5, [a.XX(), rXh(c)]));
 }
 function mz() {
@@ -50183,7 +50261,15 @@ function fpc(b, c, d) {
     if (Rqf(a, 24)) {
       e = a;
       throw w$f(
-        new jpc("Could not set " + qpc(b.a.c).d + "#" + b.a.p + rai + e.g, e),
+        new jpc(
+          "Could not set " +
+            CachedTypeLookup_$getType(b.a.c).d +
+            "#" +
+            b.a.p +
+            rai +
+            e.g,
+          e,
+        ),
       );
     } else throw w$f(a);
   }
@@ -50736,7 +50822,15 @@ function dpc(b, c) {
     if (Rqf(a, 24)) {
       d = a;
       throw w$f(
-        new jpc("Could not get " + qpc(b.a.c).d + "#" + b.a.p + rai + d.g, d),
+        new jpc(
+          "Could not get " +
+            CachedTypeLookup_$getType(b.a.c).d +
+            "#" +
+            b.a.p +
+            rai +
+            d.g,
+          d,
+        ),
       );
     } else throw w$f(a);
   }
@@ -50858,10 +50952,10 @@ function C_b(a, b, c, d, e) {
 }
 function o8b(a, b) {
   var c, d;
-  c = Oqf(Soc(Cb(a.c).c, b));
+  c = Oqf(ArrayReflection_newInstance(Cb(a.c).c, b));
   kZh(a.c, 0, c, 0, $wnd.Math.min(a.g, c.length));
   a.c = c;
-  d = Oqf(Soc(Cb(a.i).c, b));
+  d = Oqf(ArrayReflection_newInstance(Cb(a.i).c, b));
   kZh(a.i, 0, d, 0, $wnd.Math.min(a.g, d.length));
   a.i = d;
 }
@@ -51106,7 +51200,7 @@ function idg(a, b) {
 function UNg(a, b) {
   Kbg.call(this, zHj);
   !LNg && (LNg = new rjf(this.O, 16, 16));
-  U9f(this, TextureFilm_$get(LNg, rXh(a)));
+  Image_$frame(this, TextureFilm_$get(LNg, rXh(a)));
   !(this.i = b) &&
     ((this.cb = this.Z = this.X = this.T = 1),
     (this.bb = this.Y = this.W = this.R = 0));
@@ -51290,7 +51384,7 @@ function qlc(a, b) {
   g = a.e;
   c = a.a;
   f = a.d;
-  d = Oqf(Soc(Cb(g).c, b));
+  d = Oqf(ArrayReflection_newInstance(Cb(g).c, b));
   if (c < f) {
     kZh(g, c, d, 0, f - c);
   } else if (a.c > 0) {
@@ -51793,7 +51887,7 @@ function l0g(a, b) {
 }
 function _Dh(a) {
   var b, c, d;
-  UDh.call(this, new pfg());
+  UDh.call(this, new Component());
   this.a = new a1h();
   for (c = new G1h(Badges_filtered(a)); c.a < c.c.a.length; ) {
     b = F1h(c);
@@ -52108,7 +52202,10 @@ function Dungeon_loadLevel(a) {
   var b, c;
   Dungeon.level = null;
   Wjf();
-  c = Game_$readFile(qag, yJh(Kjg(a), aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(Dungeon.depth)])));
+  c = Game_$readFile(
+    qag,
+    yJh(Kjg(a), aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(Dungeon.depth)])),
+  );
   b = yRh(c);
   return IQh(new $Qh(Ndc(b.a, LSi) ? Ndc(b.a, LSi) : new gec((igc(), ggc))));
 }
@@ -52319,7 +52416,10 @@ function Nf(a, b) {
   var c, d;
   d =
     ((c = a.b.g ? $wnd.devicePixelRatio || 1 : 1),
-    new Sf(Cast_round_int($wnd.screen.width * c), Cast_round_int($wnd.screen.height * c)));
+    new Sf(
+      Cast_round_int($wnd.screen.width * c),
+      Cast_round_int($wnd.screen.height * c),
+    ));
   if (b.d != d.d && b.b != d.b) return false;
   return Mf(a, a.a, b.d, b.b);
 }
@@ -52352,7 +52452,7 @@ function rlf(a) {
     a.f = false;
   }
 }
-function Evh() {
+function InterlevelScene_$restore() {
   var a;
   _jf();
   _Eh();
@@ -52360,7 +52460,7 @@ function Evh() {
   Fjg();
   Dungeon_loadGame(Qjg((Qwh(), Owh)), true);
   if (Dungeon.depth == -1) {
-    Dungeon.depth = Statistics_deepestFloor;
+    Dungeon.depth = Statistics.deepestFloor;
     Dungeon_switchLevel(Dungeon_loadLevel(Owh), -1);
   } else {
     a = Dungeon_loadLevel(Owh);
@@ -52419,7 +52519,10 @@ function u6b(a, b, c) {
   if (b > a.i) throw w$f(new sVh(Soi + b + " > " + a.i));
   d = a.i + c;
   d > a.d.length &&
-    (a.d = D6b(a, $wnd.Math.max($wnd.Math.max(8, d), Cast_round_int(a.i * Noi))));
+    (a.d = D6b(
+      a,
+      $wnd.Math.max($wnd.Math.max(8, d), Cast_round_int(a.i * Noi)),
+    ));
   kZh(a.d, b, a.d, b + c, a.i - b);
   a.i = d;
 }
@@ -52503,7 +52606,7 @@ function Cvh() {
   } else {
     Dungeon_saveLevel();
   }
-  if (Dungeon.depth >= Statistics_deepestFloor) {
+  if (Dungeon.depth >= Statistics.deepestFloor) {
     a = Dungeon_newLevel();
   } else {
     ++Dungeon.depth;
@@ -53058,13 +53161,19 @@ function _ug(a) {
 }
 function tNh(a) {
   var b, c;
-  b = Cast_round_int((a.D + (a.A - a.a.D_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  b =
+    Cast_round_int((a.D + (a.A - a.a.D_()) / 2) * PixelScene_defaultZoom) /
+    PixelScene_defaultZoom;
   c = a.B / 4;
   a.a.gb = 0;
   a.a.hb = b;
-  a.c.gb = Cast_round_int((c * 2 + (c - O7f(a.c)) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  a.c.gb =
+    Cast_round_int((c * 2 + (c - O7f(a.c)) / 2) * PixelScene_defaultZoom) /
+    PixelScene_defaultZoom;
   a.c.hb = b;
-  a.d.gb = Cast_round_int((c * 3 + (c - O7f(a.d)) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  a.d.gb =
+    Cast_round_int((c * 3 + (c - O7f(a.d)) / 2) * PixelScene_defaultZoom) /
+    PixelScene_defaultZoom;
   a.d.hb = b;
 }
 function L2h(a) {
@@ -53650,11 +53759,11 @@ function HQb(a) {
   this.c = a.c;
   this.b = a.b;
 }
-function cYg(a, b) {
+function Gold_$doPickUp(a, b) {
   Fjg();
   Dungeon.gold += a.A;
-  Statistics_goldCollected += a.A;
-  Igg();
+  Statistics.goldCollected += a.A;
+  Badges_validateGoldCollected();
   zuh();
   wIh(yuh.u, a);
   Qyh(b.M, raj, "%+d", aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(a.A)]));
@@ -53812,7 +53921,7 @@ function CMh(a, b) {
   d = b.Y2();
   if (d != -1) {
     c = new Z9f(a.b.c);
-    U9f(c, TextureFilm_$get(a.b.b, rXh(d)));
+    Image_$frame(c, TextureFilm_$get(a.b.b, rXh(d)));
     c.hb = a.a;
     Group_$add(a, c);
     e = PixelScene_createText(g_f(b), 8);
@@ -54886,7 +54995,7 @@ function Ukf(a) {
         c = d[e];
         c.k && ((b.a[b.a.length] = c), true);
       }
-      g = qpc(g.A);
+      g = CachedTypeLookup_$getType(g.A);
     }
     a.a = _0h(b, Zpf(aDf, yRi, 6, b.a.length, 0, 1));
   }
@@ -55506,18 +55615,6 @@ function opc(a, b, c) {
   Kbb(a.b.j, a.j / 2, a.i / 2, 0);
   Qk(a.b);
 }
-function qmg(a) {
-  Statistics_goldCollected = Qdc(a.a, gEj, 0);
-  Statistics_deepestFloor = Qdc(a.a, vGj, 0);
-  Statistics_enemiesSlain = Qdc(a.a, iEj, 0);
-  Statistics_foodEaten = Qdc(a.a, jEj, 0);
-  Statistics_potionsCooked = Qdc(a.a, kEj, 0);
-  Statistics_piranhasKilled = Qdc(a.a, oJj, 0);
-  Statistics_nightHunt = Qdc(a.a, lEj, 0);
-  Statistics_ankhsUsed = Qdc(a.a, mEj, 0);
-  Statistics_duration = Pdc(a.a, Nfi, 0);
-  Statistics_amuletObtained = Odc(a.a, nEj, false);
-}
 function ehh(a, b) {
   WQh(b, hZi, a.w);
   YQh(b, iZi, a.F);
@@ -55653,16 +55750,16 @@ function wNg(a) {
   b = new Z9f(dHj);
   switch (a.f) {
     case 0:
-      U9f(b, V4f(b.O, 0, 0, 16, 16));
+      Image_$frame(b, V4f(b.O, 0, 0, 16, 16));
       break;
     case 1:
-      U9f(b, V4f(b.O, 16, 0, 32, 8));
+      Image_$frame(b, V4f(b.O, 16, 0, 32, 8));
       break;
     case 2:
-      U9f(b, V4f(b.O, 16, 8, 32, 16));
+      Image_$frame(b, V4f(b.O, 16, 8, 32, 16));
       break;
     case 3:
-      U9f(b, V4f(b.O, 16, 16, 32, 24));
+      Image_$frame(b, V4f(b.O, 16, 16, 32, 24));
   }
   return b;
 }
@@ -55771,10 +55868,10 @@ function Qxg(a) {
   Z5h((Fjg(), Dungeon.level).B, a);
   if (Dungeon.hero.A > 0) {
     if (a.q) {
-      ++Statistics_enemiesSlain;
+      ++Statistics.enemiesSlain;
       Ogg();
-      Statistics_qualifiedForNoKilling = false;
-      Dungeon.nightMode ? ++Statistics_nightHunt : (Statistics_nightHunt = 0);
+      Statistics.qualifiedForNoKilling = false;
+      Dungeon.nightMode ? ++Statistics.nightHunt : (Statistics.nightHunt = 0);
       Pgg();
     }
     b = Dungeon.hero.o <= a.t ? a.d : 0;
@@ -56062,7 +56159,7 @@ function vKh(a, b) {
   Group_$add(this, this.b);
 }
 function YMh(a) {
-  pfg.call(this);
+  Component.call(this);
   this.d = PixelScene_createText(xJh(a.I), 9);
   D7f(this.d, zaj);
   this.d.G_();
@@ -56530,19 +56627,19 @@ function Sgg() {
   jgg();
   var a;
   a = null;
-  if (!Y5h(Badges_local, (Kig(), mig)) && Statistics_potionsCooked >= 3) {
+  if (!Y5h(Badges_local, (Kig(), mig)) && Statistics.potionsCooked >= 3) {
     a = mig;
     X5h(Badges_local, a);
   }
-  if (!Y5h(Badges_local, nig) && Statistics_potionsCooked >= 6) {
+  if (!Y5h(Badges_local, nig) && Statistics.potionsCooked >= 6) {
     a = nig;
     X5h(Badges_local, a);
   }
-  if (!Y5h(Badges_local, oig) && Statistics_potionsCooked >= 9) {
+  if (!Y5h(Badges_local, oig) && Statistics.potionsCooked >= 9) {
     a = oig;
     X5h(Badges_local, a);
   }
-  if (!Y5h(Badges_local, pig) && Statistics_potionsCooked >= 12) {
+  if (!Y5h(Badges_local, pig) && Statistics.potionsCooked >= 12) {
     a = pig;
     X5h(Badges_local, a);
   }
@@ -56777,7 +56874,7 @@ function wpc(a, b) {
   if (b == null) return a.r.length == 0;
   if (b.length != a.r.length) return false;
   for (c = 0; c < b.length; c++) {
-    d = qpc(a.r[c].c);
+    d = CachedTypeLookup_$getType(a.r[c].c);
     e = Kkf(b[c]);
     if (d != e && !(d.d == e.d || (d.d == WXf && !e.s) || e.c.ZN(d.d)))
       return false;
@@ -56815,7 +56912,7 @@ function Ibg(a) {
         ++a.D;
       }
     }
-    a.D != b && U9f(a, a.C.b[a.D]);
+    a.D != b && Image_$frame(a, a.C.b[a.D]);
   }
 }
 function PIg(a) {
@@ -56844,7 +56941,7 @@ function AMg(a) {
   Z9f.call(this, PGj);
   !xMg && (xMg = new rjf(this.O, 16, 16));
   this.a = a;
-  U9f(this, TextureFilm_$get(xMg, rXh(a)));
+  Image_$frame(this, TextureFilm_$get(xMg, rXh(a)));
   vTh(this.ab, this.fb / 2, this.$ / 2);
   this.T = 0;
   this.R = 0;
@@ -56857,19 +56954,19 @@ function Ggg() {
   jgg();
   var a;
   a = null;
-  if (!Y5h(Badges_local, (Kig(), Fhg)) && Statistics_foodEaten >= 10) {
+  if (!Y5h(Badges_local, (Kig(), Fhg)) && Statistics.foodEaten >= 10) {
     a = Fhg;
     X5h(Badges_local, a);
   }
-  if (!Y5h(Badges_local, Ghg) && Statistics_foodEaten >= 20) {
+  if (!Y5h(Badges_local, Ghg) && Statistics.foodEaten >= 20) {
     a = Ghg;
     X5h(Badges_local, a);
   }
-  if (!Y5h(Badges_local, Hhg) && Statistics_foodEaten >= 30) {
+  if (!Y5h(Badges_local, Hhg) && Statistics.foodEaten >= 30) {
     a = Hhg;
     X5h(Badges_local, a);
   }
-  if (!Y5h(Badges_local, Ihg) && Statistics_foodEaten >= 40) {
+  if (!Y5h(Badges_local, Ihg) && Statistics.foodEaten >= 40) {
     a = Ihg;
     X5h(Badges_local, a);
   }
@@ -57048,19 +57145,19 @@ function Ogg() {
   jgg();
   var a;
   a = null;
-  if (!Y5h(Badges_local, (Kig(), fig)) && Statistics_enemiesSlain >= 10) {
+  if (!Y5h(Badges_local, (Kig(), fig)) && Statistics.enemiesSlain >= 10) {
     a = fig;
     X5h(Badges_local, a);
   }
-  if (!Y5h(Badges_local, gig) && Statistics_enemiesSlain >= 50) {
+  if (!Y5h(Badges_local, gig) && Statistics.enemiesSlain >= 50) {
     a = gig;
     X5h(Badges_local, a);
   }
-  if (!Y5h(Badges_local, hig) && Statistics_enemiesSlain >= 150) {
+  if (!Y5h(Badges_local, hig) && Statistics.enemiesSlain >= 150) {
     a = hig;
     X5h(Badges_local, a);
   }
-  if (!Y5h(Badges_local, iig) && Statistics_enemiesSlain >= 250) {
+  if (!Y5h(Badges_local, iig) && Statistics.enemiesSlain >= 250) {
     a = iig;
     X5h(Badges_local, a);
   }
@@ -57314,23 +57411,23 @@ function Ktb(a) {
   this.ob = false;
   Ugb(this, (ynb(), vnb));
 }
-function Igg() {
+function Badges_validateGoldCollected() {
   jgg();
   var a;
   a = null;
-  if (!Y5h(Badges_local, (Kig(), Nhg)) && Statistics_goldCollected >= 100) {
+  if (!Y5h(Badges_local, (Kig(), Nhg)) && Statistics.goldCollected >= 100) {
     a = Nhg;
     X5h(Badges_local, a);
   }
-  if (!Y5h(Badges_local, Ohg) && Statistics_goldCollected >= 500) {
+  if (!Y5h(Badges_local, Ohg) && Statistics.goldCollected >= 500) {
     a = Ohg;
     X5h(Badges_local, a);
   }
-  if (!Y5h(Badges_local, Phg) && Statistics_goldCollected >= 2500) {
+  if (!Y5h(Badges_local, Phg) && Statistics.goldCollected >= 2500) {
     a = Phg;
     X5h(Badges_local, a);
   }
-  if (!Y5h(Badges_local, Qhg) && Statistics_goldCollected >= 7500) {
+  if (!Y5h(Badges_local, Qhg) && Statistics.goldCollected >= 7500) {
     a = Qhg;
     X5h(Badges_local, a);
   }
@@ -57405,7 +57502,8 @@ function Srh(a) {
   if (Dungeon.hero.s == (Axg(), yxg)) {
     Cast_round_int($wnd.Math.random() * 5) == 0 &&
       Dungeon.level.V8(IXg((XXg(), UXg)), a.c).c.q6();
-    Cast_round_int($wnd.Math.random() * 5) == 0 && Dungeon.level.V8(new tXg(), a.c).c.q6();
+    Cast_round_int($wnd.Math.random() * 5) == 0 &&
+      Dungeon.level.V8(new tXg(), a.c).c.q6();
   }
 }
 function Xs(a, b, c, d, e) {
@@ -58125,7 +58223,7 @@ function jPg() {
     j5f(vKf, new X4f(a));
   }
   this.O = m5f(vKf);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   uTh(this.ab, 64);
 }
 function plf(a) {
@@ -58693,7 +58791,8 @@ function Gqh(a, b) {
     for (e = b.g + 2; e < b.i - 1; e++) {
       f = $wnd.Math.min(d - b.j, b.f - d);
       c = $wnd.Math.min(e - b.g, b.i - e);
-      ($wnd.Math.min(f, c) > 2 || Cast_round_int($wnd.Math.random() * 2) == 0) &&
+      ($wnd.Math.min(f, c) > 2 ||
+        Cast_round_int($wnd.Math.random() * 2) == 0) &&
         (a.w[e + d * 32] = 0);
     }
   }
@@ -59017,7 +59116,9 @@ function Zgb(a, b) {
 function Ojg(a, b, c, d, e) {
   Fjg();
   var f, g, h, i, j;
-  a.G ? qJh(d, (Pgh(), Bgh), Dungeon.passable) : kZh(d, 0, Dungeon.passable, 0, oei);
+  a.G
+    ? qJh(d, (Pgh(), Bgh), Dungeon.passable)
+    : kZh(d, 0, Dungeon.passable, 0, oei);
   for (g = (Ojf(), (i = new Q_h(Jjf.a).a.Ocb().Pd()), new W_h(i)); g.a.Rd(); ) {
     f = ((h = g.a.Sd()), h.Aeb());
     if (Rqf(f, 73)) {
@@ -59337,7 +59438,10 @@ function P5c() {
 
 function cDg(a, b, c) {
   var d, e;
-  if (Cast_round_int($wnd.Math.random() * 6) == 0 && b == (Fjg(), Dungeon.hero)) {
+  if (
+    Cast_round_int($wnd.Math.random() * 6) == 0 &&
+    b == (Fjg(), Dungeon.hero)
+  ) {
     d = (Fjg(), Dungeon.hero);
     e = d.d.f;
     if (!!e && !Rqf(e, 446) && !e.p) {
@@ -59732,19 +59836,19 @@ function QMg(a) {
   b = new Z9f(OGj);
   switch (a.f) {
     case 0:
-      U9f(b, V4f(b.O, 0, 0, 128, 70));
+      Image_$frame(b, V4f(b.O, 0, 0, 128, 70));
       break;
     case 1:
-      U9f(b, V4f(b.O, 0, 70, 128, 105));
+      Image_$frame(b, V4f(b.O, 0, 70, 128, 105));
       break;
     case 2:
-      U9f(b, V4f(b.O, 0, 105, 128, 140));
+      Image_$frame(b, V4f(b.O, 0, 105, 128, 140));
       break;
     case 3:
-      U9f(b, V4f(b.O, 0, 140, 128, 161));
+      Image_$frame(b, V4f(b.O, 0, 140, 128, 161));
       break;
     case 4:
-      U9f(b, V4f(b.O, 0, 161, 128, 218));
+      Image_$frame(b, V4f(b.O, 0, 161, 128, 218));
   }
   return b;
 }
@@ -59759,7 +59863,7 @@ function jNh() {
   a = new nNh(this);
   Component_$setRect(a, 0, this.p - 20, this.r, 20);
   Group_$add(this, a);
-  this.b = new pfg();
+  this.b = new Component();
   b = new pNh(this, this.b);
   iNh(this);
   Group_$add(this, b);
@@ -60050,7 +60154,10 @@ function QS(a, b, c, d) {
     p6b(a.d, a.e);
   }
   for (e = 0; e < a.e; e++)
-    i6b(a.d, ZS(b[0].$t(), d ? e : Cast_round_int(e + 0.5 * c), 0, b, c, d, a.f));
+    i6b(
+      a.d,
+      ZS(b[0].$t(), d ? e : Cast_round_int(e + 0.5 * c), 0, b, c, d, a.f),
+    );
   return a;
 }
 function XT(a, b, c) {
@@ -61438,7 +61545,9 @@ function ckf() {
 function _jf() {
   Ojf();
   var a, b, c, d, e, f, g;
-  !!(Fjg(), Dungeon.hero) && Y5h(Jjf, Dungeon.hero) && (Statistics_duration += Njf);
+  !!(Fjg(), Dungeon.hero) &&
+    Y5h(Jjf, Dungeon.hero) &&
+    (Statistics.duration += Njf);
   e = $hi;
   for (c = ((g = new Q_h(Jjf.a).a.Ocb().Pd()), new W_h(g)); c.a.Rd(); ) {
     a = ((d = c.a.Sd()), d.Aeb());
@@ -62054,7 +62163,7 @@ function S9f(a) {
 }
 function vxh(a, b) {
   this.i = a;
-  Jfg.call(this);
+  Button.call(this);
   this.c = b;
   T9f(this.a, b.f * 24, 0, 24, 28);
   uTh(this.a.db, 2);
@@ -62470,9 +62579,16 @@ function ZOg(a, b, c, d, e) {
   }
   a.k = d;
   a.f = true;
-  Visual_$hardlight(a, (e >> 16) / 255, ((e >> 8) & 255) / 255, (e & 255) / 255);
+  Visual_$hardlight(
+    a,
+    (e >> 16) / 255,
+    ((e >> 8) & 255) / 255,
+    (e & 255) / 255,
+  );
   BitmapText_$measure(a);
-  a.gb = Cast_round_int((b - (a.fb * a.db.a) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  a.gb =
+    Cast_round_int((b - (a.fb * a.db.a) / 2) * PixelScene_defaultZoom) /
+    PixelScene_defaultZoom;
   a.hb = c - a.$ * a.db.b;
   a.c = 1;
 }
@@ -63273,7 +63389,7 @@ function ORb(b, c, d) {
 function ILh(b, c) {
   var d;
   this.e = b;
-  pfg.call(this);
+  Component.call(this);
   try {
     this.b = apc(c);
     if ((this.a = this.b.a4())) {
@@ -63479,7 +63595,7 @@ function Q$(a, b, c) {
   return false;
 }
 function RankingsScene$Record(pos, latest, rec) {
-  Jfg.call(this);
+  Button.call(this);
 
   this.rec = rec;
 
@@ -64358,7 +64474,10 @@ function PixelDungeon_$resize(a, b, c) {
   Bag(b, c);
   f =
     ((d = fc.b.g ? $wnd.devicePixelRatio || 1 : 1),
-    new Sf(Cast_round_int($wnd.screen.width * d), Cast_round_int($wnd.screen.height * d)));
+    new Sf(
+      Cast_round_int($wnd.screen.width * d),
+      Cast_round_int($wnd.screen.height * d),
+    ));
   e = b >= f.d || c >= f.b;
   if (!e && !qag.d.a) {
     g = (olg(), nlg);
@@ -65373,7 +65492,9 @@ function K3f(b, c) {
         }
         return f;
       }
-    } catch (a) {console.error(a)}
+    } catch (a) {
+      console.error(a);
+    }
   }
   return null;
 }
@@ -66028,7 +66149,11 @@ function wwh(a) {
   this.b.gb = 6;
   Group_$add(this, this.b);
   Group_$add(this, new VOh(this, this.o));
-  DHg(this, Cast_round_int(O7f(this.b) + 12), Cast_round_int($wnd.Math.min(E7f(this.b), 180)));
+  DHg(
+    this,
+    Cast_round_int(O7f(this.b) + 12),
+    Cast_round_int($wnd.Math.min(E7f(this.b), 180)),
+  );
 }
 function L$(a, b, c, d, e) {
   r$();
@@ -66178,7 +66303,11 @@ function wMh() {
     a = F1h(b);
     Component_$setSize(a, 40, 25);
   }
-  WndTabbed_$resize(this, 100, Cast_round_int($wnd.Math.max(this.d.a, this.a.a)));
+  WndTabbed_$resize(
+    this,
+    100,
+    Cast_round_int($wnd.Math.max(this.d.a, this.a.a)),
+  );
   UJh(this, U0h(this.k, 0));
 }
 function oLb(a, b, c, d, e, f) {
@@ -66716,7 +66845,7 @@ function LAh() {
   var a;
   Azh.call(this);
   this.O = m5f("ghost.png");
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 14, 15);
   this.p = new Sbg(5, true);
   Qbg(this.p, a, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(0), rXh(1)]));
@@ -66786,7 +66915,7 @@ function ECh() {
   var a;
   Azh.call(this);
   this.O = m5f(iHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 14, 14);
   this.p = new Sbg(10, true);
   Qbg(
@@ -67339,7 +67468,7 @@ function U2g(a, b, c) {
     wRg(b, 0);
     ieg((eeg(), deg), eIj, 1, 1);
     vvg(b, 3);
-    ++Statistics_foodEaten;
+    ++Statistics.foodEaten;
     Ggg();
   } else {
     htg(a, b, c);
@@ -69807,21 +69936,26 @@ function WRb(b, c, d, e, f, g) {
   i = Ndc(g, e);
   if (!i) return;
   try {
-    fpc(d, c, b.JP(qpc(d.a.r).d, f, i));
+    fpc(d, c, b.JP(CachedTypeLookup_$getType(d.a.r).d, f, i));
   } catch (a) {
     a = v$f(a);
     if (Rqf(a, 181)) {
       h = a;
-      throw w$f(new Bmc(Zmi + d.a.p + bei + qWh(qpc(d.a.c).d) + ")", h));
+      throw w$f(
+        new Bmc(
+          Zmi + d.a.p + bei + qWh(CachedTypeLookup_$getType(d.a.c).d) + ")",
+          h,
+        ),
+      );
     } else if (Rqf(a, 68)) {
       h = a;
-      zmc(h, d.a.p + bei + qWh(qpc(d.a.c).d) + ")");
+      zmc(h, d.a.p + bei + qWh(CachedTypeLookup_$getType(d.a.c).d) + ")");
       throw w$f(h);
     } else if (Rqf(a, 59)) {
       j = a;
       h = new Cmc(j);
       zmc(h, bec(i));
-      zmc(h, d.a.p + bei + qWh(qpc(d.a.c).d) + ")");
+      zmc(h, d.a.p + bei + qWh(CachedTypeLookup_$getType(d.a.c).d) + ")");
       throw w$f(h);
     } else throw w$f(a);
   }
@@ -70036,7 +70170,9 @@ function RJh(a) {
   for (e = new G1h(R8f(new S8f(c))); e.a < e.c.a.length; ) {
     d = F1h(e);
     d.G_();
-    d.gb = Cast_round_int(((g - d.fb * d.db.a) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+    d.gb =
+      Cast_round_int(((g - d.fb * d.db.a) / 2) * PixelScene_defaultZoom) /
+      PixelScene_defaultZoom;
     d.hb = Cast_round_int(f * PixelScene_defaultZoom) / PixelScene_defaultZoom;
     Group_$add(this, d);
     f += d.$ * d.db.b;
@@ -70065,7 +70201,12 @@ function v5b(a) {
     a.b = $wnd.Math.max(1, c - e);
   }
   i6b(l5b, a);
-  CN(Cast_round_int(a.d), Cast_round_int(a.e), Cast_round_int(a.c), Cast_round_int(a.b));
+  CN(
+    Cast_round_int(a.d),
+    Cast_round_int(a.e),
+    Cast_round_int(a.c),
+    Cast_round_int(a.b),
+  );
   return true;
 }
 function hdg(a) {
@@ -70216,7 +70357,8 @@ function yJh(a, b) {
     if (a.charCodeAt(e) == 37) {
       switch (String_$charAt(a, ++e)) {
         case 43:
-          if (String_$charAt(a, ++e) != 100) throw w$f(new lbc("Invalid format"));
+          if (String_$charAt(a, ++e) != 100)
+            throw w$f(new lbc("Invalid format"));
           GVh(b[c]) >= 0 && ((d.a += "+"), d);
         case 100:
         case 115:
@@ -70379,7 +70521,10 @@ function Hqh(a, b) {
           1 +
           h +
           d * 2 +
-          (b.j + 2 + (c - 2 > 0 ? Cast_round_int($wnd.Math.random() * (c - 2)) : 0)) * 32
+          (b.j +
+            2 +
+            (c - 2 > 0 ? Cast_round_int($wnd.Math.random() * (c - 2)) : 0)) *
+            32
         : b.g +
           2 +
           (i - 2 > 0 ? Cast_round_int($wnd.Math.random() * (i - 2)) : 0) +
@@ -70432,7 +70577,7 @@ function Dungeon_init() {
   lah = new BZg(nah, oah, mah);
   E6g();
   B6g = new BZg(D6g, A6g, C6g);
-  Statistics_reset();
+  Statistics.reset();
   Bkg = new a1h();
   Dungeon.depth = 0;
   Dungeon.gold = 0;
@@ -70629,7 +70774,7 @@ function xEh(a) {
     e = b.Y2();
     if (e != -1) {
       f = new Z9f(a.d);
-      U9f(f, TextureFilm_$get(a.b, rXh(e)));
+      Image_$frame(f, TextureFilm_$get(a.b, rXh(e)));
       f.gb = a.C + a.G.a.length * 9;
       f.hb = a.D;
       Group_$add(a, f);
@@ -70908,7 +71053,7 @@ function cNh() {
   this.b.G_();
   this.b.gb = PixelScene_align(PixelScene_uiCamera, (112 - O7f(this.b)) / 2);
   Group_$add(this, this.b);
-  a = new pfg();
+  a = new Component();
   y2h();
   $0h(Bkg, null);
   c = 0;
@@ -71435,7 +71580,7 @@ function Pzh() {
   var a;
   Azh.call(this);
   this.O = m5f(xHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 13, 16);
   this.p = new Sbg(15, true);
   Qbg(
@@ -72146,12 +72291,14 @@ function WndCatalogus() {
   var a, b, c, d, e;
   WndTabbed.call(this);
   this.a = new a1h();
-  Game_width > Game_height ? WndTabbed_$resize(this, 128, 128) : WndTabbed_$resize(this, 112, 160);
+  Game_width > Game_height
+    ? WndTabbed_$resize(this, 128, 128)
+    : WndTabbed_$resize(this, 112, 160);
   this.c = PixelScene_createText(Gaj, 9);
   D7f(this.c, zaj);
   this.c.G_();
   Group_$add(this, this.c);
-  this.b = new xLh(this, new pfg());
+  this.b = new xLh(this, new Component());
   Group_$add(this, this.b);
   Component_$setRect(this.b, 0, E7f(this.c), this.r, this.p - E7f(this.c));
   a = sLh;
@@ -72271,7 +72418,7 @@ function yZg(a, b, c, d) {
 function QBh(a, b, c, d, e, f) {
   var g, h, i;
   QNg(a);
-  U9f(a, TextureFilm_$get(LNg, rXh(d)));
+  Image_$frame(a, TextureFilm_$get(LNg, rXh(d)));
   !(a.i = e) && ((a.cb = a.Z = a.X = a.T = 1), (a.bb = a.Y = a.W = a.R = 0));
   a.a = f;
   I7f(a, tTh(new yTh(b % 32, (b / 32) | 0), 16));
@@ -72326,7 +72473,7 @@ function lSb(b, c, d, e, f) {
   !f && (f = i.b);
   try {
     ugc(b.v, e);
-    rSb(b, dpc(h, c), qpc(h.a.r).d, f);
+    rSb(b, dpc(h, c), CachedTypeLookup_$getType(h.a.r).d, f);
   } catch (a) {
     a = v$f(a);
     if (Rqf(a, 181)) {
@@ -73042,7 +73189,7 @@ function ACh() {
   var a;
   Azh.call(this);
   this.O = m5f("sheep.png");
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 16, 15);
   this.p = new Sbg(8, true);
   Qbg(
@@ -73176,14 +73323,16 @@ function u7h(a) {
       if (yYh(a.a, OYh(String_$charAt(a.d, a.b)), 0) >= 0)
         return String.fromCharCode(String_$charAt(a.d, a.b++));
       for (++a.b; a.b < c; a.b++)
-        if (yYh(a.a, OYh(String_$charAt(a.d, a.b)), 0) >= 0) return IYh(a.d, b, a.b);
+        if (yYh(a.a, OYh(String_$charAt(a.d, a.b)), 0) >= 0)
+          return IYh(a.d, b, a.b);
       return HYh(a.d, b);
     }
     while (b < c && yYh(a.a, OYh(String_$charAt(a.d, b)), 0) >= 0) ++b;
     a.b = b;
     if (b < c) {
       for (++a.b; a.b < c; a.b++)
-        if (yYh(a.a, OYh(String_$charAt(a.d, a.b)), 0) >= 0) return IYh(a.d, b, a.b);
+        if (yYh(a.a, OYh(String_$charAt(a.d, a.b)), 0) >= 0)
+          return IYh(a.d, b, a.b);
       return HYh(a.d, b);
     }
   }
@@ -74037,7 +74186,7 @@ function pCh() {
   var a;
   Azh.call(this);
   this.O = m5f(uHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 24, 17);
   this.p = new Sbg(2, true);
   Qbg(this.p, a, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(0), rXh(0), rXh(1)]));
@@ -74053,7 +74202,7 @@ function DAh() {
   var a;
   Azh.call(this);
   this.O = m5f("eye.png");
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 16, 18);
   this.p = new Sbg(8, true);
   Qbg(this.p, a, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(0), rXh(1), rXh(2)]));
@@ -74685,7 +74834,7 @@ function oCh() {
   var a;
   Azh.call(this);
   this.O = m5f(yHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 16, 16);
   this.p = new Sbg(2, true);
   Qbg(this.p, a, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(0), rXh(0), rXh(0), rXh(1)]));
@@ -74705,7 +74854,7 @@ function Uzh() {
   var a;
   Azh.call(this);
   this.O = m5f(vHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 24, 17);
   this.p = new Sbg(2, true);
   Qbg(this.p, a, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(0), rXh(0), rXh(1)]));
@@ -74721,7 +74870,7 @@ function Mzh() {
   var a;
   Azh.call(this);
   this.O = m5f("bat.png");
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 15, 15);
   this.p = new Sbg(8, true);
   Qbg(this.p, a, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(0), rXh(1)]));
@@ -74737,7 +74886,7 @@ function nAh() {
   var a;
   Azh.call(this);
   this.O = m5f(lHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 14, 15);
   this.p = new Sbg(5, true);
   Qbg(this.p, a, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(0), rXh(1)]));
@@ -75002,13 +75151,13 @@ function Mxh(a, b) {
   } while (c == Lxh);
   switch (c) {
     case 0:
-      U9f(this, V4f(this.O, 88, 0, 137, 20));
+      Image_$frame(this, V4f(this.O, 88, 0, 137, 20));
       break;
     case 1:
-      U9f(this, V4f(this.O, 88, 20, 137, 42));
+      Image_$frame(this, V4f(this.O, 88, 20, 137, 42));
       break;
     case 2:
-      U9f(this, V4f(this.O, 88, 42, 138, 60));
+      Image_$frame(this, V4f(this.O, 88, 42, 138, 60));
   }
   Lxh = c;
   this.hb = a;
@@ -75684,10 +75833,19 @@ function FAg(a) {
       continue;
     }
     if (ang(a, b, true)) {
-      b.B2(14 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 7) / 2), a);
+      b.B2(
+        14 +
+          Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 7) / 2),
+        a,
+      );
       if ((Fjg(), Dungeon.visible)[d]) {
         Ayh(b.M);
-        zeg(eNg(d), (OTg(), MTg), 0, 1 + Cast_round_int($wnd.Math.random() * 2));
+        zeg(
+          eNg(d),
+          (OTg(), MTg),
+          0,
+          1 + Cast_round_int($wnd.Math.random() * 2),
+        );
       }
       if (b.A <= 0 && b == Dungeon.hero) {
         Dungeon_fail(
@@ -76795,7 +76953,7 @@ function QAh() {
   var a;
   Azh.call(this);
   this.O = m5f("golem.png");
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 16, 16);
   this.p = new Sbg(4, true);
   Qbg(this.p, a, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(0), rXh(1)]));
@@ -76815,7 +76973,7 @@ function lAh() {
   var a;
   Azh.call(this);
   this.O = m5f("crab.png");
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new ojf(this.O, 16);
   this.p = new Sbg(5, true);
   Qbg(this.p, a, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(0), rXh(1), rXh(0), rXh(2)]));
@@ -76835,7 +76993,7 @@ function HBh() {
   var a;
   Azh.call(this);
   this.O = m5f("larva.png");
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 12, 8);
   this.p = new Sbg(5, true);
   Qbg(
@@ -76863,7 +77021,7 @@ function nrh(a, b) {
   lrh();
   var c, d, e, f, g, h, i, j, k;
   Fjg();
-  if (Hjg(Dungeon.depth)) {
+  if (Dungeon_bossLevel(Dungeon.depth)) {
     return;
   }
   !!b && (Ojf(), (Kjf[b.K] = b));
@@ -77011,7 +77169,9 @@ function bZg(a) {
       d.a.length > 0
         ? ((k = d.a.length),
           k > 0
-            ? y8h(d.a, d.a.length)[k > 0 ? Cast_round_int($wnd.Math.random() * k) : 0]
+            ? y8h(d.a, d.a.length)[
+                k > 0 ? Cast_round_int($wnd.Math.random() * k) : 0
+              ]
             : null).a
         : -1;
   }
@@ -77340,7 +77500,7 @@ function _Ch() {
   var a;
   Azh.call(this);
   this.O = m5f(wHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 12, 14);
   this.p = new Sbg(10, true);
   Qbg(
@@ -78353,7 +78513,7 @@ function zAh() {
   var a;
   Azh.call(this);
   this.O = m5f(mHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 12, 14);
   this.p = new Sbg(10, true);
   Qbg(this.p, a, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(0), rXh(1), rXh(2)]));
@@ -78382,7 +78542,7 @@ function GAh() {
   var a;
   Azh.call(this);
   this.O = m5f(eHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 16, 15);
   this.p = new Sbg(2, true);
   Qbg(this.p, a, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(0), rXh(0), rXh(0), rXh(1)]));
@@ -78410,7 +78570,7 @@ function Tzh() {
   var a;
   Azh.call(this);
   this.O = m5f(jHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 12, 16);
   this.p = new Sbg(2, true);
   Qbg(
@@ -78439,7 +78599,7 @@ function PAh() {
   var a;
   Azh.call(this);
   this.O = m5f("gnoll.png");
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 12, 15);
   this.p = new Sbg(2, true);
   Qbg(
@@ -78800,13 +78960,21 @@ function GHg(a, b, c) {
   this.p = b;
   this.q = new bRg();
   this.q.T = 0.5;
-  this.q.kb = PixelScene_uiCamera.nb ? PixelScene_uiCamera : (g9f(), Camera_main);
+  this.q.kb = PixelScene_uiCamera.nb
+    ? PixelScene_uiCamera
+    : (g9f(), Camera_main);
   Group_$add(this, this.q);
   c.gb = -c.e;
   c.hb = -c.g;
   c.i0(a - c.gb + c.f, b - c.hb + c.d);
   Group_$add(this, c);
-  this.kb = new v9f(0, 0, Cast_round_int(c.fb), Cast_round_int(c.$), PixelScene_defaultZoom);
+  this.kb = new v9f(
+    0,
+    0,
+    Cast_round_int(c.fb),
+    Cast_round_int(c.$),
+    PixelScene_defaultZoom,
+  );
   this.kb.q = (Cast_round_int(Game_width - this.kb.p * this.kb.s) / 2) | 0;
   this.kb.r = (Cast_round_int(Game_height - this.kb.a * this.kb.s) / 2) | 0;
   vTh(this.kb.e, c.gb, c.hb);
@@ -79099,7 +79267,7 @@ function Kzh() {
   var a;
   Azh.call(this);
   this.O = m5f(eHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 16, 15);
   this.p = new Sbg(2, true);
   Qbg(
@@ -79131,7 +79299,7 @@ function KBh() {
   var a;
   Azh.call(this);
   this.O = m5f("mimic.png");
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 16, 16);
   this.p = new Sbg(5, true);
   Qbg(
@@ -79163,7 +79331,7 @@ function JCh() {
   var a;
   Azh.call(this);
   this.O = m5f(kHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 16, 16);
   this.p = new Sbg(10, true);
   Qbg(
@@ -79192,7 +79360,7 @@ function DCh() {
   var a;
   Azh.call(this);
   this.O = m5f(jHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 12, 16);
   this.p = new Sbg(2, true);
   Qbg(
@@ -79361,7 +79529,10 @@ function zjf(a, b, c, d, e) {
     }
   }
   cQh((Uk(), Tk), rXh(k.n));
-  a.c = a.b = TextureFilm_$height(a, ZPh(a.f, Character_valueOf((b9h(0, e.length), e.charCodeAt(0)))));
+  a.c = a.b = TextureFilm_$height(
+    a,
+    ZPh(a.f, Character_valueOf((b9h(0, e.length), e.charCodeAt(0)))),
+  );
 }
 function YMe() {
   if (Bnd) return Bnd;
@@ -79792,7 +79963,7 @@ function cCh() {
   var a;
   Azh.call(this);
   this.O = m5f(rHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 12, 16);
   this.p = new Sbg(8, true);
   Qbg(this.p, a, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(0), rXh(1), rXh(2), rXh(1)]));
@@ -79822,7 +79993,7 @@ function Nzh() {
   var a;
   Azh.call(this);
   this.O = m5f("bee.png");
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 16, 16);
   this.p = new Sbg(12, true);
   Qbg(
@@ -80435,7 +80606,7 @@ function tAh() {
   var a;
   Azh.call(this);
   this.O = m5f("dm300.png");
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 22, 20);
   this.p = new Sbg(10, true);
   Qbg(this.p, a, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(0), rXh(1)]));
@@ -80553,7 +80724,7 @@ function mDh() {
   var a;
   Azh.call(this);
   this.O = m5f("yog.png");
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 20, 19);
   this.p = new Sbg(10, true);
   Qbg(
@@ -81180,7 +81351,9 @@ function KCg(a, b) {
     if (c.a.length > 0) {
       k = ((l = c.a.length),
       l > 0
-        ? y8h(c.a, c.a.length)[l > 0 ? Cast_round_int($wnd.Math.random() * l) : 0]
+        ? y8h(c.a, c.a.length)[
+            l > 0 ? Cast_round_int($wnd.Math.random() * l) : 0
+          ]
         : null).a;
       Vjf(new SQg(e, e.K, k), -1);
       e.K = k;
@@ -81231,21 +81404,21 @@ function jOh() {
   c = iOh(this, Laj, "" + Dungeon.hero.a, c);
   c = iOh(this, a_i, "" + Dungeon.hero.B, c);
   c += 4;
-  c = iOh(this, bbj, "" + Cast_round_int(Statistics_duration), c);
+  c = iOh(this, bbj, "" + Cast_round_int(Statistics.duration), c);
   c += 4;
-  c = iOh(this, Naj, "" + Statistics_deepestFloor, c);
-  c = iOh(this, cbj, "" + Statistics_enemiesSlain, c);
-  c = iOh(this, Maj, "" + Statistics_goldCollected, c);
+  c = iOh(this, Naj, "" + Statistics.deepestFloor, c);
+  c = iOh(this, cbj, "" + Statistics.enemiesSlain, c);
+  c = iOh(this, Maj, "" + Statistics.goldCollected, c);
   c += 4;
-  c = iOh(this, dbj, "" + Statistics_foodEaten, c);
-  c = iOh(this, ebj, "" + Statistics_potionsCooked, c);
-  iOh(this, fbj, "" + Statistics_ankhsUsed, c);
+  c = iOh(this, dbj, "" + Statistics.foodEaten, c);
+  c = iOh(this, ebj, "" + Statistics.potionsCooked, c);
+  iOh(this, fbj, "" + Statistics.ankhsUsed, c);
 }
 function LCh() {
   var a;
   Azh.call(this);
   this.O = m5f(qHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 12, 15);
   this.p = new Sbg(2, true);
   Qbg(
@@ -81295,7 +81468,7 @@ function PCh() {
   var a;
   Azh.call(this);
   this.O = m5f("swarm.png");
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 16, 16);
   this.p = new Sbg(15, true);
   Qbg(
@@ -81337,7 +81510,7 @@ function XCh() {
   var a;
   Azh.call(this);
   this.O = m5f(hHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 12, 13);
   this.p = new Sbg(1, true);
   Qbg(
@@ -81386,7 +81559,7 @@ function hDh() {
   var a;
   Azh.call(this);
   this.O = m5f(oHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 12, 15);
   this.p = new Sbg(2, true);
   Qbg(
@@ -81851,7 +82024,13 @@ function HMh(a) {
   Group_$add(this, e);
   b = new LMh(this);
   b.n = (mWg(), RVg);
-  Component_$setRect(b, 0, e.hb + e.$ * e.db.b, O7f(b.g) + 4 + 2, b.g.D_() + 4 + 2);
+  Component_$setRect(
+    b,
+    0,
+    e.hb + e.$ * e.db.b,
+    O7f(b.g) + 4 + 2,
+    b.g.D_() + 4 + 2,
+  );
   Group_$add(this, b);
   c = new NMh(this);
   c.n = UVg;
@@ -81862,8 +82041,8 @@ function HMh(a) {
   GMh(this, a_i, d.A + "/" + d.B);
   GMh(this, Kaj, d.i + "/" + (5 + d.o * 5));
   this.a += 5;
-  GMh(this, Maj, "" + Statistics_goldCollected);
-  GMh(this, Naj, "" + Statistics_deepestFloor);
+  GMh(this, Maj, "" + Statistics.goldCollected);
+  GMh(this, Naj, "" + Statistics.deepestFloor);
   this.a += 5;
 }
 function aQ(a, b, c, d, e) {
@@ -82255,7 +82434,7 @@ function yCh() {
   Azh.call(this);
   this.a = Zpf(erf, $9h, 23, 2, 15, 1);
   this.O = m5f(gHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 12, 15);
   this.p = new Sbg(2, true);
   Qbg(
@@ -82400,9 +82579,11 @@ function Dungeon_newLevel() {
   Dungeon.level = null;
   Wjf();
   ++Dungeon.depth;
-  if (Dungeon.depth > Statistics_deepestFloor) {
-    Statistics_deepestFloor = Dungeon.depth;
-    Statistics_qualifiedForNoKilling ? (Statistics_completedWithNoKilling = true) : (Statistics_completedWithNoKilling = false);
+  if (Dungeon.depth > Statistics.deepestFloor) {
+    Statistics.deepestFloor = Dungeon.depth;
+    Statistics.qualifiedForNoKilling
+      ? (Statistics.completedWithNoKilling = true)
+      : (Statistics.completedWithNoKilling = false);
   }
   $1h(Dungeon.visible);
   switch (Dungeon.depth) {
@@ -82458,10 +82639,10 @@ function Dungeon_newLevel() {
       break;
     default:
       a = new Zjh();
-      --Statistics_deepestFloor;
+      --Statistics.deepestFloor;
   }
   a.j0();
-  Statistics_qualifiedForNoKilling = !Hjg(Dungeon.depth);
+  Statistics.qualifiedForNoKilling = !Dungeon_bossLevel(Dungeon.depth);
   return a;
 }
 function Tw(a, b, c) {
@@ -82952,7 +83133,7 @@ function RMh(a) {
   i = new HJh();
   if (h == 63) {
     j = new Z9f(Dungeon.level.k9());
-    U9f(j, V4f(j.O, 0, 0, 16, 16));
+    Image_$frame(j, V4f(j.O, 0, 0, 16, 16));
     kbg(i, i.c);
     Group_$add(i, (i.c = j));
   } else {
@@ -83125,7 +83306,7 @@ function Lzh() {
   var a;
   Azh.call(this);
   this.O = m5f(hHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 12, 13);
   this.p = new Sbg(1, true);
   Qbg(
@@ -83217,7 +83398,7 @@ function RCh() {
   var a;
   Azh.call(this);
   this.O = m5f("tengu.png");
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 14, 16);
   this.p = new Sbg(2, true);
   Qbg(this.p, a, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(0), rXh(0), rXh(0), rXh(1)]));
@@ -84969,11 +85150,18 @@ function PixelScene_$create(a) {
     b = 224;
   }
   PixelScene_defaultZoom = Cast_round_int($wnd.Math.ceil(nag * 2.5));
-  while ((Game_width / PixelScene_defaultZoom < c || Game_height / PixelScene_defaultZoom < b) && PixelScene_defaultZoom > 1) {
+  while (
+    (Game_width / PixelScene_defaultZoom < c ||
+      Game_height / PixelScene_defaultZoom < b) &&
+    PixelScene_defaultZoom > 1
+  ) {
     --PixelScene_defaultZoom;
   }
   if (plg((olg(), nlg), Knj, true)) {
-    while (Game_width / (PixelScene_defaultZoom + 1) >= c && Game_height / (PixelScene_defaultZoom + 1) >= b) {
+    while (
+      Game_width / (PixelScene_defaultZoom + 1) >= c &&
+      Game_height / (PixelScene_defaultZoom + 1) >= b
+    ) {
       ++PixelScene_defaultZoom;
     }
   }
@@ -86295,14 +86483,14 @@ function xYg(b) {
     if ((d > 0 ? Cast_round_int($wnd.Math.random() * d) : 0) == 0) {
       zeg(eNg(b.b), jRg(102, false), 0, 3);
       pYg(b);
-      ++Statistics_potionsCooked;
+      ++Statistics.potionsCooked;
       Sgg();
       return IXg((XXg(), RXg));
     } else {
       i = NSh(b.a, $Th(c));
       h = i.a;
       pYg(b);
-      ++Statistics_potionsCooked;
+      ++Statistics.potionsCooked;
       Sgg();
       if (!h) {
         return IXg((XXg(), RXg));
@@ -86609,7 +86797,7 @@ function Ezh() {
   var a;
   Azh.call(this);
   this.O = m5f(tHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 18, 17);
   this.p = new Sbg(12, true);
   Qbg(
@@ -86649,7 +86837,7 @@ function GBh() {
   var a;
   Azh.call(this);
   this.O = m5f("king.png");
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 16, 16);
   this.p = new Sbg(12, true);
   Qbg(
@@ -86697,7 +86885,10 @@ function GBh() {
 }
 function tLh(a) {
   var b, c, d, e, f, g, h, i, j;
-  BitmapText_$text(a.c, yJh(Gaj, aqf(Vpf(WXf, 1), E9h, 1, 5, [sLh ? Eaj : Faj])));
+  BitmapText_$text(
+    a.c,
+    yJh(Gaj, aqf(Vpf(WXf, 1), E9h, 1, 5, [sLh ? Eaj : Faj])),
+  );
   a.c.G_();
   a.c.gb = PixelScene_align(PixelScene_uiCamera, (a.r - O7f(a.c)) / 2);
   a.a.a = Zpf(WXf, E9h, 1, 0, 5, 1);
@@ -86873,7 +87064,7 @@ function YRb(b, c, d) {
     }
     g = i.c;
     try {
-      fpc(g, c, b.JP(qpc(g.a.r).d, i.b, e));
+      fpc(g, c, b.JP(CachedTypeLookup_$getType(g.a.r).d, i.b, e));
     } catch (a) {
       a = v$f(a);
       if (Rqf(a, 181)) {
@@ -87321,7 +87512,7 @@ function Izh() {
   var a;
   Ezh.call(this);
   this.O = m5f(tHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 18, 17);
   this.p = new Sbg(12, true);
   Qbg(
@@ -87361,7 +87552,7 @@ function GCh() {
   var a;
   Azh.call(this);
   this.O = m5f(fHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 12, 15);
   this.p = new Sbg(12, true);
   Qbg(
@@ -87413,7 +87604,7 @@ function YCh() {
   var a;
   Azh.call(this);
   this.O = m5f(pHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 12, 16);
   this.p = new Sbg(12, true);
   Qbg(
@@ -88761,7 +88952,7 @@ function NCh() {
   var a;
   Azh.call(this);
   this.O = m5f(sHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 12, 15);
   this.p = new Sbg(8, true);
   Qbg(
@@ -89840,7 +90031,7 @@ function VAh() {
   var a;
   Azh.call(this);
   this.O = m5f("goo.png");
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 20, 14);
   this.p = new Sbg(10, true);
   Qbg(this.p, a, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(0), rXh(1)]));
@@ -89871,7 +90062,10 @@ function xGh(a, b) {
     if (c || d) {
       if (b.v || (d && !Rqf(b, 126))) {
         f = c ? b.c : b.f;
-        BitmapText_$text(a.i, yJh(":%d", aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(f)])));
+        BitmapText_$text(
+          a.i,
+          yJh(":%d", aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(f)])),
+        );
         f > Pug((Fjg(), Dungeon.hero)) ? D7f(a.i, waj) : J7f(a.i);
       } else {
         BitmapText_$text(
@@ -89889,7 +90083,10 @@ function xGh(a, b) {
     }
     e = b.v ? b.u : 0;
     if (e != 0 || (b.p && b.q)) {
-      BitmapText_$text(a.e, b.v ? yJh("%+d", aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(e)])) : "");
+      BitmapText_$text(
+        a.e,
+        b.v ? yJh("%+d", aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(e)])) : "",
+      );
       a.e.G_();
       D7f(a.e, e > 0 ? (b.s <= 0 ? qaj : xaj) : waj);
     } else {
@@ -90742,14 +90939,16 @@ function zYb(a, b) {
     b >=
     ((a.d.c / 2) | 0) +
       (a.T.length != 0 &&
-      (String_$charAt(a.T, a.T.length - 1) == 10 || String_$charAt(a.T, a.T.length - 1) == 13)
+      (String_$charAt(a.T, a.T.length - 1) == 10 ||
+        String_$charAt(a.T, a.T.length - 1) == 13)
         ? 1
         : 0)
   ) {
     c =
       ((a.d.c / 2) | 0) +
       (a.T.length != 0 &&
-      (String_$charAt(a.T, a.T.length - 1) == 10 || String_$charAt(a.T, a.T.length - 1) == 13)
+      (String_$charAt(a.T, a.T.length - 1) == 10 ||
+        String_$charAt(a.T, a.T.length - 1) == 13)
         ? 1
         : 0) -
       1;
@@ -90757,7 +90956,8 @@ function zYb(a, b) {
     (b >
       ((a.d.c / 2) | 0) +
         (a.T.length != 0 &&
-        (String_$charAt(a.T, a.T.length - 1) == 10 || String_$charAt(a.T, a.T.length - 1) == 13)
+        (String_$charAt(a.T, a.T.length - 1) == 10 ||
+          String_$charAt(a.T, a.T.length - 1) == 13)
           ? 1
           : 0) ||
       c == a.a) &&
@@ -90932,7 +91132,7 @@ function _Bh() {
   var a;
   Azh.call(this);
   this.O = m5f(nHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 15, 14);
   this.p = new Sbg(6, true);
   Qbg(this.p, a, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(1), rXh(0), rXh(1), rXh(2)]));
@@ -91915,7 +92115,13 @@ function AOh(a) {
     Group_$add(this, Component_$setRect(this.a, 92, 0, 20, 20));
     Group_$add(
       this,
-      Component_$setRect(new JOh(this), lfg(this.b), 0, 112 - this.a.B - this.b.B, 20),
+      Component_$setRect(
+        new JOh(this),
+        lfg(this.b),
+        0,
+        112 - this.a.B - this.b.B,
+        20,
+      ),
     );
     yOh(this);
   } else {
@@ -92130,7 +92336,7 @@ function uCh() {
   var a;
   Azh.call(this);
   this.O = m5f(nHj);
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 15, 14);
   this.p = new Sbg(6, true);
   Qbg(
@@ -92458,7 +92664,9 @@ function mwg(a) {
     f =
       ((o = g.a.length),
       o > 0
-        ? y8h(g.a, g.a.length)[o > 0 ? Cast_round_int($wnd.Math.random() * o) : 0]
+        ? y8h(g.a, g.a.length)[
+            o > 0 ? Cast_round_int($wnd.Math.random() * o) : 0
+          ]
         : null);
     MNg(Dungeon.level.V8(f, b.a).c, n);
     Y0h(g, f);
@@ -92710,7 +92918,7 @@ function mSb(b, c) {
         }
       }
       ugc(b.v, h.a.p);
-      rSb(b, p, qpc(h.a.r).d, l.b);
+      rSb(b, p, CachedTypeLookup_$getType(h.a.r).d, l.b);
     } catch (a) {
       a = v$f(a);
       if (Rqf(a, 181)) {
@@ -99936,7 +100144,7 @@ function Wgh(a) {
   a.o = new pQh();
   a.C = new xUh();
   Fjg();
-  if (!Hjg(Dungeon.depth)) {
+  if (!Dungeon_bossLevel(Dungeon.depth)) {
     Qgh(a, IXg((XXg(), OXg)));
     d = aqf(Vpf(erf, 1), $9h, 23, 15, [4, 2, 9, 4, 14, 6, 19, 8, 24, 9]);
     if (Ijg(d, Dungeon.potionOfStrength)) {
@@ -99955,7 +100163,7 @@ function Wgh(a) {
     if (Dungeon.depth > 1) {
       switch (Cast_round_int($wnd.Math.random() * 10)) {
         case 0:
-          Hjg(Dungeon.depth + 1) || (a.t = (tlh(), plh));
+          Dungeon_bossLevel(Dungeon.depth + 1) || (a.t = (tlh(), plh));
           break;
         case 1:
           a.t = (tlh(), slh);
@@ -101387,9 +101595,17 @@ function Dungeon_saveGame(b) {
     QQh(d, ZZi, Dungeon.hero);
     PQh(d, VDj, Dungeon.gold);
     PQh(d, $Ui, Dungeon.depth);
-    for (g = Dbc(rcc(Qbc(Dungeon.droppedItems))), h = 0, i = g.length; h < i; ++h) {
+    for (
+      g = Dbc(rcc(Qbc(Dungeon.droppedItems))), h = 0, i = g.length;
+      h < i;
+      ++h
+    ) {
       f = g[h];
-      UQh(d, yJh(SIj, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(f)])), Obc(Dungeon.droppedItems, f));
+      UQh(
+        d,
+        yJh(SIj, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(f)])),
+        Obc(Dungeon.droppedItems, f),
+      );
     }
     PQh(d, TIj, Dungeon.potionOfStrength);
     PQh(d, UIj, Dungeon.scrollsOfUpgrade);
@@ -101397,7 +101613,11 @@ function Dungeon_saveGame(b) {
     VQh(d, UDj, Dungeon.dewVial);
     e = 0;
     m = Zpf(erf, $9h, 23, fQh(Dungeon.chapters.a), 15, 1);
-    for (l = ((n = new Q_h(Dungeon.chapters.a).a.Ocb().Pd()), new W_h(n)); l.a.Rd(); ) {
+    for (
+      l = ((n = new Q_h(Dungeon.chapters.a).a.Ocb().Pd()), new W_h(n));
+      l.a.Rd();
+
+    ) {
       k = ((j = l.a.Sd()), j.Aeb());
       m[e++] = k.a;
     }
@@ -101409,7 +101629,7 @@ function Dungeon_saveGame(b) {
     xJg(o);
     RQh(d, VIj, o);
     fnh(d);
-    rmg(d);
+    Statistics.save();
     UQh(d, Jnj, Bkg);
     yHh(d);
     H8g();
@@ -105788,7 +106008,7 @@ function yBh() {
   var a;
   Azh.call(this);
   this.O = m5f("demon.png");
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
   a = new rjf(this.O, 12, 14);
   this.p = new Sbg(10, true);
   Qbg(
@@ -108590,19 +108810,34 @@ function Aqh() {
   b = new a1h();
   switch ((Fjg(), Dungeon.depth)) {
     case 6:
-      T0h(b, itg(Cast_round_int($wnd.Math.random() * 2) == 0 ? new Reh() : new $eh()));
+      T0h(
+        b,
+        itg(
+          Cast_round_int($wnd.Math.random() * 2) == 0 ? new Reh() : new $eh(),
+        ),
+      );
       T0h(b, itg(new v0g()));
       T0h(b, new K2g());
       T0h(b, new C$g());
       break;
     case 11:
-      T0h(b, itg(Cast_round_int($wnd.Math.random() * 2) == 0 ? new afh() : new Peh()));
+      T0h(
+        b,
+        itg(
+          Cast_round_int($wnd.Math.random() * 2) == 0 ? new afh() : new Peh(),
+        ),
+      );
       T0h(b, itg(new C0g()));
       T0h(b, new G2g());
       T0h(b, new C$g());
       break;
     case 16:
-      T0h(b, itg(Cast_round_int($wnd.Math.random() * 2) == 0 ? new Neh() : new Feh()));
+      T0h(
+        b,
+        itg(
+          Cast_round_int($wnd.Math.random() * 2) == 0 ? new Neh() : new Feh(),
+        ),
+      );
       T0h(b, itg(new Q0g()));
       T0h(b, new O2g());
       T0h(b, new C$g());
@@ -120974,8 +121209,15 @@ function A$(a, b, c) {
     S8(m, Kac(h, h.c - 2), Kac(h, h.c - 1));
     for (k = 0; k < h.c; k += 2) {
       S8(d, Kac(h, k), Kac(h, k + 1));
-      n = Cast_round_int(LXh((e.a - f.a) * (m.b - f.b) - (e.b - f.b) * (m.a - f.a))) > 0;
-      if (Cast_round_int(LXh((e.a - f.a) * (d.b - f.b) - (e.b - f.b) * (d.a - f.a))) > 0) {
+      n =
+        Cast_round_int(
+          LXh((e.a - f.a) * (m.b - f.b) - (e.b - f.b) * (m.a - f.a)),
+        ) > 0;
+      if (
+        Cast_round_int(
+          LXh((e.a - f.a) * (d.b - f.b) - (e.b - f.b) * (d.a - f.a)),
+        ) > 0
+      ) {
         if (!n) {
           x$(m, d, e, f, j);
           if (g.c < 2 || Kac(g, g.c - 2) != j.a || Kac(g, g.c - 1) != j.b) {
@@ -135752,14 +135994,14 @@ function E2c() {
   ]);
   return Juc;
 }
-function Dungeon_loadGame(a, b) {
+function Dungeon_loadGame(fileName, fullLoad) {
   Fjg();
   var c, d, e, f, g, h, i, j, k, l, m, n;
-  g = ((f = yRh(Game_$readFile(qag, a))), f);
+  g = ((f = yRh(Game_$readFile(qag, fileName))), f);
   Dungeon.challenges = Qdc(g.a, Pnj, 0);
   Dungeon.level = null;
   Dungeon.depth = -1;
-  b && cSh(32, 32);
+  fullLoad && cSh(32, 32);
   H8g();
   D8g = new CZg(G8g, F8g, E8g, g);
   N3g();
@@ -135772,7 +136014,7 @@ function Dungeon_loadGame(a, b) {
   Dungeon.scrollsOfUpgrade = Qdc(g.a, UIj, 0);
   Dungeon.scrollsOfEnchantment = Qdc(g.a, TDj, 0);
   Dungeon.dewVial = Odc(g.a, UDj, false);
-  if (b) {
+  if (fullLoad) {
     Dungeon.chapters = new $5h();
     m = MQh(g, WDj);
     if (m != null) {
@@ -135797,7 +136039,9 @@ function Dungeon_loadGame(a, b) {
     cnh(g);
   }
   e = new $Qh(Ndc(g.a, voj) ? Ndc(g.a, voj) : new gec((igc(), ggc)));
-  !e.a ? (jgg(), eQh(Badges_local.a), Badges_loadGlobal()) : (jgg(), jgg(), (Badges_local = Badges_restore(e)));
+  !e.a
+    ? (jgg(), eQh(Badges_local.a), Badges_loadGlobal())
+    : (jgg(), jgg(), (Badges_local = Badges_restore(e)));
   xHh(g);
   Sdc(g.a, W3i, "");
   Dungeon.hero = null;
@@ -135807,10 +136051,10 @@ function Dungeon_loadGame(a, b) {
   mHh();
   Dungeon.gold = Qdc(g.a, VDj, 0);
   Dungeon.depth = Qdc(g.a, $Ui, 0);
-  qmg(g);
+  Statistics.load();
   Fkg(g);
   Dungeon.droppedItems = new xUh();
-  for (i = 2; i <= Statistics_deepestFloor + 1; i++) {
+  for (i = 2; i <= Statistics.deepestFloor + 1; i++) {
     h = new a1h();
     for (
       d = new G1h(KQh(g, yJh(SIj, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(i)]))));
@@ -141851,7 +142095,8 @@ function vnc(a, b) {
     b = M$f(b);
   }
   if (z$f(b, Aqi) >= 0) {
-    G$f(b, Gqi) && Cnc(a, qnc[Cast_round_int((U$f(b) % 1.0e19) / 1000000000000000000)]);
+    G$f(b, Gqi) &&
+      Cnc(a, qnc[Cast_round_int((U$f(b) % 1.0e19) / 1000000000000000000)]);
     G$f(b, Hqi) && Cnc(a, qnc[V$f(B$f(K$f(b, Gqi), Hqi))]);
     G$f(b, Iqi) && Cnc(a, qnc[V$f(B$f(K$f(b, Hqi), Iqi))]);
     G$f(b, Jqi) && Cnc(a, qnc[V$f(B$f(K$f(b, Iqi), Jqi))]);
@@ -149537,7 +149782,10 @@ function Badges_filtered(a) {
     b = ((c = e.a.Sd()), c.Aeb());
     ((!a && b.c) || b.b == -1) && e.a.Td();
   }
-  Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [(Kig(), fig), gig, hig, iig]));
+  Badges_leaveBest(
+    d,
+    aqf(Vpf(NGf, 1), LJj, 42, 0, [(Kig(), fig), gig, hig, iig]),
+  );
   Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Nhg, Ohg, Phg, Qhg]));
   Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [ghg, mhg, nhg, xhg]));
   Badges_leaveBest(d, aqf(Vpf(NGf, 1), LJj, 42, 0, [Xhg, Yhg, Zhg, $hg]));
@@ -149573,7 +149821,9 @@ function gih(a) {
         a.n.a.length > 0 &&
         m.i - m.g > 3 &&
         m.f - m.j > 3 &&
-        (q * q + 2 > 0 ? Cast_round_int($wnd.Math.random() * (q * q + 2)) : 0) == 0
+        (q * q + 2 > 0
+          ? Cast_round_int($wnd.Math.random() * (q * q + 2))
+          : 0) == 0
       ) {
         if (Jgh) {
           m.e = Wnh;
@@ -149630,7 +149880,9 @@ function gih(a) {
     if (m.e == (goh(), Unh)) {
       b = fQh(m.a);
       if (b == 0);
-      else if ((b * b > 0 ? Cast_round_int($wnd.Math.random() * (b * b)) : 0) == 0) {
+      else if (
+        (b * b > 0 ? Cast_round_int($wnd.Math.random() * (b * b)) : 0) == 0
+      ) {
         m.e = $nh;
         ++c;
       } else {
@@ -150974,88 +151226,88 @@ function lGh(a) {
   b = new Z9f("icons.png");
   switch (a.f) {
     case 0:
-      U9f(b, V4f(b.O, 0, 0, 8, 8));
+      Image_$frame(b, V4f(b.O, 0, 0, 8, 8));
       break;
     case 1:
-      U9f(b, V4f(b.O, 8, 0, 16, 8));
+      Image_$frame(b, V4f(b.O, 8, 0, 16, 8));
       break;
     case 2:
-      U9f(b, V4f(b.O, 0, 8, 7, 13));
+      Image_$frame(b, V4f(b.O, 0, 8, 7, 13));
       break;
     case 3:
-      U9f(b, V4f(b.O, 30, 0, 46, 16));
+      Image_$frame(b, V4f(b.O, 30, 0, 46, 16));
       break;
     case 4:
-      U9f(b, V4f(b.O, 46, 0, 58, 12));
+      Image_$frame(b, V4f(b.O, 46, 0, 58, 12));
       break;
     case 5:
-      U9f(b, V4f(b.O, 0, 13, 16, 29));
+      Image_$frame(b, V4f(b.O, 0, 13, 16, 29));
       break;
     case 6:
-      U9f(b, V4f(b.O, 30, 16, 45, 26));
+      Image_$frame(b, V4f(b.O, 30, 16, 45, 26));
       break;
     case 7:
-      U9f(b, V4f(b.O, 0, 29, 16, 45));
+      Image_$frame(b, V4f(b.O, 0, 29, 16, 45));
       break;
     case 8:
-      U9f(b, V4f(b.O, 16, 29, 32, 45));
+      Image_$frame(b, V4f(b.O, 16, 29, 32, 45));
       break;
     case 9:
-      U9f(b, V4f(b.O, 32, 29, 48, 45));
+      Image_$frame(b, V4f(b.O, 32, 29, 48, 45));
       break;
     case 10:
-      U9f(b, V4f(b.O, 48, 29, 64, 45));
+      Image_$frame(b, V4f(b.O, 48, 29, 64, 45));
       break;
     case 11:
-      U9f(b, V4f(b.O, 0, 45, 13, 58));
+      Image_$frame(b, V4f(b.O, 0, 45, 13, 58));
       break;
     case 12:
-      U9f(b, V4f(b.O, 45, 12, 54, 20));
+      Image_$frame(b, V4f(b.O, 45, 12, 54, 20));
       break;
     case 13:
-      U9f(b, V4f(b.O, 13, 45, 22, 53));
+      Image_$frame(b, V4f(b.O, 13, 45, 22, 53));
       break;
     case 14:
-      U9f(b, V4f(b.O, 22, 45, 30, 53));
+      Image_$frame(b, V4f(b.O, 22, 45, 30, 53));
       break;
     case 15:
-      U9f(b, V4f(b.O, 30, 45, 46, 61));
+      Image_$frame(b, V4f(b.O, 30, 45, 46, 61));
       break;
     case 16:
-      U9f(b, V4f(b.O, 46, 45, 62, 61));
+      Image_$frame(b, V4f(b.O, 46, 45, 62, 61));
       break;
     case 17:
-      U9f(b, V4f(b.O, 58, 0, 68, 10));
+      Image_$frame(b, V4f(b.O, 58, 0, 68, 10));
       break;
     case 19:
-      U9f(b, V4f(b.O, 68, 0, 78, 10));
+      Image_$frame(b, V4f(b.O, 68, 0, 78, 10));
       break;
     case 18:
-      U9f(b, V4f(b.O, 78, 0, 88, 10));
+      Image_$frame(b, V4f(b.O, 78, 0, 88, 10));
       break;
     case 20:
-      U9f(b, V4f(b.O, 88, 0, 98, 10));
+      Image_$frame(b, V4f(b.O, 88, 0, 98, 10));
       break;
     case 21:
-      U9f(b, V4f(b.O, 64, 29, 74, 39));
+      Image_$frame(b, V4f(b.O, 64, 29, 74, 39));
       break;
     case 22:
-      U9f(b, V4f(b.O, 54, 12, 66, 24));
+      Image_$frame(b, V4f(b.O, 54, 12, 66, 24));
       break;
     case 23:
-      U9f(b, V4f(b.O, 66, 12, 78, 24));
+      Image_$frame(b, V4f(b.O, 66, 12, 78, 24));
       break;
     case 24:
-      U9f(b, V4f(b.O, 98, 0, 114, 16));
+      Image_$frame(b, V4f(b.O, 98, 0, 114, 16));
       break;
     case 25:
-      U9f(b, V4f(b.O, 78, 16, 102, 40));
+      Image_$frame(b, V4f(b.O, 78, 16, 102, 40));
       break;
     case 26:
-      U9f(b, V4f(b.O, 102, 16, 126, 40));
+      Image_$frame(b, V4f(b.O, 102, 16, 126, 40));
       break;
     case 27:
-      U9f(b, V4f(b.O, 114, 0, 126, 11));
+      Image_$frame(b, V4f(b.O, 114, 0, 126, 11));
   }
   return b;
 }
@@ -151892,8 +152144,8 @@ function Eqh(a, b) {
     b.i - b.g - 1,
     b.f - b.j - 1,
     (Fjg(),
-    !Hjg(Dungeon.depth) &&
-    !Hjg(Dungeon.depth + 1) &&
+    !Dungeon_bossLevel(Dungeon.depth) &&
+    !Dungeon_bossLevel(Dungeon.depth + 1) &&
     Cast_round_int($wnd.Math.random() * 3) == 0
       ? 0
       : 63),
@@ -174885,7 +175137,8 @@ function FV(a, b, c, d, e) {
           break;
         case 0:
           Z = l.a;
-          l.c + 3 >= Z.length && (Z = Bbc(l, $wnd.Math.max(8, Cast_round_int(l.c * Uhi))));
+          l.c + 3 >= Z.length &&
+            (Z = Bbc(l, $wnd.Math.max(8, Cast_round_int(l.c * Uhi))));
           Z[l.c] = w;
           Z[l.c + 1] = A;
           Z[l.c + 2] = A;
@@ -212145,404 +212398,6 @@ function B5c() {
   ]);
   return Gxc;
 }
-function ETe() {
-  if (hud) return hud;
-  hud = new Wkf($kj, 499, hHf, WXf, null);
-  hud.t = false;
-  hud.k = false;
-  hud.i = aqf(Vpf(RCf, 1), E9h, 8, 0, [
-    new Dpc(
-      "goldCollected",
-      hHf,
-      erf,
-      false,
-      false,
-      false,
-      false,
-      true,
-      true,
-      false,
-      2605,
-      2605,
-      null,
-    ),
-    new Dpc(
-      "deepestFloor",
-      hHf,
-      erf,
-      false,
-      false,
-      false,
-      false,
-      true,
-      true,
-      false,
-      2606,
-      2606,
-      null,
-    ),
-    new Dpc(
-      iEj,
-      hHf,
-      erf,
-      false,
-      false,
-      false,
-      false,
-      true,
-      true,
-      false,
-      2607,
-      2607,
-      null,
-    ),
-    new Dpc(
-      jEj,
-      hHf,
-      erf,
-      false,
-      false,
-      false,
-      false,
-      true,
-      true,
-      false,
-      2608,
-      2608,
-      null,
-    ),
-    new Dpc(
-      kEj,
-      hHf,
-      erf,
-      false,
-      false,
-      false,
-      false,
-      true,
-      true,
-      false,
-      2609,
-      2609,
-      null,
-    ),
-    new Dpc(
-      "piranhasKilled",
-      hHf,
-      erf,
-      false,
-      false,
-      false,
-      false,
-      true,
-      true,
-      false,
-      2610,
-      2610,
-      null,
-    ),
-    new Dpc(
-      lEj,
-      hHf,
-      erf,
-      false,
-      false,
-      false,
-      false,
-      true,
-      true,
-      false,
-      2611,
-      2611,
-      null,
-    ),
-    new Dpc(
-      mEj,
-      hHf,
-      erf,
-      false,
-      false,
-      false,
-      false,
-      true,
-      true,
-      false,
-      2612,
-      2612,
-      null,
-    ),
-    new Dpc(
-      Nfi,
-      hHf,
-      drf,
-      false,
-      false,
-      false,
-      false,
-      true,
-      true,
-      false,
-      2613,
-      2613,
-      null,
-    ),
-    new Dpc(
-      "qualifiedForNoKilling",
-      hHf,
-      t$f,
-      false,
-      false,
-      false,
-      false,
-      true,
-      true,
-      false,
-      2614,
-      2614,
-      null,
-    ),
-    new Dpc(
-      "completedWithNoKilling",
-      hHf,
-      t$f,
-      false,
-      false,
-      false,
-      false,
-      true,
-      true,
-      false,
-      2615,
-      2615,
-      null,
-    ),
-    new Dpc(
-      nEj,
-      hHf,
-      t$f,
-      false,
-      false,
-      false,
-      false,
-      true,
-      true,
-      false,
-      2616,
-      2616,
-      null,
-    ),
-    new Dpc(
-      $bi,
-      hHf,
-      cYf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      2617,
-      2617,
-      null,
-    ),
-    new Dpc(
-      "DEEPEST",
-      hHf,
-      cYf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      2618,
-      2618,
-      null,
-    ),
-    new Dpc(
-      "SLAIN",
-      hHf,
-      cYf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      2619,
-      2619,
-      null,
-    ),
-    new Dpc(
-      XRi,
-      hHf,
-      cYf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      2620,
-      2620,
-      null,
-    ),
-    new Dpc(
-      YZi,
-      hHf,
-      cYf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      2621,
-      2621,
-      null,
-    ),
-    new Dpc(
-      LDj,
-      hHf,
-      cYf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      2622,
-      2622,
-      null,
-    ),
-    new Dpc(
-      "NIGHT",
-      hHf,
-      cYf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      2623,
-      2623,
-      null,
-    ),
-    new Dpc(
-      "ANKHS",
-      hHf,
-      cYf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      2624,
-      2624,
-      null,
-    ),
-    new Dpc(
-      mYi,
-      hHf,
-      cYf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      2625,
-      2625,
-      null,
-    ),
-    new Dpc(
-      h1i,
-      hHf,
-      cYf,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      2626,
-      2626,
-      null,
-    ),
-  ]);
-  hud.u = aqf(Vpf(aDf, 1), yRi, 6, 0, [
-    new xpc(
-      ORi,
-      hHf,
-      s$f,
-      Uid,
-      false,
-      false,
-      true,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      5937,
-    ),
-    new xpc(
-      jSi,
-      hHf,
-      s$f,
-      aqf(Vpf(bDf, 1), E9h, 7, 0, [iLe()]),
-      false,
-      false,
-      true,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      5938,
-    ),
-    new xpc(
-      kSi,
-      hHf,
-      s$f,
-      aqf(Vpf(bDf, 1), E9h, 7, 0, [iLe()]),
-      false,
-      false,
-      true,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-      5939,
-    ),
-  ]);
-  hud.f = aqf(Vpf(QCf, 1), yRi, 9, 0, [
-    new zpc(oEj, hHf, hHf, Uid, false, true, false, 5940),
-  ]);
-  return hud;
-}
 function Czg(a) {
   var b, c;
   switch (a) {
@@ -228623,7 +228478,7 @@ function ZRb(b, c, d, e) {
     if ((c.g & 4) != 0) {
       i = c.c;
       !d && (d = i);
-      p = Soc(i, e.i);
+      p = ArrayReflection_newInstance(i, e.i);
       m = 0;
       for (f = e.a; f; f = f.e) Toc(p, m++, b.JP(d, null, f));
       return p;
@@ -228670,7 +228525,8 @@ function ZRb(b, c, d, e) {
       if (!Rqf(a, 131)) throw w$f(a);
     }
     if (c == t$f || c == wXf) return (wVh(), tYh(bbi, r) ? true : false);
-    if (c == brf || c == zXf) return Character_valueOf((b9h(0, r.length), r.charCodeAt(0)));
+    if (c == brf || c == zXf)
+      return Character_valueOf((b9h(0, r.length), r.charCodeAt(0)));
     if ($oc(GXf, c)) {
       j = c.e && c.e();
       for (m = 0, n = j.length; m < n; m++) {
@@ -230148,26 +230004,26 @@ function hRg(a, b, c, d, e) {
   a.c = e;
   switch (e) {
     case 101:
-      U9f(a, TextureFilm_$get(fRg, rXh(2)));
+      Image_$frame(a, TextureFilm_$get(fRg, rXh(2)));
       break;
     case 102:
     case 103:
     case 104:
     case 110:
-      U9f(a, TextureFilm_$get(fRg, rXh(1)));
+      Image_$frame(a, TextureFilm_$get(fRg, rXh(1)));
       break;
     case 105:
-      U9f(a, TextureFilm_$get(fRg, rXh(6)));
+      Image_$frame(a, TextureFilm_$get(fRg, rXh(6)));
       break;
     case 106:
     case 107:
     case 108:
     case 111:
     case 109:
-      U9f(a, TextureFilm_$get(fRg, rXh(13)));
+      Image_$frame(a, TextureFilm_$get(fRg, rXh(13)));
       break;
     default:
-      U9f(a, TextureFilm_$get(fRg, rXh(e)));
+      Image_$frame(a, TextureFilm_$get(fRg, rXh(e)));
   }
   a.gb = c - a.ab.a;
   a.hb = d - a.ab.b;
@@ -291614,7 +291470,7 @@ function mTe() {
       5827,
     ),
     new xpc(
-      YDj,
+      "loadGame",
       VGf,
       s$f,
       aqf(Vpf(bDf, 1), E9h, 7, 0, [BXe()]),
@@ -291632,7 +291488,7 @@ function mTe() {
       5828,
     ),
     new xpc(
-      YDj,
+      "loadGame",
       VGf,
       s$f,
       aqf(Vpf(bDf, 1), E9h, 7, 0, [V$e()]),
@@ -291650,7 +291506,7 @@ function mTe() {
       5829,
     ),
     new xpc(
-      YDj,
+      "loadGame",
       VGf,
       s$f,
       aqf(Vpf(bDf, 1), E9h, 7, 0, [V$e(), Y_e()]),
@@ -346558,11 +346414,11 @@ function zKc(a, b, c) {
     case fOi:
       return (b.e1(), null);
     case gOi:
-      return new Lth();
+      return new AboutScene();
     case hOi:
-      return new Rth();
+      return new AmuletScene();
     case iOi:
-      return new Zth();
+      return new BadgesScene();
     case jOi:
     case kOi:
     case lOi:
@@ -346692,7 +346548,7 @@ function zKc(a, b, c) {
     case rPi:
       return (b.Hab(), null);
     case sPi:
-      return new Hvh();
+      return new InterlevelScene();
     case tPi:
       return (
         dwh(),
@@ -346701,7 +346557,7 @@ function zKc(a, b, c) {
     case vPi:
       return (dwh(), Pb((iwh(), hwh), c[0]));
     case 2007:
-      return new swh();
+      return new IntroScene();
     case wPi:
       return eOc(HVh(c[0]));
     case xPi:
@@ -346760,7 +346616,7 @@ function zKc(a, b, c) {
     case $Pi:
       return new $wh(c[0]);
     case _Pi:
-      return new Cxh();
+      return new SurfaceScene();
     case aQi:
       return new Kxh(c[0]);
     case bQi:
@@ -346799,7 +346655,7 @@ function IReflectionCache2Generated_$invoke2(a, b, c) {
     case 2072:
       return pOc(b, HVh(c[0]), HVh(c[1]));
     case 2073:
-      return new ayh();
+      return new TitleScene();
     case 2285:
     case 2289:
     case 2303:
@@ -349013,7 +348869,7 @@ function IReflectionCacheGenerated_$invoke5(a, b, c) {
     case 5715:
       return (b.UC(), null);
     case 5716:
-      return new Jfg();
+      return new Button();
     case 5717:
       return (wVh(), b.e2() ? true : false);
     case 5718:
@@ -349047,7 +348903,7 @@ function IReflectionCacheGenerated_$invoke5(a, b, c) {
     case 5733:
       return new NWh(b.S1());
     case 5738:
-      return new pfg();
+      return new Component();
     case 5739:
       return new egg();
     case 5740:
@@ -349067,7 +348923,7 @@ function IReflectionCacheGenerated_$invoke5(a, b, c) {
     case 5747:
       return (Ogg(), null);
     case 5748:
-      return (Igg(), null);
+      return (Badges_validateGoldCollected(), null);
     case 5749:
       return (Lgg(), null);
     case 5750:
@@ -349144,7 +349000,14 @@ function IReflectionCacheGenerated_$invoke5(a, b, c) {
     case 5783:
       return (wVh(), Badges_isUnlocked(c[0]) ? true : false);
     case 5784:
-      return (jgg(), Badges_loadGlobal(), Z5h(fgg, c[0]), (Badges_saveNeeded = true), undefined, null);
+      return (
+        jgg(),
+        Badges_loadGlobal(),
+        Z5h(fgg, c[0]),
+        (Badges_saveNeeded = true),
+        undefined,
+        null
+      );
     case 5785:
       return lme(xVh(c[0]));
     case 5786:
@@ -349201,7 +349064,7 @@ function IReflectionCacheGenerated_$invoke5(a, b, c) {
           : false
       );
     case 5815:
-      return (wVh(), (Fjg(), Hjg(Dungeon.depth)) ? true : false);
+      return (wVh(), (Fjg(), Dungeon_bossLevel(Dungeon.depth)) ? true : false);
     case 5816:
       return (wVh(), nme(IVh(c[0])) ? true : false);
     case 5817:
@@ -349424,7 +349287,13 @@ function IReflectionCacheGenerated_$invoke5(a, b, c) {
     case 5902:
       return (wVh(), plg((olg(), nlg), Qnj, true) ? true : false);
     case 5903:
-      return ((PixelScene_noFade = true), (qag.i = c[0]), (qag.e = true), undefined, null);
+      return (
+        (PixelScene_noFade = true),
+        (qag.i = c[0]),
+        (qag.e = true),
+        undefined,
+        null
+      );
     case 5904:
       return (sd(ac, "PD", c[0].DW(), c[0]), undefined, null);
     case 5905:
@@ -349458,13 +349327,11 @@ function IReflectionCacheGenerated_$invoke5(a, b, c) {
     case 5936:
       return new bmg();
     case 5937:
-      return (Statistics_reset(), null);
+      return (Statistics.reset(), null);
     case 5938:
-      return (rmg(c[0]), null);
+      return (Statistics.save(), null);
     case 5939:
-      return (qmg(c[0]), null);
-    case 5940:
-      return new omg();
+      return (Statistics.load(), null);
     case 5965:
     case 6015:
     case 6101:
@@ -351659,9 +351526,6 @@ function qVd(a) {
       break;
     case -725864530:
       if (sYh(a, Zkj)) return wQe();
-      break;
-    case 692122195:
-      if (sYh(a, $kj)) return ETe();
       break;
     case 75854737:
       if (sYh(a, _kj)) return vTe();
@@ -366395,7 +366259,6 @@ var NRi = "add",
   Ykj =
     "com.badlogic.gdx.graphics.g3d.particles.influencers.DynamicsModifier.BrownianAcceleration",
   Zkj = "com.badlogic.gdx.scenes.scene2d.utils.DragScrollListener",
-  $kj = "com.watabou.pixeldungeon.Statistics",
   _kj = "com.watabou.pixeldungeon.Journal.Feature[]",
   alj = "com.watabou.pixeldungeon.actors.buffs.Bleeding",
   blj = "com.badlogic.gdx.graphics.TextureData",
@@ -367438,7 +367301,6 @@ var jyj = "offsetX",
   VDj = "gold",
   WDj = "chapters",
   XDj = "resetLevel",
-  YDj = "loadGame",
   ZDj = "DungeonTilemap",
   $Dj = "GamesInProgress",
   _Dj = "records",
@@ -367456,7 +367318,6 @@ var jyj = "offsetX",
   lEj = "nightHunt",
   mEj = "ankhsUsed",
   nEj = "amuletObtained",
-  oEj = "Statistics",
   pEj = "onRemove",
   qEj = "defenseProc",
   rEj = "onMotionComplete",
@@ -368296,7 +368157,8 @@ _.rc = function gd(a) {
     !!this.n && vLg(this.n, ((g = 0), Qc(znf(a)), g));
   }
   if (sYh(a.type, ed())) {
-    !!this.n && I6f(this.n, Cast_round_int(DefaultGwtInput_getMouseWheelVelocity(a)));
+    !!this.n &&
+      I6f(this.n, Cast_round_int(DefaultGwtInput_getMouseWheelVelocity(a)));
     this.c = (jZh(), L$f(D$f(Date.now()), mai));
     a.preventDefault();
   }
@@ -370224,19 +370086,27 @@ _.Gg = function Bt(a) {
 };
 _.Hg = function Ct(a) {
   this.T = a;
-  this.R = Cast_round_int($wnd.Math.round($wnd.Math.abs(this.U - a) * this.S.a.rd()));
+  this.R = Cast_round_int(
+    $wnd.Math.round($wnd.Math.abs(this.U - a) * this.S.a.rd()),
+  );
 };
 _.Ig = function Dt(a) {
   this.U = a;
-  this.R = Cast_round_int($wnd.Math.round($wnd.Math.abs(a - this.T) * this.S.a.rd()));
+  this.R = Cast_round_int(
+    $wnd.Math.round($wnd.Math.abs(a - this.T) * this.S.a.rd()),
+  );
 };
 _.Jg = function Et(a) {
   this.V = a;
-  this.Q = Cast_round_int($wnd.Math.round($wnd.Math.abs(this.W - a) * this.S.a.pd()));
+  this.Q = Cast_round_int(
+    $wnd.Math.round($wnd.Math.abs(this.W - a) * this.S.a.pd()),
+  );
 };
 _.Kg = function Ft(a) {
   this.W = a;
-  this.Q = Cast_round_int($wnd.Math.round($wnd.Math.abs(a - this.V) * this.S.a.pd()));
+  this.Q = Cast_round_int(
+    $wnd.Math.round($wnd.Math.abs(a - this.V) * this.S.a.pd()),
+  );
 };
 _.Lg = function Gt(a, b) {
   return Zs(this, a, b);
@@ -370424,25 +370294,33 @@ _.fh = function Tu(a, b) {
 };
 _.Hg = function Uu(a) {
   this.T = a;
-  this.R = Cast_round_int($wnd.Math.round($wnd.Math.abs(this.U - a) * this.S.a.rd()));
+  this.R = Cast_round_int(
+    $wnd.Math.round($wnd.Math.abs(this.U - a) * this.S.a.rd()),
+  );
   this.M[3] = a;
   this.M[8] = a;
 };
 _.Ig = function Vu(a) {
   this.U = a;
-  this.R = Cast_round_int($wnd.Math.round($wnd.Math.abs(a - this.T) * this.S.a.rd()));
+  this.R = Cast_round_int(
+    $wnd.Math.round($wnd.Math.abs(a - this.T) * this.S.a.rd()),
+  );
   this.M[13] = a;
   this.M[18] = a;
 };
 _.Jg = function Wu(a) {
   this.V = a;
-  this.Q = Cast_round_int($wnd.Math.round($wnd.Math.abs(this.W - a) * this.S.a.pd()));
+  this.Q = Cast_round_int(
+    $wnd.Math.round($wnd.Math.abs(this.W - a) * this.S.a.pd()),
+  );
   this.M[9] = a;
   this.M[14] = a;
 };
 _.Kg = function Xu(a) {
   this.W = a;
-  this.Q = Cast_round_int($wnd.Math.round($wnd.Math.abs(a - this.V) * this.S.a.pd()));
+  this.Q = Cast_round_int(
+    $wnd.Math.round($wnd.Math.abs(a - this.V) * this.S.a.pd()),
+  );
   this.M[4] = a;
   this.M[19] = a;
 };
@@ -372263,7 +372141,7 @@ _.bj = function kB(a, b) {
 };
 _.aj = function lB(a) {
   var b;
-  b = Oqf(Soc(this.a, this.f * a));
+  b = Oqf(ArrayReflection_newInstance(this.a, this.f * a));
   kZh(this.b, 0, b, 0, $wnd.Math.min(this.b.length, b.length));
   this.d = this.b = b;
 };
@@ -376780,7 +376658,10 @@ _.Ip = function iZ(a) {
 var Lwf = Class_createForClass(Dhi, "Interpolation/8", uii, axf);
 Runtime_defineClass(vii, 124, gii, jZ);
 _.Ip = function kZ(a) {
-  return (p_(), (1 - (K_(), J_)[Cast_round_int((a * Dgi + Fgi) * Egi) & cdi]) / 2);
+  return (
+    p_(),
+    (1 - (K_(), J_)[Cast_round_int((a * Dgi + Fgi) * Egi) & cdi]) / 2
+  );
 };
 var Mwf = Class_createForClass(Dhi, "Interpolation/9", vii, axf);
 Runtime_defineClass(278, 124, { 124: 1, 278: 1 }, mZ, nZ);
@@ -379084,7 +378965,11 @@ _.Du = function Qab() {
   var a;
   return (
     (a = (p_(), o_.st() * Cgi)),
-    S8(this, (K_(), J_)[Cast_round_int((a + Fgi) * Egi) & cdi], J_[Cast_round_int(a * Egi) & cdi])
+    S8(
+      this,
+      (K_(), J_)[Cast_round_int((a + Fgi) * Egi) & cdi],
+      J_[Cast_round_int(a * Egi) & cdi],
+    )
   );
 };
 _.Eu = function Sab() {
@@ -379359,7 +379244,11 @@ _.Kv = function Pab() {
   var a;
   return (
     (a = (p_(), o_.st() * Cgi)),
-    S8(this, (K_(), J_)[Cast_round_int((a + Fgi) * Egi) & cdi], J_[Cast_round_int(a * Egi) & cdi])
+    S8(
+      this,
+      (K_(), J_)[Cast_round_int((a + Fgi) * Egi) & cdi],
+      J_[Cast_round_int(a * Egi) & cdi],
+    )
   );
 };
 _.Lv = function Rab() {
@@ -386326,7 +386215,10 @@ _.UC = function UMb() {
         this.$ || (this.G.d += j);
       }
       this._
-        ? (this.F.c = $wnd.Math.max(f.PC(), Cast_round_int((this.G.c * this.fb.c) / m)))
+        ? (this.F.c = $wnd.Math.max(
+            f.PC(),
+            Cast_round_int((this.G.c * this.fb.c) / m),
+          ))
         : (this.F.c = f.PC());
       this.F.c > m && (this.F.c = 0);
       this.F.b = f.OC();
@@ -386348,11 +386240,15 @@ _.UC = function UMb() {
       }
       this.Y.c = k.PC();
       this._
-        ? (this.Y.b = $wnd.Math.max(k.OC(), Cast_round_int((this.Z.b * this.fb.b) / l)))
+        ? (this.Y.b = $wnd.Math.max(
+            k.OC(),
+            Cast_round_int((this.Z.b * this.fb.b) / l),
+          ))
         : (this.Y.b = k.OC());
       this.Y.b > l && (this.Y.b = 0);
       this.Y.d = this.$ ? n - d - k.PC() : c;
-      this.Y.e = this.Z.e + Cast_round_int((this.Z.b - this.Y.b) * (1 - uLb(this)));
+      this.Y.e =
+        this.Z.e + Cast_round_int((this.Z.b - this.Y.b) * (1 - uLb(this)));
     } else {
       u7(this.Z, 0, 0, 0, 0);
       u7(this.Y, 0, 0, 0, 0);
@@ -390971,7 +390867,8 @@ _.kW = function M8b(a, b) {
 };
 _.lW = function N8b(a, b, c) {
   if (a > this.g) throw w$f(new sVh("" + a));
-  this.g == this.c.length && o8b(this, $wnd.Math.max(8, Cast_round_int(this.g * Noi)));
+  this.g == this.c.length &&
+    o8b(this, $wnd.Math.max(8, Cast_round_int(this.g * Noi)));
   if (this.f) {
     kZh(this.c, a, this.c, a + 1, this.g - a);
     kZh(this.i, a, this.i, a + 1, this.g - a);
@@ -391023,7 +390920,8 @@ _.qW = function V8b(a, b, c) {
   d = j8b(this, a);
   d != -1
     ? n8b(this, d)
-    : this.g == this.c.length && o8b(this, $wnd.Math.max(8, Cast_round_int(this.g * Noi)));
+    : this.g == this.c.length &&
+      o8b(this, $wnd.Math.max(8, Cast_round_int(this.g * Noi)));
   kZh(this.c, c, this.c, c + 1, this.g - c);
   kZh(this.i, c, this.i, c + 1, this.g - c);
   this.c[c] = a;
@@ -400094,7 +399992,8 @@ _.oZ = function Jed(a, b) {
   throw w$f(new lbc(mcj));
 };
 
-_.pZ = function kgd(a, b, c) {
+_.pZ = function IReflectionCache2Generated_set(a, b, c) {
+  console.log("IReflectionCache2Generated_set");
   switch (a.q) {
     case 5:
       RXc(b, IVh(c));
@@ -403641,7 +403540,7 @@ _.rZ = function Qid() {
 var VCf = Class_createForClass(cri, "IReflectionCache2Generated/8", yJi, WXf);
 Runtime_defineClass(XKi, 1, {}, pIe);
 
-_.kZ = function f0e(a, b) {
+_.kZ = function IReflectionCacheGenerated_get(a, b) {
   switch (a.d) {
     case 0:
       return Xai;
@@ -408716,30 +408615,6 @@ _.kZ = function f0e(a, b) {
       return mJj;
     case 2604:
       return nJj;
-    case 2605:
-      return rXh(Statistics_goldCollected);
-    case 2606:
-      return rXh(Statistics_deepestFloor);
-    case 2607:
-      return rXh(Statistics_enemiesSlain);
-    case 2608:
-      return rXh(Statistics_foodEaten);
-    case 2609:
-      return rXh(Statistics_potionsCooked);
-    case 2610:
-      return rXh(Statistics_piranhasKilled);
-    case 2611:
-      return rXh(Statistics_nightHunt);
-    case 2612:
-      return rXh(Statistics_ankhsUsed);
-    case 2613:
-      return new NWh(Statistics_duration);
-    case 2614:
-      return (wVh(), b, Statistics_qualifiedForNoKilling ? true : false);
-    case 2615:
-      return (wVh(), b, Statistics_completedWithNoKilling ? true : false);
-    case 2616:
-      return (wVh(), b, Statistics_amuletObtained ? true : false);
     case 2618:
       return vGj;
     case 2619:
@@ -409448,7 +409323,9 @@ _.nZ = function i2e(a, b, c) {
     case 94:
       return rXh(
         (mj(),
-        (Cast_round_int(c[0].d * 31) << 11) | (Cast_round_int(c[0].c * 63) << 5) | Cast_round_int(c[0].b * 31)),
+        (Cast_round_int(c[0].d * 31) << 11) |
+          (Cast_round_int(c[0].c * 63) << 5) |
+          Cast_round_int(c[0].b * 31)),
       );
     case 95:
       return rXh(hqe(HVh(c[0]), HVh(c[1]), HVh(c[2]), HVh(c[3])));
@@ -411440,7 +411317,7 @@ _.nZ = function i2e(a, b, c) {
   return rVd(a, b, c);
 };
 
-_.oZ = function r5e(a, b) {
+_.oZ = function IReflectionCacheGenerated_newArray(a, b) {
   if (a) {
     switch (a.j) {
       case 0:
@@ -412456,8 +412333,6 @@ _.oZ = function r5e(a, b) {
         return Zpf(cHf, Tbj, SIi, b, 0, 2);
       case 498:
         return Zpf(gHf, E9h, vFi, b, 0, 1);
-      case 499:
-        return Zpf(hHf, E9h, wFi, b, 0, 1);
       case 500:
         return Zpf(iHf, Wbj, 40, b, 0, 1);
       case 501:
@@ -412695,7 +412570,8 @@ _.oZ = function r5e(a, b) {
   throw w$f(new lbc(mcj));
 };
 
-_.pZ = function dcf(a, b, c) {
+_.pZ = function IReflectionCacheGenerated_set(a, b, c) {
+  console.log("IReflectionCacheGenerated_set");
   switch (a.q) {
     case 6:
       b.e = c;
@@ -421808,7 +421684,7 @@ _.e0 = function dag(a, b, c, d) {
   T9f(this, a, b, c, d);
 };
 _.f0 = function eag(a) {
-  U9f(this, a);
+  Image_$frame(this, a);
 };
 _.g0 = function fag(a) {
   V9f(this, a);
@@ -421858,37 +421734,37 @@ _.C_ = function mag() {
 };
 var _Ff = Class_createForClass(PJj, GBj, 228, dGf);
 Runtime_defineClass(729, 1, { 1945: 1, 729: 1 });
-_.j0 = function Iag() {
+_.j0 = function Game_create() {
   uag(this);
 };
-_.k0 = function Jag(a) {
+_.k0 = function Game_deleteFile(a) {
   return vag(this, a);
 };
-_.l0 = function Kag() {
+_.l0 = function Game_destroyGame() {
   wag(this);
 };
-_.qc = function Lag() {
+_.qc = function Game_dispose() {
   wag(this);
   Ldg((Jdg(), Idg));
   jeg((eeg(), deg));
 };
-_.jj = function Mag() {
+_.jj = function Game_draw() {
   Group_$draw(this.g);
 };
-_.TB = function Nag() {};
-_.m0 = function Oag() {
+_.TB = function Game_finish() {};
+_.m0 = function Game_getInputProcessor() {
   return this.b;
 };
-_.n0 = function Pag() {
+_.n0 = function Game_getPlatformSupport() {
   return this.d;
 };
-_.o0 = function Qag() {
+_.o0 = function Game_onSurfaceCreated() {
   xag();
 };
-_.Pb = function Rag() {
+_.Pb = function Game_pause() {
   Game_$pause(this);
 };
-_.p0 = function Sag(a) {
+_.p0 = function Game_readFile(a) {
   return Game_$readFile(this, a);
 };
 _.q0 = function Game_render() {
@@ -421903,7 +421779,8 @@ _.Qb = function Game_resume() {
 _.r0 = function Game_step() {
   Game_$step(this);
 };
-_.s0 = function () { // Game_switchScene()
+_.s0 = function () {
+  // Game_switchScene()
   Game_$switchScene(this);
 };
 _.ri = function Game_update() {
@@ -421967,7 +421844,9 @@ _.d_ = function zbg() {
   ibg(this);
 };
 _.C0 = function Abg() {
-  return this.F > 0 ? U0h(this.G, Cast_round_int($wnd.Math.random() * this.F)) : null;
+  return this.F > 0
+    ? U0h(this.G, Cast_round_int($wnd.Math.random() * this.F))
+    : null;
 };
 _.D0 = function Bbg(a) {
   return jbg(this, a);
@@ -422158,7 +422037,7 @@ _.f0 = function $cg(a) {
   this.e = 1;
   this.b = 0;
   this.c = 0;
-  U9f(this, new gUh(0, 0, 1, 1));
+  Image_$frame(this, new gUh(0, 0, 1, 1));
 };
 _.h1 = function _cg(a, b) {
   Vcg(this, a, b);
@@ -422392,7 +422271,10 @@ _.D1 = function Neg(a) {
   do {
     e = STh(b.c - b.b) * this.c;
     f = STh(b.a - b.d) * this.b;
-  } while ((Zk(this.d, Cast_round_int(e + c), Cast_round_int(f + d)) & 255) == 0);
+  } while (
+    (Zk(this.d, Cast_round_int(e + c), Cast_round_int(f + d)) & 255) ==
+    0
+  );
   this.g.K1(this, a, this.p.gb + e * this.p.db.a, this.p.hb + f * this.p.db.b);
 };
 _.b = 0;
@@ -422471,7 +422353,7 @@ _.O1 = function gfg(a) {
 };
 var FGf = Class_createForClass(OKj, iCj, 652, HGf);
 var GGf = xWh(OKj, "Tweener/Listener");
-Runtime_defineClass(36, 30, { 20: 1, 30: 1, 36: 1 }, pfg);
+Runtime_defineClass(36, 30, { 20: 1, 30: 1, 36: 1 }, Component);
 _.Q1 = function qfg() {
   return hfg(this);
 };
@@ -422520,7 +422402,7 @@ _.B = 0;
 _.C = 0;
 _.D = 0;
 var LGf = Class_createForClass(RKj, "Component", 36, cGf);
-Runtime_defineClass(46, 36, { 20: 1, 30: 1, 46: 1, 36: 1 }, Jfg);
+Runtime_defineClass(46, 36, { 20: 1, 30: 1, 46: 1, 36: 1 }, Button);
 _.T1 = function Kfg() {
   this.k = new Tfg(this);
   Group_$add(this, this.k);
@@ -422779,7 +422661,12 @@ _.QZ = function alg(a) {
 };
 _.a = 0;
 var _Gf = Class_createForClass(SKj, "Journal/Record", 654, WXf);
-Runtime_defineClass(577, 729, { 1945: 1, 729: 1, 577: 1 }, PixelDungeonORIGINAL);
+Runtime_defineClass(
+  577,
+  729,
+  { 1945: 1, 729: 1, 577: 1 },
+  PixelDungeonORIGINAL,
+);
 _.j0 = function PixelDungeon_create() {
   PixelDungeon_$create(this);
 };
@@ -422815,20 +422702,6 @@ var cHf = Class_createForEnum(SKj, N9h, 599, GXf, Elg, Dlg);
 var Flg;
 Runtime_defineClass(vFi, 1, { 1161: 1 }, bmg);
 var gHf = Class_createForClass(SKj, hEj, vFi, WXf);
-Runtime_defineClass(wFi, 1, { 1162: 1 }, omg);
-var Statistics_amuletObtained = false,
-  Statistics_ankhsUsed = 0,
-  Statistics_completedWithNoKilling = false,
-  Statistics_deepestFloor = 0,
-  Statistics_duration = 0,
-  Statistics_enemiesSlain = 0,
-  Statistics_foodEaten = 0,
-  Statistics_goldCollected = 0,
-  Statistics_nightHunt = 0,
-  Statistics_piranhasKilled = 0,
-  Statistics_potionsCooked = 0,
-  Statistics_qualifiedForNoKilling = false;
-var hHf = Class_createForClass(SKj, oEj, wFi, WXf);
 Runtime_defineClass(73, 40, { 40: 1, 73: 1, 22: 1 });
 _.GZ = function Lmg() {
   return (hhh((Fjg(), Dungeon.level), this), false);
@@ -425105,7 +424978,9 @@ _.f5 = function Jyg(a) {
   );
 };
 _.C2 = function Kyg() {
-  return 20 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 13) / 2);
+  return (
+    20 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 13) / 2)
+  );
 };
 _.h5 = function Lyg() {
   return "These huge arachnid-like demonic creatures avoid close combat by all means, firing crippling serrated spikes from long distances.";
@@ -425149,7 +425024,9 @@ _.x2 = function Uyg(a) {
   return 8;
 };
 _.C2 = function Vyg() {
-  return 1 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2);
+  return (
+    1 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2)
+  );
 };
 _.h5 = function Wyg() {
   return "Marsupial rats are aggressive, but rather weak denizens of the sewers. They can be dangerous only in big numbers.";
@@ -425190,7 +425067,9 @@ _.x2 = function ezg(a) {
   return 12;
 };
 _.C2 = function fzg() {
-  return 1 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 7) / 2);
+  return (
+    1 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 7) / 2)
+  );
 };
 _.D2 = function gzg(a, b) {
   this.v == this.e && (Fjg(), Dungeon.level).V8(new eYg(), this.K).c.q6();
@@ -425258,7 +425137,9 @@ _.x2 = function uzg(a) {
   return 16;
 };
 _.C2 = function vzg() {
-  return 6 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 7) / 2);
+  return (
+    6 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 7) / 2)
+  );
 };
 _.F2 = function wzg() {
   return jLj;
@@ -425318,7 +425199,9 @@ _.x2 = function Pzg(a) {
   return 12;
 };
 _.C2 = function Qzg() {
-  return 3 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 4) / 2);
+  return (
+    3 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 4) / 2)
+  );
 };
 _.F2 = function Rzg() {
   return lLj;
@@ -425361,7 +425244,9 @@ _.x2 = function $zg(a) {
   return 10 + (Fjg(), Dungeon.depth);
 };
 _.C2 = function _zg() {
-  return 3 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 3) / 2);
+  return (
+    3 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 3) / 2)
+  );
 };
 _.h5 = function aAg() {
   return "This creature resembles the sad ghost, but it swirls with darkness. Its face bears an expression of despair.";
@@ -425389,7 +425274,9 @@ _.x2 = function jAg(a) {
   return 28;
 };
 _.C2 = function kAg() {
-  return 18 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 7) / 2);
+  return (
+    18 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 7) / 2)
+  );
 };
 _.h5 = function lAg() {
   return "This machine was created by the Dwarves several centuries ago. Later, Dwarves started to replace machines with golems, elementals and even demons. Eventually it led their civilization to the decline. The DM-300 and similar machines were typically used for construction and mining, and in some cases, for city defense.";
@@ -425483,7 +425370,9 @@ _.x2 = function xAg(a) {
   return 25;
 };
 _.C2 = function yAg() {
-  return 16 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2);
+  return (
+    16 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2)
+  );
 };
 _.h5 = function zAg() {
   return "Wandering fire elementals are a byproduct of summoning greater entities. They are too chaotic in their nature to be controlled by even the most powerful demonologist.";
@@ -425551,7 +425440,9 @@ _.x2 = function TAg(a) {
   return 12;
 };
 _.C2 = function UAg() {
-  return 2 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2);
+  return (
+    2 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2)
+  );
 };
 _.D2 = function VAg(a, b) {
   Juh(xkf(this.K, 20, qHf));
@@ -425580,7 +425471,9 @@ _.x2 = function aBg(a) {
   return 11;
 };
 _.C2 = function bBg() {
-  return 2 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 4) / 2);
+  return (
+    2 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 4) / 2)
+  );
 };
 _.h5 = function cBg() {
   return "Gnolls are hyena-like humanoids. They dwell in sewers and dungeons, venturing up to raid the surface from time to time. Gnoll scouts are regular members of their pack, they are not as strong as brutes and not as intelligent as shamans.";
@@ -425601,7 +425494,9 @@ _.x2 = function kBg(a) {
   return 28;
 };
 _.C2 = function lBg() {
-  return 20 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 21) / 2);
+  return (
+    20 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 21) / 2)
+  );
 };
 _.F2 = function mBg() {
   return oLj;
@@ -425772,7 +425667,9 @@ _.u5 = function WBg() {
   return QBg(this);
 };
 _.C2 = function XBg() {
-  return 20 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 19) / 2);
+  return (
+    20 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 19) / 2)
+  );
 };
 _.F2 = function YBg() {
   return lLj;
@@ -425840,7 +425737,9 @@ _.B2 = function oCg(a, b) {
   Rqf(b, 763) && nkf(b, this.K);
 };
 _.C2 = function pCg() {
-  return 12 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2);
+  return (
+    12 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2)
+  );
 };
 _.F2 = function qCg() {
   return oLj;
@@ -425874,7 +425773,10 @@ _.x5 = function BCg(a) {
 };
 _.w2 = function CCg(a, b) {
   var c;
-  if (a == (Fjg(), Dungeon.hero) && Cast_round_int($wnd.Math.random() * 3) == 0) {
+  if (
+    a == (Fjg(), Dungeon.hero) &&
+    Cast_round_int($wnd.Math.random() * 3) == 0
+  ) {
     c = new fYg(VTh((Dungeon.gold / 10) | 0, (Dungeon.gold / 2) | 0));
     if (c.A > 0) {
       Dungeon.gold -= c.A;
@@ -426046,7 +425948,9 @@ _.x2 = function gDg(a) {
   return 30;
 };
 _.C2 = function hDg() {
-  return 12 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2);
+  return (
+    12 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2)
+  );
 };
 _.F2 = function iDg() {
   return lLj;
@@ -426075,7 +425979,7 @@ _.GZ = function rDg() {
   if ((Pgh(), Ngh)[this.K]) {
     return Lxg(this);
   } else {
-    pDg(this, null);
+    Piranha_$die(this, null);
     return true;
   }
 };
@@ -426089,7 +425993,7 @@ _.h5 = function uDg() {
   return "These carnivorous fish are not natural inhabitants of underground pools. They were bred specifically to protect flooded treasure vaults.";
 };
 _.G2 = function vDg(a) {
-  pDg(this, a);
+  Piranha_$die(this, a);
 };
 _.I2 = function wDg() {
   return (Fjg(), Dungeon.depth);
@@ -426138,7 +426042,9 @@ _.w2 = function CDg(a, b) {
   return cDg(this, a, b);
 };
 _.C2 = function DDg() {
-  return 12 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 9) / 2);
+  return (
+    12 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 9) / 2)
+  );
 };
 _.G2 = function EDg(a) {
   sJg &&
@@ -426166,7 +426072,9 @@ _.f5 = function KDg(a) {
   return urh(this.K, a.K, false, true) == a.K;
 };
 _.C2 = function LDg() {
-  return 2 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2);
+  return (
+    2 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2)
+  );
 };
 _.h5 = function MDg() {
   return "The most intelligent gnolls can master shamanistic magic. Gnoll shamans prefer battle spells to compensate for lack of might, not hesitating to use them on those who question their status in a tribe.";
@@ -426237,7 +426145,9 @@ _.x2 = function XDg(a) {
   return 12;
 };
 _.C2 = function YDg() {
-  return 3 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 6) / 2);
+  return (
+    3 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 6) / 2)
+  );
 };
 _.F2 = function ZDg() {
   return oLj;
@@ -426323,7 +426233,9 @@ _.x2 = function jEg(a) {
   return 20;
 };
 _.C2 = function kEg() {
-  return 12 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2);
+  return (
+    12 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 5) / 2)
+  );
 };
 _.h5 = function lEg() {
   return "These greenish furry cave spiders try to avoid direct combat, preferring to wait in the distance while their victim, entangled in the spinner's excreted cobweb, slowly dies from their poisonous bite.";
@@ -426335,7 +426247,8 @@ _.J2 = function nEg() {
   return dEg;
 };
 _.M2 = function oEg(a) {
-  this.v == this.e && Juh(xkf(this.K, 5 + Cast_round_int($wnd.Math.random() * 2), yHf));
+  this.v == this.e &&
+    Juh(xkf(this.K, 5 + Cast_round_int($wnd.Math.random() * 2), yHf));
   Cmg(this, a);
   this.G || _gh((Fjg(), Dungeon.level), this);
 };
@@ -426435,7 +426348,9 @@ _.A5 = function TEg(a) {
   PEg(this, a);
 };
 _.C2 = function UEg() {
-  return 15 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 11) / 2);
+  return (
+    15 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 11) / 2)
+  );
 };
 _.h5 = function VEg() {
   return "The succubi are demons that look like seductive (in a slightly gothic way) girls. Using its magic, the succubus can charm a hero, who will become unable to attack anything until the charm wears off.";
@@ -426467,7 +426382,9 @@ _.x2 = function aFg(a) {
   return 12;
 };
 _.C2 = function bFg() {
-  return 1 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 4) / 2);
+  return (
+    1 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 4) / 2)
+  );
 };
 _.D2 = function cFg(a, b) {
   var c, d, e, f, g, h, i, j;
@@ -426489,7 +426406,9 @@ _.D2 = function cFg(a, b) {
       d.A = ((this.A - b) / 2) | 0;
       d.K = ((j = c.a.length),
       j > 0
-        ? y8h(c.a, c.a.length)[j > 0 ? Cast_round_int($wnd.Math.random() * j) : 0]
+        ? y8h(c.a, c.a.length)[
+            j > 0 ? Cast_round_int($wnd.Math.random() * j) : 0
+          ]
         : null).a;
       d.v = d.f;
       (Fjg(), Dungeon.level).w[d.K] == 5 && vph(d.K);
@@ -426532,7 +426451,9 @@ _.f5 = function oFg(a) {
   return urh(this.K, a.K, false, true) == a.K;
 };
 _.C2 = function pFg() {
-  return 8 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 8) / 2);
+  return (
+    8 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 8) / 2)
+  );
 };
 _.h5 = function qFg() {
   return "Tengu are members of the ancient assassins clan, which is also called Tengu. These assassins are noted for extensive use of shuriken and traps.";
@@ -426627,7 +426548,9 @@ _.f5 = function HFg(a) {
   return urh(this.K, a.K, false, true) == a.K;
 };
 _.C2 = function IFg() {
-  return 12 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 9) / 2);
+  return (
+    12 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 9) / 2)
+  );
 };
 _.h5 = function JFg() {
   return "When dwarves' interests have shifted from engineering to arcane arts, warlocks have come to power in the city. They started with elemental magic, but soon switched to demonology and necromancy.";
@@ -426782,7 +426705,9 @@ _.v2 = function uGg(a) {
   } else {
     Hmg(this, 1);
     if (ang(this, a, true)) {
-      c = 20 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 13) / 2);
+      c =
+        20 +
+        Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 13) / 2);
       a.B2(c, this);
       vyh(a.M, z7f(this.M), c);
       Ayh(a.M);
@@ -426810,7 +426735,9 @@ _.f5 = function wGg(a) {
   return urh(this.K, a.K, false, true) == a.K;
 };
 _.C2 = function xGg() {
-  return 20 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 13) / 2);
+  return (
+    20 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 13) / 2)
+  );
 };
 _.h5 = function yGg() {
   return AJj;
@@ -426835,7 +426762,9 @@ _.x2 = function EGg(a) {
   return 30;
 };
 _.C2 = function FGg() {
-  return 15 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 6) / 2);
+  return (
+    15 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 6) / 2)
+  );
 };
 _.h5 = function GGg() {
   return AJj;
@@ -426863,7 +426792,9 @@ _.x2 = function OGg(a) {
   return 36;
 };
 _.C2 = function PGg() {
-  return 24 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 13) / 2);
+  return (
+    24 + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * 13) / 2)
+  );
 };
 _.h5 = function QGg() {
   return AJj;
@@ -427644,7 +427575,9 @@ _.X5 = function GKg() {
     qYg(
       ((e = a.a.length),
       e > 0
-        ? y8h(a.a, a.a.length)[e > 0 ? Cast_round_int($wnd.Math.random() * e) : 0]
+        ? y8h(a.a, a.a.length)[
+            e > 0 ? Cast_round_int($wnd.Math.random() * e) : 0
+          ]
         : null),
       new l5g(),
     );
@@ -427781,7 +427714,10 @@ _.h6 = function SLg() {
   Nf(
     fc,
     ((a = fc.b.g ? $wnd.devicePixelRatio || 1 : 1),
-    new Sf(Cast_round_int($wnd.screen.width * a), Cast_round_int($wnd.screen.height * a))),
+    new Sf(
+      Cast_round_int($wnd.screen.width * a),
+      Cast_round_int($wnd.screen.height * a),
+    )),
   );
 };
 _.i6 = function TLg() {
@@ -429458,8 +429394,8 @@ _.D3 = function wWg(a) {
 };
 _.O3 = function xWg(a) {
   if (etg(this, a)) {
-    if (!Statistics_amuletObtained) {
-      Statistics_amuletObtained = true;
+    if (!Statistics.amuletObtained) {
+      Statistics.amuletObtained = true;
       Xgg();
       uWg(true);
     }
@@ -429716,10 +429652,10 @@ Runtime_defineClass(154, 31, { 154: 1, 31: 1, 22: 1 }, eYg, fYg);
 _.D3 = function gYg(a) {
   return new a1h();
 };
-_.O3 = function hYg(a) {
-  return cYg(this, a);
+_.O3 = function Gold_doPickUp(a) {
+  return Gold_$doPickUp(this, a);
 };
-_.Z3 = function iYg() {
+_.Z3 = function Gold_info() {
   switch (this.A) {
     case 0:
       return _7i;
@@ -429729,20 +429665,20 @@ _.Z3 = function iYg() {
       return yJh(a8i, aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(this.A)]));
   }
 };
-_.a4 = function jYg() {
+_.a4 = function Gold_isIdentified() {
   return true;
 };
-_.b4 = function kYg() {
+_.b4 = function Gold_isUpgradable() {
   return false;
 };
-_.k4 = function lYg() {
+_.k4 = function Gold_random() {
   return dYg(this);
 };
-_.OZ = function mYg(a) {
+_.OZ = function Gold_restoreFromBundle(a) {
   ltg(this, a);
   this.A = Qdc(a.a, hgi, 0);
 };
-_.QZ = function nYg(a) {
+_.QZ = function Gold_storeInBundle(a) {
   mtg(this, a);
   PQh(a, hgi, this.A);
 };
@@ -429937,7 +429873,7 @@ _.T3 = function b$g(a, b) {
   var c;
   if (b == "SET" || b == D_i) {
     Fjg();
-    if (Hjg(Dungeon.depth)) {
+    if (Dungeon_bossLevel(Dungeon.depth)) {
       vvg(a, 1);
       sJh();
       uJh(
@@ -430843,7 +430779,7 @@ _.U7 = function D1g(a) {
 _.V7 = function E1g(a, b, c, d) {
   var e, f, g, h;
   Fjg();
-  if (Hjg(Dungeon.depth)) {
+  if (Dungeon_bossLevel(Dungeon.depth)) {
     return d;
   }
   f = a.s <= 0 ? 0 : a.u;
@@ -430943,7 +430879,9 @@ _.V7 = function W1g(a, b, c, d) {
         g,
         ((j = i.a.length),
         j > 0
-          ? y8h(i.a, i.a.length)[j > 0 ? Cast_round_int($wnd.Math.random() * j) : 0]
+          ? y8h(i.a, i.a.length)[
+              j > 0 ? Cast_round_int($wnd.Math.random() * j) : 0
+            ]
           : null).a,
       );
       c.B2(WTh(1, (c.B / 6) | 0), this);
@@ -431445,7 +431383,12 @@ _.N5 = function n4g(a) {
   a == 0 && gvh((Xsg(), Wsg));
 };
 var pNf = Class_createForClass(iMj, "Potion/2", qMi, TVf);
-Runtime_defineClass(864, 133, { 31: 1, 133: 1, 864: 1, 22: 1 }, PotionOfExperience);
+Runtime_defineClass(
+  864,
+  133,
+  { 31: 1, 133: 1, 864: 1, 22: 1 },
+  PotionOfExperience,
+);
 _.Z7 = function PotionOfExperience_apply(a) {
   vZg(K3g, this) || wZg(K3g, this);
   Badges_validateAllPotionsIdentified();
@@ -431707,7 +431650,12 @@ _.c8 = function PotionOfPurity_shatter(a) {
   }
 };
 var zNf = Class_createForClass(iMj, sVi, ACi, CNf);
-Runtime_defineClass(867, 133, { 31: 1, 133: 1, 867: 1, 22: 1 }, PotionOfToxicGas);
+Runtime_defineClass(
+  867,
+  133,
+  { 31: 1, 133: 1, 867: 1, 22: 1 },
+  PotionOfToxicGas,
+);
 _.K3 = function PotionOfToxicGas_desc() {
   return "Uncorking or shattering this pressurized glass will cause its contents to explode into a deadly cloud of toxic green gas. You might choose to fling this potion at distant enemies instead of uncorking it by hand.";
 };
@@ -433207,9 +433155,15 @@ _.v8 = function Cbh(a) {
       b = (Ojf(), Kjf[d]);
       if (b) {
         Ayh(b.M);
-        b.B2(2 + Cast_round_int($wnd.Math.random() * ((g + 4 - c) * (e + 1) - 2)), this);
+        b.B2(
+          2 + Cast_round_int($wnd.Math.random() * ((g + 4 - c) * (e + 1) - 2)),
+          this,
+        );
         b.A > 0 &&
-          (e + 2 + c > 0 ? Cast_round_int($wnd.Math.random() * (e + 2 + c)) : 0) < e + 1 &&
+          (e + 2 + c > 0
+            ? Cast_round_int($wnd.Math.random() * (e + 2 + c))
+            : 0) <
+            e + 1 &&
           qog(b, VHf, 2 + Cast_round_int($wnd.Math.random() * 5));
       }
       !!b && b.A > 0
@@ -433320,7 +433274,10 @@ _.v8 = function Mbh(a) {
   for (d = new G1h(e); d.a < d.c.a.length; ) {
     c = F1h(d);
     c.B2(
-      i + Cast_round_int((($wnd.Math.random() + $wnd.Math.random()) * (f - i + 1)) / 2),
+      i +
+        Cast_round_int(
+          (($wnd.Math.random() + $wnd.Math.random()) * (f - i + 1)) / 2,
+        ),
       this,
     );
     zeg(xyh(c.M), (OTg(), MTg), 0, 1 + Cast_round_int($wnd.Math.random() * 2));
@@ -433795,7 +433752,9 @@ _.U7 = function gdh(a) {
 _.E8 = function hdh(a, b, c, d) {
   var e;
   e = $wnd.Math.max(0, a.s <= 0 ? 0 : a.u);
-  if ((e + 100 > 0 ? Cast_round_int($wnd.Math.random() * (e + 100)) : 0) >= 92) {
+  if (
+    (e + 100 > 0 ? Cast_round_int($wnd.Math.random() * (e + 100)) : 0) >= 92
+  ) {
     c.B2(c.A, this);
     zeg(zyh(c.M), (kUg(), jUg), 0, 5);
     c.A <= 0 && Rqf(b, 141) && Jgg();
@@ -434621,103 +434580,103 @@ _.k4 = function xgh() {
 };
 var FPf = Class_createForClass(LMj, tYi, 691, DPf);
 Runtime_defineClass(167, 1, { 167: 1, 22: 1 });
-_.K8 = function khh(a) {
+_.K8 = function Level_addItemToSpawn(a) {
   Qgh(this, a);
 };
-_.L8 = function lhh(a) {
+_.L8 = function Level_addVisuals(a) {
   Rgh(a);
 };
-_.M8 = function mhh() {
+_.M8 = function Level_adjustMapSize() {
   Pgh();
   Sgh(this);
 };
-_.N8 = function nhh(a) {
+_.N8 = function Level_adjustPos(a) {
   return Tgh(a);
 };
-_.P8 = function ohh() {
+_.P8 = function Level_buildFlagMaps() {
   Pgh();
   Ugh(this);
 };
-_.Q8 = function phh() {
+_.Q8 = function Level_cleanWalls() {
   Pgh();
   Vgh(this);
 };
-_.j0 = function qhh() {
+_.j0 = function Level_create() {
   Wgh(this);
 };
-_.U8 = function rhh(a) {
+_.U8 = function Level_destroy(a) {
   Xgh(this, a);
 };
-_.V8 = function thh(a, b) {
+_.V8 = function Level_drop(a, b) {
   return Ygh(this, a, b);
 };
-_.W8 = function uhh(a) {
+_.W8 = function Level_getWaterTile(a) {
   Pgh();
   return Zgh(this, a);
 };
-_.X8 = function vhh() {
+_.X8 = function Level_itemToSpanAsPrize() {
   return $gh(this);
 };
-_.Y8 = function whh(a) {
+_.Y8 = function Level_mobPress(a) {
   _gh(this, a);
 };
-_.Z8 = function xhh() {
+_.Z8 = function Level_nMobs() {
   return 0;
 };
-_.$8 = function yhh() {
+_.$8 = function Level_pitCell() {
   return this.c9();
 };
-_._8 = function zhh(a, b) {
+_._8 = function Level_plant(a, b) {
   return ahh(this, a, b);
 };
-_.a9 = function Ahh(a, b) {
+_.a9 = function Level_press(a, b) {
   bhh(this, a, b);
 };
-_.b9 = function Bhh() {
+_.b9 = function Level_randomDestination() {
   var a;
   do {
     a = Cast_round_int($wnd.Math.random() * oei);
   } while (!Hgh[a]);
   return a;
 };
-_.c9 = function Chh() {
+_.c9 = function Level_randomRespawnCell() {
   var a;
   do {
     a = Cast_round_int($wnd.Math.random() * oei);
   } while (!Hgh[a] || (Fjg(), Dungeon.visible)[a] || (Ojf(), !!Kjf[a]));
   return a;
 };
-_.dc = function Dhh() {
+_.dc = function Level_reset() {
   chh(this);
 };
-_.d9 = function Ehh() {
+_.d9 = function Level_respawner() {
   return new nlh(this);
 };
-_.OZ = function Fhh(a) {
+_.OZ = function Level_restoreFromBundle(a) {
   dhh(this, a);
 };
-_.QZ = function Hhh(a) {
+_.QZ = function Level_storeInBundle(a) {
   ehh(this, a);
 };
-_.e9 = function Ihh(a) {
+_.e9 = function Level_tileDesc(a) {
   return fhh(this, a);
 };
-_.f9 = function Jhh(a) {
+_.f9 = function Level_tileName(a) {
   return ghh(this, a);
 };
-_.g9 = function Khh() {
+_.g9 = function Level_tilesTex() {
   return null;
 };
-_.h9 = function Lhh() {
+_.h9 = function Level_tunnelTile() {
   return this.t == (tlh(), plh) ? 14 : 1;
 };
-_.i9 = function Mhh(a) {
+_.i9 = function Level_updateFieldOfView(a) {
   return hhh(this, a);
 };
-_.j9 = function Nhh(a) {
+_.j9 = function Level_uproot(a) {
   ihh(this, a);
 };
-_.k9 = function Ohh() {
+_.k9 = function Level_waterTex() {
   return null;
 };
 _.p = 17408;
@@ -434773,7 +434732,9 @@ _.O8 = function Thh() {
   }
   this.w[this.s] = 25;
   for (d = 0; d < oei; d++) {
-    this.w[d] == 1 && Cast_round_int($wnd.Math.random() * 6) == 0 && (this.w[d] = 23);
+    this.w[d] == 1 &&
+      Cast_round_int($wnd.Math.random() * 6) == 0 &&
+      (this.w[d] = 23);
   }
   Eph(this, 13, 13, 7, 7, 4);
   Eph(this, 14, 15, 5, 4, 1);
@@ -434781,7 +434742,9 @@ _.O8 = function Thh() {
   this.a = 14 + Cast_round_int($wnd.Math.random() * 4) + 608;
   this.w[this.a] = 5;
   this.r =
-    15 + Cast_round_int($wnd.Math.random() * 2) + (15 + Cast_round_int($wnd.Math.random() * 2)) * 32;
+    15 +
+    Cast_round_int($wnd.Math.random() * 2) +
+    (15 + Cast_round_int($wnd.Math.random() * 2)) * 32;
   this.w[this.r] = 7;
   f = Dlh(Eii, 6);
   for (b = 0; b < oei; b++) {
@@ -434816,7 +434779,9 @@ _.T8 = function Whh() {
     }
   }
   for (a = 0; a < oei; a++) {
-    this.w[a] == 4 && Cast_round_int($wnd.Math.random() * 8) == 0 && (this.w[a] = 12);
+    this.w[a] == 4 &&
+      Cast_round_int($wnd.Math.random() * 8) == 0 &&
+      (this.w[a] = 12);
   }
   do {
     d =
@@ -434985,7 +434950,7 @@ _.O8 = function yih() {
     }
   }
   this.n = new c1h((Lmh(), Kmh));
-  Hjg(Dungeon.depth + 1) && Y0h(this.n, foh);
+  Dungeon_bossLevel(Dungeon.depth + 1) && Y0h(this.n, foh);
   this.m9();
   lih(this);
   nih(this);
@@ -435006,7 +434971,9 @@ _.p9 = function Cih(a, b) {
   return kih(this, a, b);
 };
 _.Z8 = function Dih() {
-  return 2 + ((Fjg(), Dungeon.depth) % 5) + Cast_round_int($wnd.Math.random() * 3);
+  return (
+    2 + ((Fjg(), Dungeon.depth) % 5) + Cast_round_int($wnd.Math.random() * 3)
+  );
 };
 _.q9 = function Eih() {
   return (Fjg(), Dungeon.depth) <= 1
@@ -435178,7 +435145,9 @@ _.T8 = function Zih() {
     }
   }
   for (d = 0; d < oei; d++) {
-    this.w[d] == 4 && Cast_round_int($wnd.Math.random() * 12) == 0 && (this.w[d] = 12);
+    this.w[d] == 4 &&
+      Cast_round_int($wnd.Math.random() * 12) == 0 &&
+      (this.w[d] = 12);
   }
   while (true) {
     l = Pmh(this.g, 0);
@@ -435187,7 +435156,7 @@ _.T8 = function Zih() {
       break;
     }
   }
-  if (Hjg((Fjg(), Dungeon.depth) + 1)) {
+  if (Dungeon_bossLevel((Fjg(), Dungeon.depth) + 1)) {
     return;
   }
   for (n = ((k = new Q_h(this.j.a).a.Ocb().Pd()), new W_h(k)); n.a.Rd(); ) {
@@ -435316,7 +435285,9 @@ _.O8 = function ojh() {
   Eph(this, 12, 18, 1, 3, 41);
   Eph(this, 18, 18, 1, 3, 41);
   this.r =
-    (19 + Cast_round_int($wnd.Math.random() * 2)) * 32 + 12 + Cast_round_int($wnd.Math.random() * 5);
+    (19 + Cast_round_int($wnd.Math.random() * 2)) * 32 +
+    12 +
+    Cast_round_int($wnd.Math.random() * 5);
   this.w[this.r] = 7;
   return true;
 };
@@ -435339,7 +435310,9 @@ _.T8 = function rjh() {
   for (a = 0; a < oei; a++) {
     this.w[a] == 1 && Cast_round_int($wnd.Math.random() * 10) == 0
       ? (this.w[a] = 24)
-      : this.w[a] == 4 && Cast_round_int($wnd.Math.random() * 8) == 0 && (this.w[a] = 12);
+      : this.w[a] == 4 &&
+        Cast_round_int($wnd.Math.random() * 8) == 0 &&
+        (this.w[a] = 12);
   }
   b = this.a + 32 + 1;
   this.w[b] = 29;
@@ -435461,7 +435434,9 @@ _.T8 = function Ijh() {
   for (a = 0; a < oei; a++) {
     this.w[a] == 1 && Cast_round_int($wnd.Math.random() * 10) == 0
       ? (this.w[a] = 24)
-      : this.w[a] == 4 && Cast_round_int($wnd.Math.random() * 8) == 0 && (this.w[a] = 12);
+      : this.w[a] == 4 &&
+        Cast_round_int($wnd.Math.random() * 8) == 0 &&
+        (this.w[a] = 12);
   }
   while (true) {
     b = Pmh(this.g, 0);
@@ -435575,7 +435550,9 @@ _.T8 = function bkh() {
   for (a = 0; a < oei; a++) {
     this.w[a] == 1 && Cast_round_int($wnd.Math.random() * 10) == 0
       ? (this.w[a] = 24)
-      : this.w[a] == 4 && Cast_round_int($wnd.Math.random() * 8) == 0 && (this.w[a] = 12);
+      : this.w[a] == 4 &&
+        Cast_round_int($wnd.Math.random() * 8) == 0 &&
+        (this.w[a] = 12);
   }
 };
 _.c9 = function ckh() {
@@ -435610,7 +435587,9 @@ _.O8 = function jkh() {
   Eph(this, 14, 14, 5, 5, 4);
   Eph(this, 15, 15, 3, 3, 1);
   this.r =
-    16 + Cast_round_int($wnd.Math.random() * 0) + (16 + Cast_round_int($wnd.Math.random() * 0)) * 32;
+    16 +
+    Cast_round_int($wnd.Math.random() * 0) +
+    (16 + Cast_round_int($wnd.Math.random() * 0)) * 32;
   this.w[this.r] = 7;
   e = Dlh(Eii, 6);
   for (b = 0; b < oei; b++) {
@@ -435635,7 +435614,9 @@ _.S8 = function lkh() {};
 _.T8 = function mkh() {
   var a;
   for (a = 0; a < oei; a++) {
-    this.w[a] == 1 && Cast_round_int($wnd.Math.random() * 10) == 0 && (this.w[a] = 24);
+    this.w[a] == 1 &&
+      Cast_round_int($wnd.Math.random() * 10) == 0 &&
+      (this.w[a] = 24);
   }
 };
 _.E9 = function nkh(a) {
@@ -435873,7 +435854,9 @@ _.S8 = function Ukh() {};
 _.T8 = function Vkh() {
   var a;
   for (a = 0; a < oei; a++) {
-    this.w[a] == 1 && Cast_round_int($wnd.Math.random() * 10) == 0 && (this.w[a] = 24);
+    this.w[a] == 1 &&
+      Cast_round_int($wnd.Math.random() * 10) == 0 &&
+      (this.w[a] = 24);
   }
 };
 _.c9 = function Wkh() {
@@ -436066,10 +436049,10 @@ _.GZ = function olh() {
     a.K = this.a.c9();
     if (Dungeon.hero.A > 0 && a.K != -1) {
       Kuh(a);
-      Statistics_amuletObtained && a.e5(Dungeon.hero.K);
+      Statistics.amuletObtained && a.e5(Dungeon.hero.K);
     }
   }
-  Sjf(this, (Fjg(), Dungeon.nightMode) || Statistics_amuletObtained ? 25 : 50);
+  Sjf(this, (Fjg(), Dungeon.nightMode) || Statistics.amuletObtained ? 25 : 50);
   return true;
 };
 var WPf = Class_createForClass(MMj, "Level/1", uMi, iHf);
@@ -436425,9 +436408,13 @@ _.R9 = function Rmh(a) {
 _.S9 = function Smh() {
   return new knh(
     (((this.g + this.i) / 2) | 0) +
-      (((this.i - this.g) & 1) == 1 ? Cast_round_int($wnd.Math.random() * 2) : 0),
+      (((this.i - this.g) & 1) == 1
+        ? Cast_round_int($wnd.Math.random() * 2)
+        : 0),
     (((this.j + this.f) / 2) | 0) +
-      (((this.f - this.j) & 1) == 1 ? Cast_round_int($wnd.Math.random() * 2) : 0),
+      (((this.f - this.j) & 1) == 1
+        ? Cast_round_int($wnd.Math.random() * 2)
+        : 0),
   );
 };
 _.T9 = function Tmh(a) {
@@ -436626,7 +436613,9 @@ _.O8 = function soh() {
     e =
       ((q = a.a.length),
       q > 0
-        ? y8h(a.a, a.a.length)[q > 0 ? Cast_round_int($wnd.Math.random() * q) : 0]
+        ? y8h(a.a, a.a.length)[
+            q > 0 ? Cast_round_int($wnd.Math.random() * q) : 0
+          ]
         : null);
     Nmh(e, this.i);
     e.e = Ynh;
@@ -436879,7 +436868,7 @@ Runtime_defineClass(891, 144, { 891: 1, 144: 1 }, Jph);
 _.hab = function Kph(a, b) {
   var c, d, e, f, g, h;
   Eph(a, b.g, b.j, b.i - b.g + 1, b.f - b.j + 1, 4);
-  Fph(a, b, 1, Hjg((Fjg(), Dungeon.depth) + 1) ? 15 : 0);
+  Fph(a, b, 1, Dungeon_bossLevel((Fjg(), Dungeon.depth) + 1) ? 15 : 0);
   c = new knh(
     (((b.g + b.i) / 2) | 0) +
       (((b.i - b.g) & 1) == 1 ? Cast_round_int($wnd.Math.random() * 2) : 0),
@@ -437429,7 +437418,10 @@ _.hab = function Dqh(a, b) {
     tnh(c, (Dnh(), Anh));
   }
   Fjg();
-  if (!Hjg(Dungeon.depth) && Cast_round_int($wnd.Math.random() * 5) == 0) {
+  if (
+    !Dungeon_bossLevel(Dungeon.depth) &&
+    Cast_round_int($wnd.Math.random() * 5) == 0
+  ) {
     switch (Cast_round_int($wnd.Math.random() * 6)) {
       case 0:
         if (a.t != (tlh(), qlh)) {
@@ -437470,8 +437462,8 @@ _.hab = function Dqh(a, b) {
         }
       case 5: {
         if (
-          !Hjg(Dungeon.depth) &&
-          !Hjg(Dungeon.depth + 1) &&
+          !Dungeon_bossLevel(Dungeon.depth) &&
+          !Dungeon_bossLevel(Dungeon.depth + 1) &&
           $wnd.Math.min(b.i - b.g, b.f - b.j) >= 5
         ) {
           Gqh(a, b);
@@ -437547,7 +437539,7 @@ _.hab = function Qqh(a, b) {
     rXh(17),
     rXh(21),
     rXh(21),
-    rXh(Hjg((Fjg(), Dungeon.depth) + 1) ? 39 : 0),
+    rXh(Dungeon_bossLevel((Fjg(), Dungeon.depth) + 1) ? 39 : 0),
   ]);
   Eph(a, b.g, b.j, b.i - b.g + 1, b.f - b.j + 1, 4);
   Fph(a, b, 1, bUh(h, h.length).a);
@@ -438133,7 +438125,9 @@ _.C$ = function Hth() {
   cTh(qag.b.d.b);
 };
 _.qab = function Ith() {
-  PixelScene_noFade ? (PixelScene_noFade = false) : Group_$add(this, new Cwh(Pbi, false));
+  PixelScene_noFade
+    ? (PixelScene_noFade = false)
+    : Group_$add(this, new Cwh(Pbi, false));
 };
 _.rab = function Jth(a, b) {
   Group_$add(this, new Cwh(a, b));
@@ -438151,7 +438145,12 @@ var PixelScene_defaultZoom = 0,
   PixelScene_scale = 0,
   PixelScene_uiCamera;
 var URf = Class_createForClass(WLj, N_i, 156, mGf);
-Runtime_defineClass(997, 156, { 20: 1, 30: 1, 216: 1, 997: 1, 156: 1 }, Lth);
+Runtime_defineClass(
+  997,
+  156,
+  { 20: 1, 30: 1, 216: 1, 997: 1, 156: 1 },
+  AboutScene,
+);
 _.j0 = function AboutScene_create() {
   var a, b, c, d, e, f;
   PixelScene_$create(this);
@@ -438159,8 +438158,14 @@ _.j0 = function AboutScene_create() {
   e.b = $wnd.Math.min((g9f(), Camera_main).p, 120);
   BitmapTextMultiline_$measure(e);
   Group_$add(this, e);
-  e.gb = Cast_round_int(((Camera_main.p - e.fb * e.db.a) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
-  e.hb = Cast_round_int(((Camera_main.a - e.$ * e.db.b) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  e.gb =
+    Cast_round_int(
+      ((Camera_main.p - e.fb * e.db.a) / 2) * PixelScene_defaultZoom,
+    ) / PixelScene_defaultZoom;
+  e.hb =
+    Cast_round_int(
+      ((Camera_main.a - e.$ * e.db.b) / 2) * PixelScene_defaultZoom,
+    ) / PixelScene_defaultZoom;
   d = Fth(O9i, 8);
   d.b = $wnd.Math.min(Camera_main.p, 120);
   BitmapTextMultiline_$measure(d);
@@ -438171,7 +438176,9 @@ _.j0 = function AboutScene_create() {
   c = new Oth(d);
   Group_$add(this, c);
   f = lGh((hGh(), gGh));
-  f.gb = Cast_round_int(((Camera_main.p - f.fb) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  f.gb =
+    Cast_round_int(((Camera_main.p - f.fb) / 2) * PixelScene_defaultZoom) /
+    PixelScene_defaultZoom;
   f.hb = e.hb - f.$ - 8;
   Group_$add(this, f);
   NOg(KOg(new OOg(7, 64), 1122867, true), f, 0).V = 20;
@@ -438181,7 +438188,9 @@ _.j0 = function AboutScene_create() {
   b = new UEh();
   Component_$setPos(b, Camera_main.p - b.B, 0);
   Group_$add(this, b);
-  PixelScene_noFade ? (PixelScene_noFade = false) : Group_$add(this, new Cwh(Pbi, false));
+  PixelScene_noFade
+    ? (PixelScene_noFade = false)
+    : Group_$add(this, new Cwh(Pbi, false));
 };
 _.e1 = function AboutScene_onBackPressed() {
   PixelScene_noFade = true;
@@ -438194,7 +438203,12 @@ _.m1 = function Pth(a) {
   Tf(hc, "http://pixeldungeon.watabou.ru");
 };
 var yRf = Class_createForClass(WLj, "AboutScene/1", pLi, sGf);
-Runtime_defineClass(VGi, 156, { 20: 1, 30: 1, 216: 1, 1278: 1, 156: 1 }, Rth);
+Runtime_defineClass(
+  VGi,
+  156,
+  { 20: 1, 30: 1, 216: 1, 1278: 1, 156: 1 },
+  AmuletScene,
+);
 _.j0 = function Sth() {
   var a, b, c, d;
   PixelScene_$create(this);
@@ -438215,21 +438229,36 @@ _.j0 = function Sth() {
   Group_$add(this, b);
   if (Qth) {
     c = this.a.$ + 8 + a.A + 2 + b.A;
-    this.a.gb = Cast_round_int((((g9f(), Camera_main).p - this.a.fb) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
-    this.a.hb = Cast_round_int(((Camera_main.a - c) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+    this.a.gb =
+      Cast_round_int(
+        (((g9f(), Camera_main).p - this.a.fb) / 2) * PixelScene_defaultZoom,
+      ) / PixelScene_defaultZoom;
+    this.a.hb =
+      Cast_round_int(((Camera_main.a - c) / 2) * PixelScene_defaultZoom) /
+      PixelScene_defaultZoom;
     Component_$setPos(a, (Camera_main.p - a.B) / 2, this.a.hb + this.a.$ + 8);
     Component_$setPos(b, a.C, a.D + a.A + 2);
   } else {
     c = this.a.$ + 8 + d.$ * d.db.b + 8 + a.A + 2 + b.A;
-    this.a.gb = Cast_round_int((((g9f(), Camera_main).p - this.a.fb) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
-    this.a.hb = Cast_round_int(((Camera_main.a - c) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
-    d.gb = Cast_round_int(((Camera_main.p - d.fb * d.db.a) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+    this.a.gb =
+      Cast_round_int(
+        (((g9f(), Camera_main).p - this.a.fb) / 2) * PixelScene_defaultZoom,
+      ) / PixelScene_defaultZoom;
+    this.a.hb =
+      Cast_round_int(((Camera_main.a - c) / 2) * PixelScene_defaultZoom) /
+      PixelScene_defaultZoom;
+    d.gb =
+      Cast_round_int(
+        ((Camera_main.p - d.fb * d.db.a) / 2) * PixelScene_defaultZoom,
+      ) / PixelScene_defaultZoom;
     d.hb = this.a.hb + this.a.$ + 8;
     Component_$setPos(a, (Camera_main.p - a.B) / 2, d.hb + d.$ * d.db.b + 8);
     Component_$setPos(b, a.C, a.D + a.A + 2);
   }
   NOg(KOg(new OOg(8, 48), 16768443, true), this.a, 0).V = 30;
-  PixelScene_noFade ? (PixelScene_noFade = false) : Group_$add(this, new Cwh(Pbi, false));
+  PixelScene_noFade
+    ? (PixelScene_noFade = false)
+    : Group_$add(this, new Cwh(Pbi, false));
 };
 _.e1 = function Tth() {
   xvh = (dwh(), Zvh);
@@ -438263,7 +438292,12 @@ _.a2 = function Yth() {
   qag.e = true;
 };
 var BRf = Class_createForClass(WLj, "AmuletScene/2", zMi, iUf);
-Runtime_defineClass(996, 156, { 20: 1, 30: 1, 216: 1, 996: 1, 156: 1 }, Zth);
+Runtime_defineClass(
+  996,
+  156,
+  { 20: 1, 30: 1, 216: 1, 996: 1, 156: 1 },
+  BadgesScene,
+);
 _.j0 = function BadgesScene_create() {
   var a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r;
   PixelScene_$create(this);
@@ -438275,8 +438309,14 @@ _.j0 = function BadgesScene_create() {
   a = new Archs();
   Component_$setSize(a, r, f);
   Group_$add(this, a);
-  n = Cast_round_int($wnd.Math.min(r, (Game_width > Game_height ? 224 : 128) * 3)) - 16;
-  m = Cast_round_int($wnd.Math.min(f, (Game_width > Game_height ? 160 : 224) * 3)) - 32;
+  n =
+    Cast_round_int(
+      $wnd.Math.min(r, (Game_width > Game_height ? 224 : 128) * 3),
+    ) - 16;
+  m =
+    Cast_round_int(
+      $wnd.Math.min(f, (Game_width > Game_height ? 160 : 224) * 3),
+    ) - 32;
   o = $wnd.Math.sqrt((n * m) / 27);
   k = Cast_round_int($wnd.Math.ceil(n / o));
   l = Cast_round_int($wnd.Math.ceil(m / o));
@@ -438286,8 +438326,12 @@ _.j0 = function BadgesScene_create() {
   p = PixelScene_createText(S9i, 9);
   Visual_$hardlight(p, 1, 1, ILj);
   BitmapText_$measure(p);
-  p.gb = Cast_round_int(((r - p.fb * p.db.a) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
-  p.hb = Cast_round_int(((q - p.g.b * p.db.b) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  p.gb =
+    Cast_round_int(((r - p.fb * p.db.a) / 2) * PixelScene_defaultZoom) /
+    PixelScene_defaultZoom;
+  p.hb =
+    Cast_round_int(((q - p.g.b * p.db.b) / 2) * PixelScene_defaultZoom) /
+    PixelScene_defaultZoom;
   Group_$add(this, p);
   Badges_loadGlobal();
   c = Badges_filtered(true);
@@ -438296,14 +438340,20 @@ _.j0 = function BadgesScene_create() {
       h = g * k + i;
       b = h < c.a.length ? (V8h(h, c.a.length), c.a[h]) : null;
       e = new duh(b);
-      Component_$setPos(e, j + i * o + (o - e.B) / 2, q + g * o + (o - e.A) / 2);
+      Component_$setPos(
+        e,
+        j + i * o + (o - e.B) / 2,
+        q + g * o + (o - e.A) / 2,
+      );
       Group_$add(this, e);
     }
   }
   d = new UEh();
   Component_$setPos(d, Camera_main.p - d.B, 0);
   Group_$add(this, d);
-  PixelScene_noFade ? (PixelScene_noFade = false) : Group_$add(this, new Cwh(Pbi, false));
+  PixelScene_noFade
+    ? (PixelScene_noFade = false)
+    : Group_$add(this, new Cwh(Pbi, false));
   jgg();
   Badges_loadingListener = new buh(this);
 };
@@ -438322,14 +438372,21 @@ _.e1 = function auh() {
 var FRf = Class_createForClass(WLj, g_i, 996, URf);
 Runtime_defineClass(qLi, 1, pLj, buh);
 _.t5 = function cuh() {
-  qag.g == this.a && ((PixelScene_noFade = true), (qag.i = FRf), (qag.e = true));
+  qag.g == this.a &&
+    ((PixelScene_noFade = true), (qag.i = FRf), (qag.e = true));
 };
 var DRf = Class_createForClass(WLj, "BadgesScene/1", qLi, WXf);
 Runtime_defineClass(917, 46, { 20: 1, 30: 1, 46: 1, 36: 1, 917: 1 }, duh);
 _.UC = function euh() {
   Gfg(this);
-  this.b.gb = Cast_round_int((this.C + (this.B - this.b.C_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
-  this.b.hb = Cast_round_int((this.D + (this.A - this.b.p_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.b.gb =
+    Cast_round_int(
+      (this.C + (this.B - this.b.C_()) / 2) * PixelScene_defaultZoom,
+    ) / PixelScene_defaultZoom;
+  this.b.hb =
+    Cast_round_int(
+      (this.D + (this.A - this.b.p_()) / 2) * PixelScene_defaultZoom,
+    ) / PixelScene_defaultZoom;
 };
 _.a2 = function fuh() {
   ieg((eeg(), deg), UHj, Ini, KLj);
@@ -438345,7 +438402,9 @@ _.yz = function muh() {
   huh(this);
 };
 _.m1 = function nuh(a) {
-  this.c ? (this.c = false) : juh(this, dkg(this.p, Cast_round_int(a.a.a), Cast_round_int(a.a.b)));
+  this.c
+    ? (this.c = false)
+    : juh(this, dkg(this.p, Cast_round_int(a.a.a), Cast_round_int(a.a.b)));
 };
 _.n1 = function ouh(a) {
   var b;
@@ -438536,7 +438595,7 @@ _.j0 = function Wuh() {
   ) {
     j = ((e = k.a.Sd()), e.Aeb());
     Duh(this, j);
-    Statistics_amuletObtained && j.e5(Dungeon.hero.K);
+    Statistics.amuletObtained && j.e5(Dungeon.hero.K);
   }
   Group_$add(this, this.c);
   Group_$add(this, this.b);
@@ -438572,7 +438631,13 @@ _.j0 = function Wuh() {
   Group_$add(this, q);
   this.u = new xIh();
   this.u.kb = PixelScene_uiCamera;
-  Component_$setRect(this.u, 0, PixelScene_uiCamera.a - this.u.A, PixelScene_uiCamera.p, this.u.A);
+  Component_$setRect(
+    this.u,
+    0,
+    PixelScene_uiCamera.a - this.u.A,
+    PixelScene_uiCamera.p,
+    this.u.A,
+  );
   Group_$add(this, this.u);
   a = new IDh();
   a.kb = PixelScene_uiCamera;
@@ -438632,7 +438697,7 @@ _.j0 = function Wuh() {
   }
   Camera_main.o = this.i;
   if (xvh != (dwh(), awh)) {
-    if (Dungeon.depth < Statistics_deepestFloor) {
+    if (Dungeon.depth < Statistics.deepestFloor) {
       sJh();
       uJh(
         "@@ Welcome back to the level %d of Pixel Dungeon!",
@@ -438676,14 +438741,16 @@ _.j0 = function Wuh() {
         aqf(Vpf(WXf, 1), E9h, 1, 5, []),
       ));
     Dungeon.nightMode &&
-      !Hjg(Dungeon.depth) &&
+      !Dungeon_bossLevel(Dungeon.depth) &&
       (sJh(),
       uJh(
         "** Be cautious, since the dungeon is even more dangerous at night!",
         aqf(Vpf(WXf, 1), E9h, 1, 5, []),
       ));
     xvh = awh;
-    PixelScene_noFade ? (PixelScene_noFade = false) : Group_$add(this, new Cwh(Pbi, false));
+    PixelScene_noFade
+      ? (PixelScene_noFade = false)
+      : Group_$add(this, new Cwh(Pbi, false));
   }
   gvh(xuh);
 };
@@ -438731,7 +438798,9 @@ var wuh, xuh, yuh;
 var KRf = Class_createForClass(WLj, "GameScene", 918, URf);
 Runtime_defineClass(AMi, 1, XLj, mvh);
 _.m7 = function nvh(a) {
-  B6f ? GameScene_examineCell(a) : hvg((Fjg(), Dungeon.hero), a.a) && lvg(Dungeon.hero);
+  B6f
+    ? GameScene_examineCell(a)
+    : hvg((Fjg(), Dungeon.hero), a.a) && lvg(Dungeon.hero);
 };
 _.n7 = function ovh() {
   return null;
@@ -438770,7 +438839,12 @@ _.Cab = function vvh() {
   Uuh();
 };
 var JRf = Class_createForClass(WLj, "GameScene/2", BMi, tUf);
-Runtime_defineClass(hWi, 156, { 20: 1, 30: 1, 216: 1, 1026: 1, 156: 1 }, Hvh);
+Runtime_defineClass(
+  hWi,
+  156,
+  { 20: 1, 30: 1, 216: 1, 1026: 1, 156: 1 },
+  InterlevelScene,
+);
 _.Dab = function Ivh() {
   InterlevelScene_$ascend();
 };
@@ -438815,7 +438889,7 @@ _.Fab = function Lvh() {
 };
 _.e1 = function Mvh() {};
 _.Gab = function Nvh() {
-  Evh();
+  InterlevelScene_$restore();
 };
 _.Hab = function Ovh() {
   Fvh();
@@ -438872,7 +438946,7 @@ _.bm = function Svh() {
         InterlevelScene_$ascend();
         break;
       case 2:
-        Evh();
+        InterlevelScene_$restore();
         break;
       case 3:
         Fvh();
@@ -438897,7 +438971,13 @@ _.bm = function Svh() {
   }
 };
 var LRf = Class_createForClass(WLj, "InterlevelScene/1", DMi, WXf);
-Runtime_defineClass(312, 63, { 20: 1, 30: 1, 63: 1, 312: 1, 82: 1 }, Tvh, WndTitledMessage);
+Runtime_defineClass(
+  312,
+  63,
+  { 20: 1, 30: 1, 63: 1, 312: 1, 82: 1 },
+  Tvh,
+  WndTitledMessage,
+);
 var vWf = Class_createForClass(wLj, F3i, 312, EUf);
 Runtime_defineClass(453, 312, xNj, Vvh);
 var lVf = Class_createForClass(wLj, "WndError", 453, vWf);
@@ -438917,11 +438997,18 @@ Runtime_defineClass(560, 38, { 560: 1, 3: 1, 49: 1, 38: 1 }, nwh);
 var jwh, kwh, lwh;
 var ORf = Class_createForEnum(WLj, "InterlevelScene/Phase", 560, GXf, pwh, owh);
 var qwh;
-Runtime_defineClass(IGi, 156, { 20: 1, 30: 1, 216: 1, 1279: 1, 156: 1 }, swh);
+Runtime_defineClass(
+  IGi,
+  156,
+  { 20: 1, 30: 1, 216: 1, 1279: 1, 156: 1 },
+  IntroScene,
+);
 _.j0 = function twh() {
   PixelScene_$create(this);
   Group_$add(this, new zwh());
-  PixelScene_noFade ? (PixelScene_noFade = false) : Group_$add(this, new Cwh(Pbi, false));
+  PixelScene_noFade
+    ? (PixelScene_noFade = false)
+    : Group_$add(this, new Cwh(Pbi, false));
 };
 var RRf = Class_createForClass(WLj, F_i, IGi, URf);
 Runtime_defineClass(552, 63, yNj, wwh);
@@ -438994,7 +439081,12 @@ Runtime_defineClass(
 //     qag.i = sSf;
 //     qag.e = true;
 // };
-Runtime_defineClass(923, 46, { 20: 1, 30: 1, 46: 1, 36: 1, 923: 1 }, RankingsScene$Record);
+Runtime_defineClass(
+  923,
+  46,
+  { 20: 1, 30: 1, 46: 1, 36: 1, 923: 1 },
+  RankingsScene$Record,
+);
 _.T1 = function RankingsScene$Record_createChildren() {
   this.k = new Tfg(this);
   Group_$add(this, this.k);
@@ -439011,10 +439103,18 @@ _.UC = function Mwh() {
   Gfg(this);
   this.f.gb = this.C;
   this.f.hb = this.D + (this.A - this.f.$) / 2;
-  this.d.gb = Cast_round_int((this.f.gb + (this.f.fb - O7f(this.d)) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
-  this.d.hb = Cast_round_int((this.f.hb + (this.f.$ - E7f(this.d)) / 2 + 1) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.d.gb =
+    Cast_round_int(
+      (this.f.gb + (this.f.fb - O7f(this.d)) / 2) * PixelScene_defaultZoom,
+    ) / PixelScene_defaultZoom;
+  this.d.hb =
+    Cast_round_int(
+      (this.f.hb + (this.f.$ - E7f(this.d)) / 2 + 1) * PixelScene_defaultZoom,
+    ) / PixelScene_defaultZoom;
   !!this.c && I7f(this.c, z7f(this.f));
-  this.a.gb = Cast_round_int((this.C + this.B - this.a.fb) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.a.gb =
+    Cast_round_int((this.C + this.B - this.a.fb) * PixelScene_defaultZoom) /
+    PixelScene_defaultZoom;
   this.a.hb = this.f.hb;
   this.b.gb = this.f.gb + this.f.fb + 4;
   this.b.b = Cast_round_int(this.a.gb - this.b.gb);
@@ -439022,7 +439122,7 @@ _.UC = function Mwh() {
   this.b.hb = this.d.hb + this.d.D_() - F8f(this.b);
 };
 _.a2 = function RankingsScene$Record_onClick() {
-    return; // TODO: implement
+  return; // TODO: implement
   this.rec.gameFile.length > 0
     ? Group_$add(this.mb, new WndRanking(this.rec.gameFile))
     : Group_$add(this.mb, new Vvh(daj));
@@ -439050,7 +439150,9 @@ _.j0 = function StartScene_create() {
   Component_$setSize(a, w, j);
   Group_$add(this, a);
   u = QMg((WMg(), VMg));
-  u.gb = Cast_round_int(((w - u.fb * u.db.a) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  u.gb =
+    Cast_round_int(((w - u.fb * u.db.a) / 2) * PixelScene_defaultZoom) /
+    PixelScene_defaultZoom;
   u.hb = Cast_round_int(v * PixelScene_defaultZoom) / PixelScene_defaultZoom;
   Group_$add(this, u);
   this.c = m;
@@ -439101,8 +439203,12 @@ _.j0 = function StartScene_create() {
       n = F1h(o);
       n.G_();
       Visual_$hardlight(n, 1, 1, 0);
-      n.gb = Cast_round_int((((w / 2) | 0) - (n.fb * n.db.a) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
-      n.hb = Cast_round_int(p * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+      n.gb =
+        Cast_round_int(
+          (((w / 2) | 0) - (n.fb * n.db.a) / 2) * PixelScene_defaultZoom,
+        ) / PixelScene_defaultZoom;
+      n.hb =
+        Cast_round_int(p * PixelScene_defaultZoom) / PixelScene_defaultZoom;
       Group_$add(this.f, n);
       p += n.$ * n.db.b;
     }
@@ -439117,7 +439223,9 @@ _.j0 = function StartScene_create() {
       qlg((olg(), nlg), Onj, 0)
     ],
   );
-  PixelScene_noFade ? (PixelScene_noFade = false) : Group_$add(this, new Cwh(Pbi, false));
+  PixelScene_noFade
+    ? (PixelScene_noFade = false)
+    : Group_$add(this, new Cwh(Pbi, false));
   jgg();
   Badges_loadingListener = new ixh(this);
 };
@@ -439156,11 +439264,22 @@ _.UC = function axh() {
   R$g(this);
   if (this.b.k.length > 0) {
     this.g.hb =
-      Cast_round_int((this.D + (this.A - E7f(this.g) - this.b.D_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
-    this.b.gb = Cast_round_int((this.C + (this.B - O7f(this.b)) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
-    this.b.hb = Cast_round_int((this.g.hb + E7f(this.g)) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+      Cast_round_int(
+        (this.D + (this.A - E7f(this.g) - this.b.D_()) / 2) *
+          PixelScene_defaultZoom,
+      ) / PixelScene_defaultZoom;
+    this.b.gb =
+      Cast_round_int(
+        (this.C + (this.B - O7f(this.b)) / 2) * PixelScene_defaultZoom,
+      ) / PixelScene_defaultZoom;
+    this.b.hb =
+      Cast_round_int((this.g.hb + E7f(this.g)) * PixelScene_defaultZoom) /
+      PixelScene_defaultZoom;
   } else {
-    this.g.hb = Cast_round_int((this.D + (this.A - this.g.D_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+    this.g.hb =
+      Cast_round_int(
+        (this.D + (this.A - this.g.D_()) / 2) * PixelScene_defaultZoom,
+      ) / PixelScene_defaultZoom;
   }
 };
 _.Lab = function StartScene$GameButton_secondary(a, b) {
@@ -439188,7 +439307,8 @@ _.a2 = function hxh() {
 var ZRf = Class_createForClass(WLj, "StartScene/2", tLi, cSf);
 Runtime_defineClass(JMi, 1, pLj, ixh);
 _.t5 = function jxh() {
-  qag.g == this.a && ((PixelScene_noFade = true), (qag.i = dSf), (qag.e = true));
+  qag.g == this.a &&
+    ((PixelScene_noFade = true), (qag.i = dSf), (qag.e = true));
 };
 var $Rf = Class_createForClass(WLj, "StartScene/3", JMi, WXf);
 Runtime_defineClass(924, 46, { 20: 1, 30: 1, 46: 1, 36: 1, 924: 1 }, kxh);
@@ -439200,8 +439320,10 @@ _.T1 = function lxh() {
 };
 _.UC = function StartScene$ChallengeButton_layout() {
   Gfg(this);
-  this.a.gb = Cast_round_int(this.C * PixelScene_defaultZoom) / PixelScene_defaultZoom;
-  this.a.hb = Cast_round_int(this.D * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.a.gb =
+    Cast_round_int(this.C * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.a.hb =
+    Cast_round_int(this.D * PixelScene_defaultZoom) / PixelScene_defaultZoom;
 };
 _.a2 = function StartScene$ChallengeButton_onClick() {
   Badges_isUnlocked((Kig(), Dig))
@@ -439243,10 +439365,19 @@ _.Mab = function xxh(a) {
 };
 _.UC = function yxh() {
   Gfg(this);
-  this.a.gb = Cast_round_int((this.C + (this.B - this.a.C_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.a.gb =
+    Cast_round_int(
+      (this.C + (this.B - this.a.C_()) / 2) * PixelScene_defaultZoom,
+    ) / PixelScene_defaultZoom;
   this.a.hb =
-    Cast_round_int((this.D + (this.A - this.a.p_() - E7f(this.f)) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
-  this.f.gb = Cast_round_int((this.C + (this.B - O7f(this.f)) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+    Cast_round_int(
+      (this.D + (this.A - this.a.p_() - E7f(this.f)) / 2) *
+        PixelScene_defaultZoom,
+    ) / PixelScene_defaultZoom;
+  this.f.gb =
+    Cast_round_int(
+      (this.C + (this.B - O7f(this.f)) / 2) * PixelScene_defaultZoom,
+    ) / PixelScene_defaultZoom;
   this.f.hb = this.a.hb + this.a.p_() + 2;
 };
 _.c2 = function zxh() {
@@ -439269,7 +439400,12 @@ _.b = 0;
 _.e = 0;
 _.g = 0;
 var bSf = Class_createForClass(WLj, "StartScene/ClassShield", qHi, JGf);
-Runtime_defineClass(iWi, 156, { 20: 1, 30: 1, 216: 1, 156: 1, 1027: 1 }, Cxh);
+Runtime_defineClass(
+  iWi,
+  156,
+  { 20: 1, 30: 1, 216: 1, 156: 1, 1027: 1 },
+  SurfaceScene,
+);
 
 _.j0 = function SurfaceScene_create() {
   var a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v;
@@ -439283,8 +439419,12 @@ _.j0 = function SurfaceScene_create() {
   b.c = true;
   Component_$setSize(b, u, g);
   Group_$add(this, b);
-  s = Cast_round_int((((u - 80) / 2) | 0) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
-  t = Cast_round_int((((g - 112 - 20) / 2) | 0) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  s =
+    Cast_round_int((((u - 80) / 2) | 0) * PixelScene_defaultZoom) /
+    PixelScene_defaultZoom;
+  t =
+    Cast_round_int((((g - 112 - 20) / 2) | 0) * PixelScene_defaultZoom) /
+    PixelScene_defaultZoom;
   o = h9f(Camera_main, s, t);
   this.a = new v9f(o.b, o.c, 80, 112, PixelScene_defaultZoom);
   w9f(this.a);
@@ -439316,7 +439456,9 @@ _.j0 = function SurfaceScene_create() {
     Group_$add(v, m);
   }
   a = new Kxh(Dungeon.hero.j);
-  a.gb = Cast_round_int(((80 - a.fb) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  a.gb =
+    Cast_round_int(((80 - a.fb) / 2) * PixelScene_defaultZoom) /
+    PixelScene_defaultZoom;
   a.hb = 112 - a.$;
   Group_$add(v, a);
   n = new Sxh();
@@ -439331,7 +439473,7 @@ _.j0 = function SurfaceScene_create() {
     Group_$add(v, m);
   }
   e = new Z9f(aHj);
-  U9f(e, V4f(e.O, 0, 0, 88, 125));
+  Image_$frame(e, V4f(e.O, 0, 0, 88, 125));
   e.gb = s - 4;
   e.hb = t - 9;
   Group_$add(this, e);
@@ -439347,7 +439489,9 @@ _.j0 = function SurfaceScene_create() {
   Group_$add(this, f);
   jgg();
   Badges_displayBadge((Kig(), Shg));
-  PixelScene_noFade ? (PixelScene_noFade = false) : Group_$add(this, new Cwh(Pbi, false));
+  PixelScene_noFade
+    ? (PixelScene_noFade = false)
+    : Group_$add(this, new Cwh(Pbi, false));
 };
 _.C$ = function Exh() {
   Badges_saveGlobal();
@@ -439429,7 +439573,12 @@ _.jj = function $xh() {
 };
 var Vxh, Wxh;
 var kSf = Class_createForClass(WLj, "SurfaceScene/Sky", 928, tGf);
-Runtime_defineClass(730, 156, { 20: 1, 30: 1, 216: 1, 156: 1, 730: 1 }, ayh);
+Runtime_defineClass(
+  730,
+  156,
+  { 20: 1, 30: 1, 216: 1, 156: 1, 730: 1 },
+  TitleScene,
+);
 _.j0 = function TitleScene_create() {
   var a, b, c, d, e, f, g, h, i, j, k, l, m, n;
   PixelScene_$create(this);
@@ -439481,7 +439630,9 @@ _.j0 = function TitleScene_create() {
   g = new VGh();
   Component_$setPos(g, 0, 0);
   Group_$add(this, g);
-  PixelScene_noFade ? (PixelScene_noFade = false) : Group_$add(this, new Cwh(Pbi, false));
+  PixelScene_noFade
+    ? (PixelScene_noFade = false)
+    : Group_$add(this, new Cwh(Pbi, false));
 };
 _.Pab = function cyh(a, b) {
   _xh(this, a, b);
@@ -439510,10 +439661,19 @@ _.T1 = function hyh() {
 };
 _.UC = function iyh() {
   Gfg(this);
-  this.a.gb = Cast_round_int((this.C + (this.B - this.a.C_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
-  this.a.hb = Cast_round_int(this.D * PixelScene_defaultZoom) / PixelScene_defaultZoom;
-  this.b.gb = Cast_round_int((this.C + (this.B - O7f(this.b)) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
-  this.b.hb = Cast_round_int((this.a.hb + this.a.p_() + 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.a.gb =
+    Cast_round_int(
+      (this.C + (this.B - this.a.C_()) / 2) * PixelScene_defaultZoom,
+    ) / PixelScene_defaultZoom;
+  this.a.hb =
+    Cast_round_int(this.D * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.b.gb =
+    Cast_round_int(
+      (this.C + (this.B - O7f(this.b)) / 2) * PixelScene_defaultZoom,
+    ) / PixelScene_defaultZoom;
+  this.b.hb =
+    Cast_round_int((this.a.hb + this.a.p_() + 2) * PixelScene_defaultZoom) /
+    PixelScene_defaultZoom;
 };
 _.c2 = function jyh() {
   y7f(this.a, 1.5);
@@ -440728,9 +440888,15 @@ _.T1 = function eEh() {
 };
 _.UC = function fEh() {
   this.b.gb = this.C;
-  this.b.hb = Cast_round_int((this.D + (this.A - this.b.$) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.b.hb =
+    Cast_round_int(
+      (this.D + (this.A - this.b.$) / 2) * PixelScene_defaultZoom,
+    ) / PixelScene_defaultZoom;
   this.c.gb = this.b.gb + this.b.fb + 2;
-  this.c.hb = Cast_round_int((this.D + (this.A - this.c.D_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.c.hb =
+    Cast_round_int(
+      (this.D + (this.A - this.c.D_()) / 2) * PixelScene_defaultZoom,
+    ) / PixelScene_defaultZoom;
 };
 _.Ebb = function gEh(a, b) {
   return cEh(this, a, b);
@@ -440825,7 +440991,10 @@ _.UC = function KEh() {
   this.g.gb = PixelScene_align(PixelScene_uiCamera, this.C + a);
   this.g.hb = PixelScene_align(PixelScene_uiCamera, this.D + a);
   a = (this.A - this.f.$) / 2;
-  this.f.gb = PixelScene_align(PixelScene_uiCamera, this.C + this.B - a - this.f.fb);
+  this.f.gb = PixelScene_align(
+    PixelScene_uiCamera,
+    this.C + this.B - a - this.f.fb,
+  );
   this.f.hb = PixelScene_align(PixelScene_uiCamera, this.D + a);
 };
 _.a2 = function LEh() {
@@ -440868,7 +441037,10 @@ _.UC = function QEh() {
   this.b.gb = this.C + this.B - 10;
   this.b.hb = this.D + (this.A - this.b.$) / 2;
   this.d.gb = this.C + this.B - 11 - O7f(this.d);
-  this.d.hb = Cast_round_int((this.D + (this.A - this.d.D_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.d.hb =
+    Cast_round_int(
+      (this.D + (this.A - this.d.D_()) / 2) * PixelScene_defaultZoom,
+    ) / PixelScene_defaultZoom;
 };
 _.a2 = function REh() {
   var a;
@@ -440881,7 +441053,10 @@ _.a2 = function REh() {
 };
 _.Hbb = function SEh() {
   this.d.gb = this.C + this.B - 11 - O7f(this.d);
-  this.d.hb = Cast_round_int((this.D + (this.A - this.d.D_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.d.hb =
+    Cast_round_int(
+      (this.D + (this.A - this.d.D_()) / 2) * PixelScene_defaultZoom,
+    ) / PixelScene_defaultZoom;
 };
 _.ri = function TEh() {
   var a;
@@ -440893,7 +441068,10 @@ _.ri = function TEh() {
         BitmapText_$text(this.d, "" + this.c);
         this.d.G_();
         this.d.gb = this.C + this.B - 11 - O7f(this.d);
-        this.d.hb = Cast_round_int((this.D + (this.A - this.d.D_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+        this.d.hb =
+          Cast_round_int(
+            (this.D + (this.A - this.d.D_()) / 2) * PixelScene_defaultZoom,
+          ) / PixelScene_defaultZoom;
         this.i = 1;
       }
     }
@@ -440918,7 +441096,9 @@ _.UC = function WEh() {
   this.a.hb = this.D;
 };
 _.a2 = function ExitButton_onClick() {
-  Rqf(qag.g, 730) ? undefined : ((PixelScene_noFade = true), (qag.i = sSf), (qag.e = true));
+  Rqf(qag.g, 730)
+    ? undefined
+    : ((PixelScene_noFade = true), (qag.i = sSf), (qag.e = true));
 };
 _.c2 = function YEh() {
   y7f(this.a, 1.5);
@@ -441238,8 +441418,14 @@ _.Rbb = function rHh(a) {
 _.UC = function sHh() {
   Gfg(this);
   kfg(this.d, this);
-  this.a.gb = Cast_round_int((this.C + (this.B - this.a.fb) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
-  this.a.hb = Cast_round_int((this.D + (this.A - this.a.$) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.a.gb =
+    Cast_round_int(
+      (this.C + (this.B - this.a.fb) / 2) * PixelScene_defaultZoom,
+    ) / PixelScene_defaultZoom;
+  this.a.hb =
+    Cast_round_int(
+      (this.D + (this.A - this.a.$) / 2) * PixelScene_defaultZoom,
+    ) / PixelScene_defaultZoom;
 };
 _.a2 = function tHh() {
   hvh(this, (SKh(), MKh), yaj);
@@ -441309,8 +441495,14 @@ _.T1 = function JHh() {
 };
 _.UC = function KHh() {
   vDh(this);
-  this.a.gb = PixelScene_align(PixelScene_uiCamera, this.C + 1 + (this.B - this.a.fb) / 2);
-  this.a.hb = PixelScene_align(PixelScene_uiCamera, this.D + (this.A - this.a.$) / 2);
+  this.a.gb = PixelScene_align(
+    PixelScene_uiCamera,
+    this.C + 1 + (this.B - this.a.fb) / 2,
+  );
+  this.a.hb = PixelScene_align(
+    PixelScene_uiCamera,
+    this.D + (this.A - this.a.$) / 2,
+  );
 };
 _.a2 = function LHh() {
   qvg((Fjg(), Dungeon.hero));
@@ -441478,8 +441670,12 @@ _.ri = function eIh() {
     this.o = Dungeon.hero.o;
     BitmapText_$text(this.q, "" + this.o);
     this.q.G_();
-    this.q.gb = Cast_round_int((27.5 - O7f(this.q) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
-    this.q.hb = Cast_round_int((28 - this.q.D_() / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+    this.q.gb =
+      Cast_round_int((27.5 - O7f(this.q) / 2) * PixelScene_defaultZoom) /
+      PixelScene_defaultZoom;
+    this.q.hb =
+      Cast_round_int((28 - this.q.D_() / 2) * PixelScene_defaultZoom) /
+      PixelScene_defaultZoom;
   }
   c = (Xsg(), B3g);
   if (c != this.n) {
@@ -441899,7 +442095,9 @@ _.Rbb = function CKh(a) {
     }
     if (bKh.b.A > 0 && a.b4() && a.v) {
       this.b = Zpf(_Ff, dcj, 228, 3, 0, 1);
-      d = Cast_round_int(FRh(0, Cast_round_int($wnd.Math.round((3 * a.s) / a.d4(a.u))), 3));
+      d = Cast_round_int(
+        FRh(0, Cast_round_int($wnd.Math.round((3 * a.s) / a.d4(a.u))), 3),
+      );
       for (c = 0; c < d; c++) {
         this.b[c] = new jag(2, 2, vaj);
         Group_$add(this, this.b[c]);
@@ -442072,8 +442270,16 @@ _.T1 = function ALh() {
 };
 _.UC = function BLh() {
   pKh(this);
-  this.b.gb = Cast_round_int((this.C + (this.B - O7f(this.b)) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
-  this.b.hb = Cast_round_int((this.D + (this.A - this.b.D_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom - 1;
+  this.b.gb =
+    Cast_round_int(
+      (this.C + (this.B - O7f(this.b)) / 2) * PixelScene_defaultZoom,
+    ) / PixelScene_defaultZoom;
+  this.b.hb =
+    Cast_round_int(
+      (this.D + (this.A - this.b.D_()) / 2) * PixelScene_defaultZoom,
+    ) /
+      PixelScene_defaultZoom -
+    1;
   this.e || (this.b.hb -= 2);
 };
 _.jcb = function CLh(a) {
@@ -442108,11 +442314,17 @@ _.T1 = function JLh() {
   Group_$add(this, this.c);
 };
 _.UC = function KLh() {
-  this.d.hb = Cast_round_int((this.D + (this.A - this.d.$) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.d.hb =
+    Cast_round_int(
+      (this.D + (this.A - this.d.$) / 2) * PixelScene_defaultZoom,
+    ) / PixelScene_defaultZoom;
   this.f.gb = this.d.gb;
   this.f.hb = this.d.hb;
   this.c.gb = this.d.gb + this.d.fb;
-  this.c.hb = Cast_round_int((this.D + (this.A - this.c.D_()) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.c.hb =
+    Cast_round_int(
+      (this.D + (this.A - this.c.D_()) / 2) * PixelScene_defaultZoom,
+    ) / PixelScene_defaultZoom;
 };
 _.Ebb = function LLh(a, b) {
   return HLh(this, a, b);
@@ -442338,7 +442550,11 @@ _.UC = function ZMh() {
   this.d.hb = this.c.$ - this.b.A - 2 - this.d.D_();
   a = this.B - this.c.fb - 2;
   Component_$setRect(this.b, this.c.fb + 2, this.c.$ - this.b.A, a, this.b.A);
-  Component_$setPos(this.a, this.d.gb + O7f(this.d) + 2, this.d.hb + this.d.D_() - 7);
+  Component_$setPos(
+    this.a,
+    this.d.gb + O7f(this.d) + 2,
+    this.d.hb + this.d.D_() - 7,
+  );
   this.A = hfg(this.b);
 };
 var EVf = Class_createForClass(wLj, "WndInfoMob/MobTitle", 950, LGf);
@@ -442370,9 +442586,15 @@ _.T1 = function fNh() {
 _.UC = function gNh() {
   this.c.gb = this.B - this.c.fb;
   this.a.gb = this.c.gb - 1 - O7f(this.a);
-  this.a.hb = Cast_round_int((this.D + (this.A - E7f(this.a)) / 2) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.a.hb =
+    Cast_round_int(
+      (this.D + (this.A - E7f(this.a)) / 2) * PixelScene_defaultZoom,
+    ) / PixelScene_defaultZoom;
   this.c.hb = this.a.hb - 1;
-  this.b.hb = Cast_round_int((this.a.hb + this.a.D_() - this.b.D_()) * PixelScene_defaultZoom) / PixelScene_defaultZoom;
+  this.b.hb =
+    Cast_round_int(
+      (this.a.hb + this.a.D_() - this.b.D_()) * PixelScene_defaultZoom,
+    ) / PixelScene_defaultZoom;
 };
 var JVf = Class_createForClass(wLj, "WndJournal/ListItem", 952, LGf);
 Runtime_defineClass(953, 63, { 20: 1, 30: 1, 63: 1, 953: 1, 82: 1 }, jNh);
@@ -442599,7 +442821,7 @@ var fWf = Class_createForClass(wLj, B3i, 956, EUf);
 Runtime_defineClass(wNi, 53, YLj, sOh);
 _.a2 = function WndResurrect$1_onClick() {
   BHg(this.a);
-  ++Statistics_ankhsUsed;
+  ++Statistics.ankhsUsed;
   xvh = (dwh(), bwh);
   qag.i = PRf;
   qag.e = true;
@@ -445644,13 +445866,16 @@ a_f("permProps", [
 
 export async function loadGame() {
   Rankings.load();
-    window.webxdc.setUpdateListener((update) => {
-        Rankings.onRecord(update.payload);
-        if(update.serial === update.maxSerial) {
-            localStorage.maxSerial = update.maxSerial;
-            Rankings.save();
-        }
-    }, parseInt(localStorage.maxSerial || "0"));
+  window.webxdc.setUpdateListener(
+    (update) => {
+      Rankings.onRecord(update.payload);
+      if (update.serial === update.max_serial) {
+        localStorage.maxSerial = update.max_serial;
+        Rankings.save();
+      }
+    },
+    parseInt(localStorage.maxSerial || "0"),
+  );
 
   StackTraceCreator_collector = !supportsErrorStack()
     ? new StackTraceCreator$CollectorLegacy()
