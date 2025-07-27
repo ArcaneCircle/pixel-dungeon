@@ -15450,11 +15450,8 @@ function dLh() {
   Component.call(this);
   this.c = null;
 }
-function qMh() {
+function WndGame$5() {
   S$g.call(this, "Main Menu");
-}
-function sMh() {
-  S$g.call(this, "Exit Game");
 }
 function eZh(a) {
   lVh.call(this, (W8h(a), a));
@@ -58000,7 +57997,7 @@ function fMh() {
     Q$g(a, Icons_get(Dungeon.hero.j));
     dMh(this, new oMh());
   }
-  eMh(this, new qMh(), new sMh());
+  dMh(this, new WndGame$5());
   dMh(this, new uMh(this));
   DHg(this, 120, this.a);
 }
@@ -442429,7 +442426,7 @@ _.a2 = function WndGame$4_onClick() {
   qag.e = true;
 };
 var pVf = Class_createForClass(wLj, "WndGame/4", jNi, iUf);
-Runtime_defineClass(kNi, 53, YLj, qMh);
+Runtime_defineClass(kNi, 53, YLj, WndGame$5);
 _.a2 = function rMh() {
   try {
     Dungeon_saveAll();
@@ -442441,9 +442438,6 @@ _.a2 = function rMh() {
   qag.e = true;
 };
 var qVf = Class_createForClass(wLj, "WndGame/5", kNi, iUf);
-Runtime_defineClass(lNi, 53, YLj, sMh);
-_.a2 = function tMh() {};
-var rVf = Class_createForClass(wLj, "WndGame/6", lNi, iUf);
 Runtime_defineClass(mNi, 53, YLj, uMh);
 _.a2 = function vMh() {
   BHg(this.a);
