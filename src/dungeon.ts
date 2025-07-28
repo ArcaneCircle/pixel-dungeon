@@ -25,5 +25,5 @@ export class Dungeon {
 
   public static droppedItems: any; // TODO: SparseArray<ArrayList<Item>>
 
-  private static passable = new Array<boolean>(Level.LENGTH); // TODO: not fully ported, initial value not used
+  //private static passable = new Array<boolean>(Level.LENGTH); // TODO: not fully ported, initial value not used
 }

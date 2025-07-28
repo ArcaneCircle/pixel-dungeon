@@ -1,8 +1,9 @@
-# Pixel Dungeon XDC
+# Arcane Dungeon
 
-Webxdc port of the awesome [Pixel Dungeon](https://github.com/watabou/pixel-dungeon)
+Traditional roguelike dungeon crawler RPG game for Webxdc,
+with pixel-art graphics and simple interface.
 
-This is a fork of https://github.com/gnojus/pixel-dungeon-gdx
+This is a fork of the awesome [Pixel Dungeon](https://github.com/watabou/pixel-dungeon)
 
 ## Contributing
 

@@ -21728,7 +21728,7 @@ function hUh(a) {
   this.a = a.a;
 }
 function gMg(a) {
-  this.d = "1.9.2a-gdx1.1";
+  this.d = "1.4.0"; // version number
   this.b = null;
   this.c = a;
 }
@@ -365504,7 +365504,7 @@ var NRi = "add",
     "The lloyd's beacon is successfully set at your current location, now you can return here anytime.",
   m8i =
     "Lloyd's beacon is an intricate magic device, that allows you to return to a place you have already been.",
-  n8i = "\n\nThis beacon was set somewhere on the level %d of Pixel Dungeon.",
+  n8i = "\n\nThis beacon was set somewhere on the level %d of Arcane Dungeon.",
   o8i = "READ",
   p8i = "Select a weapon to balance",
   q8i = "How would you like to balance your %s?",
@@ -365597,7 +365597,7 @@ var NRi = "add",
     "A Sorrowmoss is a flower (not a moss) with razor-sharp petals, coated with a deadly venom.",
   M9i = "Sungrass is renowned for its sap's healing properties.",
   N9i =
-    "Original code & graphics: Watabou\nLibGDX port: Arcnor\nWeb port: nojus297\nWebxdc port: adbenitez\nMusic: Cube_Code\n\nThis game is inspired by Brian Walker's Brogue. Try it on Windows, Mac OS or Linux - it's awesome! ;)\n\nPlease visit official website for additional info:",
+    "Arcane Dungeon\nDeveloped by: Asiel Diaz Benitez\nBased on Pixel Dungeon's open source\n\nPixel Dungeon\nDeveloped by: Watabou\nInspired by Brian Walker's Brogue\nGDX port: Arcnor\nMusic: Cube_Code",
   O9i = "pixeldungeon.watabou.ru",
   P9i = "Let's call it a day",
   Q9i = "I'm not done yet",
@@ -367592,7 +367592,7 @@ var jyj = "offsetX",
   qJj = "%s %s your attack",
   rJj = "%s %s %s's attack",
   sJj = "The pain snapped %s out of paralysis",
-  tJj = "One does not simply leave Pixel Dungeon.",
+  tJj = "One does not simply leave Arcane Dungeon.",
   uJj = "You now have %s",
   vJj = "There is something else here",
   wJj = "You hear something died in the distance",
@@ -395667,9 +395667,9 @@ _.kZ = function IReflectionCache2Generated_get(a, b) {
     case hWi:
       return b.e;
     case iWi:
-      return "Welcome to the level %d of Pixel Dungeon!";
+      return "Welcome to the level %d of Arcane Dungeon!";
     case jWi:
-      return "Welcome back to the level %d of Pixel Dungeon!";
+      return "Welcome back to the level %d of Arcane Dungeon!";
     case lWi:
       return "Be cautious, since the dungeon is even more dangerous at night!";
     case mWi:
@@ -438170,15 +438170,16 @@ _.j0 = function AboutScene_create() {
   Group_$add(this, d);
   d.gb = e.gb;
   d.hb = e.hb + e.$ * e.db.b;
-  c = new Oth(d);
-  Group_$add(this, c);
+  // disable opening link
+  //c = new Oth(d);
+  //Group_$add(this, c);
   f = lGh((hGh(), gGh));
   f.gb =
     Cast_round_int(((Camera_main.p - f.fb) / 2) * PixelScene_defaultZoom) /
     PixelScene_defaultZoom;
   f.hb = e.hb - f.$ - 8;
   Group_$add(this, f);
-  NOg(KOg(new OOg(7, 64), 1122867, true), f, 0).V = 20;
+  NOg(KOg(new OOg(7, 64), 0x450982, true), f, 0).V = 20;
   a = new Archs();
   Component_$setSize(a, Camera_main.p, Camera_main.a);
   abg(this, a);
@@ -438697,13 +438698,13 @@ _.j0 = function Wuh() {
     if (Dungeon.depth < Statistics.deepestFloor) {
       sJh();
       uJh(
-        "@@ Welcome back to the level %d of Pixel Dungeon!",
+        "@@ Welcome back to the level %d of Arcane Dungeon!",
         aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(Dungeon.depth)]),
       );
     } else {
       sJh();
       uJh(
-        "@@ Welcome to the level %d of Pixel Dungeon!",
+        "@@ Welcome to the level %d of Arcane Dungeon!",
         aqf(Vpf(WXf, 1), E9h, 1, 5, [rXh(Dungeon.depth)]),
       );
       ieg((eeg(), deg), dIj, 1, 1);
@@ -439593,7 +439594,8 @@ _.j0 = function TitleScene_create() {
   k.gb = (m - k.fb * k.db.a) / 2;
   k.hb = (h - i) / 2;
   _xh(this, k.gb + 18, k.hb + 20);
-  _xh(this, k.gb + k.fb - 18, k.hb + 20);
+  // remove second flame:
+  //_xh(this, k.gb + k.fb - 18, k.hb + 20);
   j = new dyh(QMg(UMg));
   j.gb = k.gb;
   j.hb = k.hb;
