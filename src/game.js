@@ -3,7 +3,7 @@ import { Rankings } from "~/com/watabou/pixeldungeon/Rankings";
 import { Badges } from "~/com/watabou/pixeldungeon/Badges";
 import { Statistics } from "~/com/watabou/pixeldungeon/Statistics";
 
-const VERSION = "1.4.0"
+const VERSION = "1.5.0"
 var $wnd = window;
 var $doc = $wnd.document;
 var $intern_0 = 1231,
