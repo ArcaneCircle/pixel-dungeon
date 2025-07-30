@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@webxdc/types':
+        specifier: latest
+        version: 2.1.2
       '@webxdc/vite-plugins':
         specifier: latest
         version: 1.5.1(vite@7.0.5(@types/node@24.1.0)(terser@5.43.1))
@@ -851,6 +854,9 @@ packages:
 
   '@webcontainer/env@1.1.1':
     resolution: {integrity: sha512-6aN99yL695Hi9SuIk1oC88l9o0gmxL1nGWWQ/kNy81HigJ0FoaoTXpytCj6ItzgyCEwA9kF1wixsTuv5cjsgng==}
+
+  '@webxdc/types@2.1.2':
+    resolution: {integrity: sha512-oklcyHvUXqCS5JwbPVaN8tt7nSB8ffRmyrUlVt0HeSn4kDyNE46oKSbw3KtrDzl530KHnm67LfcK/AjWbBoXUA==}
 
   '@webxdc/vite-plugins@1.5.1':
     resolution: {integrity: sha512-MQ+WalngoAVuiOFHiJo0q4XU+iv7AiIN/f52flOZjeI/rHWvGF0YvG8Pbu5ID5TpTsYOEqIlp9wgUa7+fbBmzQ==}
@@ -2635,6 +2641,8 @@ snapshots:
       - supports-color
 
   '@webcontainer/env@1.1.1': {}
+
+  '@webxdc/types@2.1.2': {}
 
   '@webxdc/vite-plugins@1.5.1(vite@7.0.5(@types/node@24.1.0)(terser@5.43.1))':
     dependencies:
